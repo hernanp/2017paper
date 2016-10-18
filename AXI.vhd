@@ -34,12 +34,17 @@ entity AXI is
             
             full_srq1,full_srq2: in std_logic;
            	full_brs1,full_brs2: in std_logic;
-           	full_crq1,full_crq2,full_wb1,full_srs1,full_wb2,full_srs2,full_mrs: out std_logic;
+           	full_crq1,full_crq2,full_wb1,full_srs1,full_wb2,full_srs2,full_mrs,full_gfxrs: out std_logic;
            	full_m: in std_logic;
             full_b_m: out std_logic:='0';
             
             mem_wb: out std_logic_vector(50 downto 0);
             wb_ack: in std_logic;
+           	
+           	gfx_wb: out std_logic_vector(50 downto 0);
+            gfx_wb_ack: in std_logic;
+           	
+           	
            	
             pwrreq: out std_logic_vector(4 downto 0);
             pwrreq_full: in std_logic;
@@ -57,70 +62,85 @@ architecture Behavioral of AXI is
     signal readptr,writeptr : integer range 0 to 31 := 0;  --read and write pointers.begin
     
     signal in1,in4,in6,in7: std_logic_vector(50 downto 0);
-    signal in2, out2,in5,out5,in3,out3: std_logic_vector(51 downto 0);
-    signal we1,we2,we3,we4,we5,we6,we7,re7,re1,re2,re3,re4,re5,re6: std_logic:='0';
-	signal out1,out4,out6,out7:std_logic_vector(50 downto 0);
-	signal emp1,emp2,emp3,emp4,emp5,emp6,emp7,ful7,ful1,ful2,ful3,ful4,ful5,ful6: std_logic:='0';
-	
-	
-	signal bus_res1_1, bus_res1_2,bus_res2_1, bus_res2_2: std_logic_vector(50 downto 0);
-	signal mem_req1, mem_req2: std_logic_vector(50 downto 50);
-	signal mem_ack1,mem_ack2,gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2: std_logic;
-	
-	
-	signal tmp_brs1_1, tmp_brs1_2, tmp_brs2_1, tmp_brs2_2: std_logic_vector(50 downto 0):=(others => '0');
-	
-	signal tomem1, tomem2, togfx1, togfx2 : std_logic_vector(50 downto 0):=(others => '0');
+    signal in2, out2,in5,out5,in3,out3,in8,out8: std_logic_vector(51 downto 0);
+    signal we1,we2,we3,we4,we5,we6,we7,we8,re8,re7,re1,re2,re3,re4,re5,re6: std_logic:='0';
+ signal out1,out4,out6,out7:std_logic_vector(50 downto 0);
+ signal emp1,emp2,emp3,emp4,emp5,emp6,emp7,emp8,ful8,ful7,ful1,ful2,ful3,ful4,ful5,ful6: std_logic:='0';
+ 
+ 
+ signal bus_res1_1, bus_res1_2,bus_res2_1, bus_res2_2, bus_res1_3,bus_res2_3: std_logic_vector(50 downto 0);
+ signal mem_req1, mem_req2: std_logic_vector(50 downto 50);
+ signal mem_ack1,mem_ack2,gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2: std_logic;
+ 
+ 
+ signal tmp_brs1_1, tmp_brs1_2, tmp_brs2_1, tmp_brs2_2: std_logic_vector(50 downto 0):=(others => '0');
+ 
+ signal tomem1, tomem2, togfx1, togfx2 : std_logic_vector(50 downto 0):=(others => '0');
     signal tmp_mem1, tmp_mem2: std_logic_vector(50 downto 0):=(others => '0');
     
     
-    signal wb_ack1, wb_ack2 : std_logic;
-    signal mem_wb1, mem_wb2, tmp_mem_wb1, tmp_mem_wb2 : std_logic_vector (50 downto 0):=(others => '0');
+    signal wb_ack1, wb_ack2,gfx_wb_ack1, gfx_wb_ack2 : std_logic;
+    signal mem_wb1, mem_wb2, gfx_wb1, gfx_wb2,tmp_mem_wb1, tmp_mem_wb2 : std_logic_vector (50 downto 0):=(others => '0');
     signal reg_1, reg_2: std_logic_vector(50 downto 0) := (others=>'0');
     --state information of power
-	signal gfxpoweron: std_logic:='0';
-	
-	signal adr_0, adr_1 : std_logic_vector(15 downto 0);
-	signal tmp_sp1, tmp_sp2: std_logic_vector(50 downto 0);
-	signal pwr_req1, pwr_req2: std_logic_vector(4 downto 0);
-	signal pwr_ack1, pwr_ack2: std_logic;
-	
+ signal gfxpoweron: std_logic:='0';
+ 
+ signal adr_0, adr_1 : std_logic_vector(15 downto 0);
+ signal tmp_sp1, tmp_sp2: std_logic_vector(50 downto 0);
+ signal pwr_req1, pwr_req2: std_logic_vector(4 downto 0);
+ signal pwr_ack1, pwr_ack2: std_logic;
+ 
  begin  
  
-	
-	snp_res_fif1: entity work.STD_FIFO
-	generic map(
+ 
+ snp_res_fif1: entity work.STD_FIFO
+ generic map(
         DATA_WIDTH => 52,
         FIFO_DEPTH => 256
     )
     port map(
-		CLK=>Clock,
-		RST=>reset,
-		DataIn=>in2,
-		WriteEn=>we2,
-		ReadEn=>re2,
-		DataOut=>out2,
-		Full=>full_srs1,
-		Empty=>emp2
-		);
-		
+  CLK=>Clock,
+  RST=>reset,
+  DataIn=>in2,
+  WriteEn=>we2,
+  ReadEn=>re2,
+  DataOut=>out2,
+  Full=>full_srs1,
+  Empty=>emp2
+  );
+  
+ 
+ mem_res_fif: entity  work.STD_FIFO(Behavioral) 
+ generic map(
+  DATA_WIDTH => 52,
+  FIFO_DEPTH => 256
+ )
+ port map(
+  CLK=>Clock,
+  RST=>reset,
+  DataIn=>in3,
+  WriteEn=>we3,
+  ReadEn=>re3,
+  DataOut=>out3,
+  Full=>full_mrs,
+  Empty=>emp3
+  ); 
+ gfx_res_fif: entity  work.STD_FIFO(Behavioral) 
+ generic map(
+   DATA_WIDTH => 52,
+   FIFO_DEPTH => 256
+  )
+  port map(
+   CLK=>Clock,
+   RST=>reset,
+   DataIn=>in8,
+   WriteEn=>we8,
+   ReadEn=>re8,
+   DataOut=>out8,
+   Full=>full_gfxrs,
+   Empty=>emp8
+  );
 	
-	mem_res_fif: entity  work.STD_FIFO(Behavioral) 
-	generic map(
-		DATA_WIDTH => 52,
-		FIFO_DEPTH => 256
-	)
-	port map(
-		CLK=>Clock,
-		RST=>reset,
-		DataIn=>in3,
-		WriteEn=>we3,
-		ReadEn=>re3,
-		DataOut=>out3,
-		Full=>full_mrs,
-		Empty=>emp3
-		); 
-		
 	
 	snp_res_fif2: entity  work.STD_FIFO(Behavioral)
 	generic map(
@@ -178,14 +198,17 @@ architecture Behavioral of AXI is
             ack2 => gfx_ack2,
             dout => togfx
         );
-    brs2_arbitor: entity work.arbiter2(Behavioral) port map(
+    brs2_arbitor: entity work.arbiter3(Behavioral) port map(
     	clock => Clock,
         reset => reset,
         din1 => bus_res2_1,
         ack1 => brs2_ack1,
         din2 => bus_res2_2,
         ack2 => brs2_ack2,
-        dout => bus_res2 
+        dout => bus_res2,
+        din3 => bus_res2_3,
+        ack3 => brs3_ack3
+        
     );
     
     pwr_arbitor: entity work.arbiter2(Behavioral) 
@@ -202,13 +225,15 @@ architecture Behavioral of AXI is
         dout => pwrreq 
     );
     
-    brs1_arbitor: entity work.arbiter2(Behavioral) port map(
+    brs1_arbitor: entity work.arbiter3(Behavioral) port map(
     	clock => Clock,
         reset => reset,
         din1 => bus_res1_1,
         ack1 => brs1_ack1,
         din2 => bus_res1_2,
         ack2 => brs1_ack2,
+        din3 => bus_res1_3,
+        ack3 => brs1_ack3,
         dout => bus_res1
     );
     
@@ -220,6 +245,15 @@ architecture Behavioral of AXI is
         din2 => mem_wb2,
         ack2 => wb_ack2,
         dout => mem_wb 
+    );
+    gfx_wb_arbitor: entity work.arbiter2(Behavioral) port map(
+    	clock => Clock,
+        reset => reset,
+        din1 => gfx_wb1,
+        ack1 => gfx_wb_ack1,
+        din2 => gfx_wb2,
+        ack2 => gfx_wb_ack2,
+        dout => gfx_wb 
     );
    
     snp_res1_fifo: process(reset,Clock)
@@ -251,6 +285,21 @@ architecture Behavioral of AXI is
                     we3<='1';
                 else
                 	we3<='0';
+                end if;
+                   
+             end if;
+	end process;
+	
+	gfx_res_fifo: process(reset,Clock)
+		begin
+        	if reset='1' then
+        		we8<='0';
+            elsif rising_edge(Clock) then
+            	if gfxres(50 downto 50)="1" then
+                    in8<=gfxres;
+                    we8<='1';
+                else
+                	we8<='0';
                 end if;
                    
              end if;
@@ -319,13 +368,23 @@ architecture Behavioral of AXI is
     		elsif state =1 then
     			re6 <='0';
     			if out6(50 downto 50)="1" then
-    				state:=2;
-    				mem_wb1 <= out6;
+    				if to_integer(unsigned(out6(47 downto 32)))<32768 then
+    					state:=2;
+    					mem_wb1 <= out6;
+    				else
+    					state:=3;
+    					gfx_wb1 <= out6;
+    				end if;
     			end if;
     			
     		elsif state = 2 then
     			if wb_ack1 = '1' then
     				mem_wb1 <= nilreq;
+    				state :=0;
+    			end if;
+    		elsif state =3 then
+    			if gfx_wb_ack1='1' then
+    				gfx_wb1 <= nilreq;
     				state :=0;
     			end if;
     		end if;
@@ -351,13 +410,23 @@ architecture Behavioral of AXI is
     		elsif state =1 then
     			re7 <='0';
     			if out7(50 downto 50)="1" then
-    				state:=2;
-    				mem_wb2 <= out7;
+    				if to_integer(unsigned(out6(47 downto 32)))<32768 then
+    					state:=2;
+    					mem_wb2 <= out7;
+    				else
+    					state := 3;
+    					gfx_wb2 <= out7;
+    				end if;
     			end if;
     			
     		elsif state = 2 then
     			if wb_ack2 = '1' then
     				mem_wb2 <= nilreq;
+    				state :=0;
+    			end if;
+    		elsif state =3 then
+    			if gfx_wb_ack2='1' then
+    				gfx_wb2<=nilreq;
     				state :=0;
     			end if;
     		end if;
@@ -410,6 +479,53 @@ architecture Behavioral of AXI is
     	end if;
     	
     end process;
+    
+   gfx_res_p: process(reset,Clock)
+    	variable nilreq:std_logic_vector(50 downto 0):=(others => '0');
+    	variable stage: integer :=0;
+    	variable cpu1 : std_logic;
+    begin
+    	if reset= '1' then
+    		bus_res1_3 <= nilreq;
+    		bus_res2_3 <= nilreq;
+    	elsif rising_edge(Clock) then
+    		if stage = 0 then
+    			if re8 = '0' and emp8 ='0' then
+    				re8 <='1';
+    				stage :=1;
+    			end if;
+    	   elsif stage = 1 then
+    	   		re8 <= '0';
+    			if out8(50 downto 50) = "1" then
+    				stage :=2;
+    				---response for cpu1
+    				if out8(51 downto 51) ="0"  then
+    					---reg_1 <= out8(50 downto 0);
+    					bus_res1_3 <= out8(50 downto 0);
+    					cpu1 := '1';
+    				---response for cpu2
+    				else
+    					---reg_2 <= out3(50 downto 0);
+    					bus_res2_3 <= out8(50 downto 0);
+    					cpu1 := '0';
+    				end if;
+    				
+    			end if;
+    		elsif stage = 2 then
+    			if cpu1 ='1' and brs1_ack3 = '1' then
+    				bus_res1_3 <= nilreq;
+    				stage :=0;
+    			elsif cpu1 ='0' and brs2_ack3 ='1' then
+    				bus_res2_3 <= nilreq;
+    				stage :=0;
+    			end if;
+    		end if;	
+    	end if;
+    	
+    end process;
+   
+    
+    
     
         
     snp_res2_fifo: process(reset,Clock)
@@ -520,6 +636,9 @@ architecture Behavioral of AXI is
            	end if;   
         end if;
     end process;    
+   
+   
+   
     snp_res1_p: process(reset, Clock)
         variable nilreq:std_logic_vector(50 downto 0):=(others => '0');
         variable state: integer:= 0;
@@ -545,8 +664,13 @@ architecture Behavioral of AXI is
                         state := 2;
                         bus_res2_1 <= out2(50 downto 0);
                     else ---it's a miss
-                        state := 3;
-                        tomem1 <= out2(50 downto 0);
+                    	if to_integer(unsigned(out2(47 downto 32)))<32768 then
+                        	state := 3;
+                        	tomem1 <= out2(50 downto 0);
+                        else
+                        	state :=4;
+                        	togfx1 <= out2(50 downto 0);
+                        end if;
                     end if;
                 end if;
             elsif state = 2 then
@@ -560,7 +684,11 @@ architecture Behavioral of AXI is
                     tomem1 <= nilreq;
                     state := 0;
                 end if;
-                          
+            elsif state =4 then
+            	if gfx_ack1 ='1' then
+            		togfx1 <= nilreq;
+            		state := 0;
+            	end if;             
             end if;
            
         end if;
@@ -591,8 +719,13 @@ architecture Behavioral of AXI is
                         state := 2;
                         bus_res1_2 <= out5(50 downto 0);
                     else ---it's a miss
-                        tomem2 <= out5(50 downto 0);
-                        state := 3;
+                    	if to_integer(unsigned(out5(47 downto 32)))<32768 then
+                        	tomem2 <= out5(50 downto 0);
+                        	state := 3;
+                        else 
+                        	togfx2 <= out5(50 downto 0);
+                        	state :=4;
+                        end if;
                     end if;
                 end if;  
                 
@@ -607,6 +740,11 @@ architecture Behavioral of AXI is
                     tomem2 <= nilreq;
                     state := 0;
                 end if;
+            elsif state =4 then
+            	if gfx_ack2 = '1' then
+            		togfx2 <= nilreq;
+            		state :=0;
+            	end if;
             end if;
         end if;
     end process;  

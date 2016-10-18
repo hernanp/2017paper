@@ -19,10 +19,7 @@ entity top is
     
 end top;
 
-architecture Behavioral of top is
-
-    -- Procedure for clock generation
-  
+architecture Behavioral of top is  
 
   -- Clock frequency and signal
    signal Clock : std_logic;
@@ -35,8 +32,8 @@ architecture Behavioral of top is
    signal reset: std_logic:='1';
    signal full_mrs: std_logic;
    signal done1, done2: std_logic;
-   signal mem_wb: std_logic_vector(50 downto 0);
-   signal wb_ack: std_logic;
+   signal mem_wb,gfx_wb: std_logic_vector(50 downto 0);
+   signal wb_ack,gfx_wb_ack: std_logic;
    signal pwrreq,pwrres: std_logic_vector(4 downto 0);
    signal pwrreq_full : std_logic;
    signal gfxreq, gfxres: std_logic_vector(2 downto 0);
@@ -189,9 +186,8 @@ clk_gen : process
    end loop;
    wait;
  end process;
-  
-  
-    cpu1: entity work.CPU(Behavioral) port map(
+
+   cpu1: entity work.CPU(Behavioral) port map(
        reset => reset,
        Clock=>Clock,
        seed=>1,
@@ -200,7 +196,6 @@ clk_gen : process
        full_c=>full_c1_u,
        done=>done1
    );
-   
    cpu2: entity work.CPU(Behavioral) port map(
           reset => reset,
           Clock=>Clock,
@@ -210,7 +205,7 @@ clk_gen : process
           full_c=>full_c2_u,
           done=>done2
       );
-    cache1: entity work.L1Cache(Behavioral) port map(
+   cache1: entity work.L1Cache(Behavioral) port map(
          Clock=>Clock,
          reset=>reset,
          cpu_req=>cpu_req1,
@@ -229,7 +224,7 @@ clk_gen : process
          wb_req => wb_req1
           
     );
-     cache2: entity work.L1Cache(Behavioral) port map(
+   cache2: entity work.L1Cache(Behavioral) port map(
             Clock=>Clock,
             reset=>reset,
             cpu_req=>cpu_req2,
@@ -247,8 +242,21 @@ clk_gen : process
          	full_srs=>full_srs2,
          	wb_req => wb_req2
        );
-       
+   power: entity work.PWR(Behavioral) port map(
+    	Clock=>Clock,
+    	reset=>reset,
+    	req=>pwrreq,
+    	res=>pwrres,
+    	full_preq=>pwrreq_full,
+    	gfxreq=>gfxreq,
+    	gfxres=>gfxres
+    );
+   
     interconnect: entity work.AXI(Behavioral) port map(
+    	gfx_wb => gfx_wb,
+    	gfx_wb_ack => gfx_wb_ack,
+    	gfxres => gfx_b,
+    	togfx => togfx,
         Clock=>Clock,
         reset=>reset,
         cache_req1=>bus_req1,
@@ -290,16 +298,12 @@ clk_gen : process
         wb_ack => wb_ack
         
     );
-    power: entity work.PWR(Behavioral) port map(
-    	Clock=>Clock,
-    	reset=>reset,
-    	req=>pwrreq,
-    	res=>pwrres,
-    	full_preq=>pwrreq_full,
-    	gfxreq=>gfxreq,
-    	gfxres=>gfxres
-    );
-    gfx: entity work.gfx(Behavioral) port map(
+     gfx: entity work.gfx(Behavioral) port map(
+    	full_b_m => full_b_m,
+    	req => togfx,
+    	res => gfx_b,
+    	wb_req => gfx_wb,
+    	wb_ack => gfx_wb_ack,
     	Clock=>Clock,
     	reset=>reset,
     	pwrreq=>gfxreq,
