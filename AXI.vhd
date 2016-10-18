@@ -20,12 +20,12 @@ entity AXI is
             wb_req1, wb_req2: in std_logic_vector(50 downto 0);
             
             memres: in STD_LOGIC_VECTOR(51 downto 0);
-           
+            gfxres: in std_logic_vector(51 downto 0);
            
             bus_res1: out STD_LOGIC_VECTOR(50 downto 0);    
             bus_res2: out STD_LOGIC_VECTOR(50 downto 0);
             tomem: out STD_LOGIC_VECTOR(51 downto 0);
-            
+            togfx: out std_logic_vector(51 downto 0);
             snoop_req1: out STD_LOGIC_VECTOR(50 downto 0);
             snoop_req2: out STD_LOGIC_VECTOR(50 downto 0);
             snoop_res1,snoop_res2: in STD_LOGIC_VECTOR(50 downto 0);
@@ -65,12 +65,12 @@ architecture Behavioral of AXI is
 	
 	signal bus_res1_1, bus_res1_2,bus_res2_1, bus_res2_2: std_logic_vector(50 downto 0);
 	signal mem_req1, mem_req2: std_logic_vector(50 downto 50);
-	signal mem_ack1,mem_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2: std_logic;
+	signal mem_ack1,mem_ack2,gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2: std_logic;
 	
 	
 	signal tmp_brs1_1, tmp_brs1_2, tmp_brs2_1, tmp_brs2_2: std_logic_vector(50 downto 0):=(others => '0');
 	
-	signal tomem1, tomem2 : std_logic_vector(50 downto 0):=(others => '0');
+	signal tomem1, tomem2, togfx1, togfx2 : std_logic_vector(50 downto 0):=(others => '0');
     signal tmp_mem1, tmp_mem2: std_logic_vector(50 downto 0):=(others => '0');
     
     
@@ -169,7 +169,15 @@ architecture Behavioral of AXI is
         ack2 => mem_ack2,
         dout => tomem
     );
-    
+    togfx_arbitor: entity work.arbiter(Behavioral) port map(
+            clock => Clock,
+            reset => reset,
+            din1 => togfx1,
+            ack1 => gfx_ack1,
+            din2 => togfx2,
+            ack2 => gfx_ack2,
+            dout => togfx
+        );
     brs2_arbitor: entity work.arbiter2(Behavioral) port map(
     	clock => Clock,
         reset => reset,
