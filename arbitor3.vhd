@@ -112,5 +112,6 @@ begin
         end if;
         ack1 <= s_ack1;
         ack2 <= s_ack2;
+        ack3 <= s_ack3;
     end process;
 end architecture Behavioral;   
