@@ -605,7 +605,7 @@ architecture Behavioral of AXI is
            		 if cache_req2(50 downto 50) = "1" and cache_req2(47 downto 32) = adr_0 then
            		 	state :=1;
            		 	tmp_sp1 <= cache_req2;
-           		  elsif cache_req1(50 downto 50) = "1" and cache_req1(49 downto 48) ="11" then
+           		  elsif cache_req2(50 downto 50) = "1" and cache_req2(49 downto 48) ="11" then
                 	pwr_req2 <= cache_req2(50 downto 46);
                 	state := 4;
            		 elsif cache_req2(50 downto 50) = "1" and full_srq2/='1' then
@@ -674,6 +674,7 @@ architecture Behavioral of AXI is
                         	else
                         		state :=5;
                         		tmp_togfx1 <= out2(50 downto 0);
+                        		pwr_req1 <= "11000";
                         	end if;
                         end if;
                     end if;
@@ -695,6 +696,7 @@ architecture Behavioral of AXI is
             		state := 0;
             	end if;    
             elsif state =5 then
+               pwr_req1 <= "00000";
             	if pwrres(4 downto 4)="1" then
             		togfx1<=tmp_togfx1;
             		state :=4;
@@ -740,6 +742,7 @@ architecture Behavioral of AXI is
                         	else
                         		state :=5;
                         		tmp_togfx2 <= out5(50 downto 0);
+                        		pwr_req2 <= "11000";
                         	end if;
                         end if;
                     end if;
@@ -762,6 +765,7 @@ architecture Behavioral of AXI is
             		state :=0;
             	end if;
             elsif state =5 then
+               pwr_req2 <= "00000";
             	if pwrres(4 downto 4)="1" then
             		togfx2<=tmp_togfx2;
             		state :=4;
