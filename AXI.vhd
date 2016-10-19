@@ -75,7 +75,7 @@ architecture Behavioral of AXI is
  
  signal tmp_brs1_1, tmp_brs1_2, tmp_brs2_1, tmp_brs2_2: std_logic_vector(50 downto 0):=(others => '0');
  
- signal tomem1, tomem2, togfx1, togfx2 : std_logic_vector(50 downto 0):=(others => '0');
+ signal tomem1, tomem2, togfx1,tmp_togfx1,tmp_togfx2, togfx2 : std_logic_vector(50 downto 0):=(others => '0');
     signal tmp_mem1, tmp_mem2: std_logic_vector(50 downto 0):=(others => '0');
     
     
@@ -668,8 +668,13 @@ architecture Behavioral of AXI is
                         	state := 3;
                         	tomem1 <= out2(50 downto 0);
                         else
-                        	state :=4;
-                        	togfx1 <= out2(50 downto 0);
+                        	if gfxpoweron = '1' then
+                        		state :=4;
+                        		togfx1 <= out2(50 downto 0);
+                        	else
+                        		state :=5;
+                        		tmp_togfx1 <= out2(50 downto 0);
+                        	end if;
                         end if;
                     end if;
                 end if;
@@ -688,7 +693,13 @@ architecture Behavioral of AXI is
             	if gfx_ack1 ='1' then
             		togfx1 <= nilreq;
             		state := 0;
-            	end if;             
+            	end if;    
+            elsif state =5 then
+            	if pwrres(4 downto 4)="1" then
+            		togfx1<=tmp_togfx1;
+            		state :=4;
+            	end if;  
+                
             end if;
            
         end if;
@@ -723,8 +734,13 @@ architecture Behavioral of AXI is
                         	tomem2 <= out5(50 downto 0);
                         	state := 3;
                         else 
-                        	togfx2 <= out5(50 downto 0);
-                        	state :=4;
+                        	if gfxpoweron = '1' then
+                        		togfx2 <= out5(50 downto 0);
+                        		state :=4;
+                        	else
+                        		state :=5;
+                        		tmp_togfx2 <= out5(50 downto 0);
+                        	end if;
                         end if;
                     end if;
                 end if;  
@@ -745,6 +761,11 @@ architecture Behavioral of AXI is
             		togfx2 <= nilreq;
             		state :=0;
             	end if;
+            elsif state =5 then
+            	if pwrres(4 downto 4)="1" then
+            		togfx2<=tmp_togfx2;
+            		state :=4;
+            	end if; 
             end if;
         end if;
     end process;  
