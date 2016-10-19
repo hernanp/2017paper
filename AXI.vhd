@@ -70,7 +70,7 @@ architecture Behavioral of AXI is
  
  signal bus_res1_1, bus_res1_2,bus_res2_1, bus_res2_2, bus_res1_3,bus_res2_3: std_logic_vector(50 downto 0);
  signal mem_req1, mem_req2: std_logic_vector(50 downto 50);
- signal mem_ack1,mem_ack2,gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2: std_logic;
+ signal mem_ack1,mem_ack2,gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2,brs1_ack3,brs2_ack3, brs2_ack1, brs2_ack2: std_logic;
  
  
  signal tmp_brs1_1, tmp_brs1_2, tmp_brs2_1, tmp_brs2_2: std_logic_vector(50 downto 0):=(others => '0');
@@ -207,7 +207,7 @@ architecture Behavioral of AXI is
         ack2 => brs2_ack2,
         dout => bus_res2,
         din3 => bus_res2_3,
-        ack3 => brs3_ack3
+        ack3 => brs2_ack3
         
     );
     

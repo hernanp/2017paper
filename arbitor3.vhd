@@ -26,7 +26,7 @@ end arbiter3;
 -- version 2
 architecture Behavioral of arbiter3 is
 
-    signal s_ack1, s_ack2 : std_logic;
+    signal s_ack1, s_ack2,s_ack3 : std_logic;
     signal s_token : integer :=0;
 		
 begin  

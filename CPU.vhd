@@ -110,16 +110,16 @@ begin
     	---pwrcmd := "00";
     	---hwlc := "00";
     	---power(pwrcmd, tmp_req, hwlc);
-	for I in 1 to 500 loop
+	for I in 1 to 1 loop
 	   rand1 := selection(2);
-	   rand2 := selection(2**2-1,3)&"0000000000000";
+	   rand2 := '1'&selection(2**2-1,3)&"111111000000";
 	   rand3 := selection(2**15-1,32);
 	   ---if rand1=1 then
 	   ---    write(rand2,tmp_req,rand3);
 	   ---else
-	   ---    read(rand2,tmp_req,rand3);
+	      read(rand2,tmp_req,rand3);
 	   ---end if;
-    	if seed = 1 then    		 
+    	if seed = 55 then    		 
     		write(flag0,tmp_req,one);
     		write(turn,tmp_req,one);
     		read(turn, tmp_req, turn_v);
@@ -162,7 +162,7 @@ begin
 			writeline(trace_file, line_output);
 			
     		write(flag0,tmp_req,zero);
-    	elsif seed=2 then
+    	elsif seed=52 then
     		
     		write(flag1,tmp_req,one);
     		

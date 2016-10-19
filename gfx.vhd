@@ -1,7 +1,8 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+USE ieee.numeric_std.ALL;
+use work.nondeterminism.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -27,6 +28,14 @@ end gfx;
 
 architecture Behavioral of gfx is
    signal poweron: std_logic :='1';
+    type rom_type is array (2**16-1 downto 0) of std_logic_vector (31 downto 0);     
+       signal ROM_array : rom_type:= (others=> (others=>'0'));
+       signal in3,out3: std_logic_vector(51 downto 0);
+       signal in2,out2: std_logic_vector(50 downto 0);
+       signal we3,re3,we2,re2,emp3,emp2: std_logic:='0';
+       signal tmp_full: std_logic;
+      
+       signal test: integer;
 begin
 wb_fif: entity  work.STD_FIFO(Behavioral) 
 	generic map(
