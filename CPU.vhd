@@ -107,9 +107,9 @@ begin
      variable hwlc: std_logic_vector(1 downto 0);
     begin
     	wait for 70 ps;
-    	---pwrcmd := "00";
-    	---hwlc := "00";
-    	---power(pwrcmd, tmp_req, hwlc);
+    	pwrcmd := "00";
+    	hwlc := "00";
+    	power(pwrcmd, tmp_req, hwlc);
 	for I in 1 to 1 loop
 	   rand1 := selection(2);
 	   rand2 := '1'&selection(2**2-1,3)&"111111000000";

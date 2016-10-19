@@ -92,6 +92,7 @@ begin
 			gfxreq<= nilreq(2 downto 0);
 			--tmp_write_req <= nilreq;
 		elsif rising_edge(Clock) then
+		  res <= "00000";
 			if state =0 then
 				gfxreq <= nilreq(2 downto 0);
 				if re1 = '0' and emp1 ='0' then
