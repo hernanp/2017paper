@@ -87,8 +87,8 @@ architecture Behavioral of AXI is
  
  signal adr_0, adr_1 : std_logic_vector(15 downto 0);
  signal tmp_sp1, tmp_sp2: std_logic_vector(50 downto 0);
- signal pwr_req1, pwr_req2: std_logic_vector(4 downto 0);
- signal pwr_ack1, pwr_ack2: std_logic;
+ signal pwr_req1, pwr_req2, pwr_req3: std_logic_vector(4 downto 0);
+ signal pwr_ack1, pwr_ack2, pwr_ack3: std_logic;
  
  begin  
  
@@ -211,7 +211,7 @@ architecture Behavioral of AXI is
         
     );
     
-    pwr_arbitor: entity work.arbiter2(Behavioral) 
+    pwr_arbitor: entity work.arbiter3(Behavioral) 
     generic map(
         DATA_WIDTH => 5
     )
@@ -222,6 +222,8 @@ architecture Behavioral of AXI is
         ack1 => pwr_ack1,
         din2 => pwr_req2,
         ack2 => pwr_ack2,
+        din3 => pwr_req3,
+        ack3 => pwr_ack3,
         dout => pwrreq 
     );
     
@@ -555,6 +557,7 @@ architecture Behavioral of AXI is
     begin
         if reset='1' then
         	snoop_req2 <= nilreq;
+        	pwr_req1 <= "00000";
         elsif rising_edge(Clock) then
            	if state =0 then
            		 if cache_req1(50 downto 50) = "1" and cache_req1(47 downto 32) = adr_1 then
@@ -600,6 +603,7 @@ architecture Behavioral of AXI is
     begin
         if reset='1' then
             snoop_req1 <= nilreq;
+            pwr_req2 <= "00000";
         elsif rising_edge(Clock) then
            	if state =0 then
            		 if cache_req2(50 downto 50) = "1" and cache_req2(47 downto 32) = adr_0 then
@@ -674,7 +678,7 @@ architecture Behavioral of AXI is
                         	else
                         		state :=5;
                         		tmp_togfx1 <= out2(50 downto 0);
-                        		pwr_req1 <= "11000";
+                        		pwr_req3 <= "11000";
                         	end if;
                         end if;
                     end if;
@@ -694,9 +698,13 @@ architecture Behavioral of AXI is
             	if gfx_ack1 ='1' then
             		togfx1 <= nilreq;
             		state := 0;
-            	end if;    
+            	end if;  
             elsif state =5 then
-               pwr_req1 <= "00000";
+                if pwr_ack3 ='1' then
+                    pwr_req3 <= "00000";
+                    state := 6;
+                end if;  
+            elsif state =6 then
             	if pwrres(4 downto 4)="1" then
             		togfx1<=tmp_togfx1;
             		state :=4;
@@ -742,7 +750,7 @@ architecture Behavioral of AXI is
                         	else
                         		state :=5;
                         		tmp_togfx2 <= out5(50 downto 0);
-                        		pwr_req2 <= "11000";
+                        		pwr_req3 <= "11000";
                         	end if;
                         end if;
                     end if;
@@ -765,7 +773,11 @@ architecture Behavioral of AXI is
             		state :=0;
             	end if;
             elsif state =5 then
-               pwr_req2 <= "00000";
+                    if pwr_ack3 ='1' then
+                        pwr_req3 <= "00000";
+                        state := 6;
+                    end if;             	
+            elsif state =6 then
             	if pwrres(4 downto 4)="1" then
             		togfx2<=tmp_togfx2;
             		state :=4;
