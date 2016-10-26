@@ -256,8 +256,8 @@ clk_gen : process
    
     interconnect: entity work.AXI(Behavioral) port map(
     	gfx_upreq => gfx_upreq,
-    	upres => gfx_upres,
-        upreq_full => gfx_upreq_full,
+    	gfx_upres => gfx_upres,
+        gfx_upreq_full => gfx_upreq_full,
     	gfx_wb => gfx_wb,
     	gfx_wb_ack => gfx_wb_ack,
     	gfxres => gfx_b,

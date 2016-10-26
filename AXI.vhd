@@ -589,7 +589,7 @@ architecture Behavioral of AXI is
         variable count: integer:=0;
     begin
         if reset='1' then
-        	snoop_req2 <= nilreq;
+        	snoop_req2 <= "000"&nilreq;
         	pwr_req1 <= "00000";
         elsif rising_edge(Clock) then
            	if state =0 then
@@ -635,7 +635,7 @@ architecture Behavioral of AXI is
         variable count: integer:= 0;
     begin
         if reset='1' then
-            snoop_req1 <= nilreq;
+            snoop_req1 <= "000"&nilreq;
             pwr_req2 <= "00000";
         elsif rising_edge(Clock) then
            	if state =0 then

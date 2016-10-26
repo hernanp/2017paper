@@ -60,9 +60,9 @@ architecture Behavioral of L1Cache is
 	signal cpu_res1, cpu_res2: std_logic_vector(50 downto 0);
 	signal ack1, ack2: std_logic;
 	signal wb_req_c, wb_res_c:integer:=1;
-	
+	signal tmp_snp_res: std_logic_vector(53 downto 0);
 	signal prc:std_logic_vector(1 downto 0);
-	signal tmp_snp_res, tmp_cpu_res1: std_logic_vector(50 downto 0):=(others => '0');
+	signal  tmp_cpu_res1: std_logic_vector(50 downto 0):=(others => '0');
 	signal tmp_hit : std_logic;
 	signal tmp_mem: std_logic_vector(40 downto 0);
 begin
@@ -78,7 +78,7 @@ begin
 		);
 	snp_req_fif: entity work.STD_FIFO(Behavioral)
 	generic map(
-        DATA_WIDTH => 55,
+        DATA_WIDTH => 54,
         FIFO_DEPTH => 256
     )
 	port map(
@@ -306,12 +306,12 @@ begin
 		if (reset = '1') then
 		-- reset signals;
 			mem_res1 <= nilreq(49 downto 0);
-			mem_res2 <= nilreq(49 downto 0);
+			mem_res2 <= "0000"&nilreq(49 downto 0);
 			write_ack <= '0';
 			upd_ack <= '0';
 		elsif rising_edge(Clock) then
 		    mem_res1 <= nilreq(49 downto 0);
-            mem_res2 <= nilreq(49 downto 0);
+            mem_res2 <= "0000"&nilreq(49 downto 0);
             write_ack <= '0';
             upd_ack <= '0';
             wb_req<=nilreq;
@@ -323,14 +323,14 @@ begin
                         or memcont(37 downto 32)/=mem_req1(47 downto 42) then
 					mem_ack1<='1';
 					hit1 <= '0';
-					mem_res1 <= mem_req1(53 downto 0);
+					mem_res1 <= mem_req1(49 downto 0);
 				else
 					mem_ack1<='1';
 					hit1<='1';
 					if mem_req1(49 downto 48)="10" then
-						mem_res1 <= mem_req1(53 downto 0);
+						mem_res1 <= mem_req1(49 downto 0);
 					else
-						mem_res1 <= mem_req1(53 downto 32)& memcont(31 downto 0);
+						mem_res1 <= mem_req1(49 downto 32)& memcont(31 downto 0);
 					end if;
 				end if;
 			else
@@ -346,18 +346,18 @@ begin
                         or memcont(37 downto 32)/=mem_req2(47 downto 42) then
 					mem_ack2<='1';
 					hit2<='0';
-					mem_res2 <= mem_req2(49 downto 0);
+					mem_res2 <= mem_req2(53 downto 0);
 				else
 					mem_ack2<='1';
 					hit2<='1';
 					--if it's write, invalidate the cache line
 					if mem_req2(49 downto 48) ="10" then
 						ROM_array(indx)(40) <= '0';
-						mem_res2<=mem_req2(49 downto 0);
+						mem_res2<=mem_req2(53 downto 0);
 					else
 					--if it's read, mark the exclusive as 0
 						ROM_array(indx)(38) <= '0';
-						mem_res2<=mem_req2(49 downto 32)&memcont(31 downto 0);
+						mem_res2<=mem_req2(53 downto 32)&memcont(31 downto 0);
 					end if;
 					
 				end if;
