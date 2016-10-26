@@ -23,10 +23,11 @@ architecture Behavioral of top is
 
   -- Clock frequency and signal
    signal Clock : std_logic;
-   signal full_c1_u, full_c2_u, full_b_c1, full_b_c2, full_c1_b, full_c2_b, full_b_m, full_m:std_logic;
-   signal bus_res1, bus_res2,cpu_res1, cpu_res2, cpu_req1, cpu_req2,snoop_req1,snoop_req2, wb_req1, wb_req2: std_logic_vector (50 downto 0);
+   signal full_c1_u, full_c2_u, full_b_c1, full_b_c2, full_c1_b, full_c2_b, full_b_m, full_m,gfx_upreq_full:std_logic;
+   signal bus_res1, bus_res2,cpu_res1, cpu_res2, cpu_req1, cpu_req2, wb_req1, wb_req2,gfx_upreq,gfx_upres: std_logic_vector (50 downto 0);
    signal snoop_hit1, snoop_hit2: std_logic;
-   signal snoop_res1, snoop_res2, bus_req1, bus_req2: std_logic_vector(50 downto 0);
+   signal snoop_res1, snoop_res2,snoop_req1,snoop_req2: std_logic_vector(53 downto 0);
+   signal  bus_req1, bus_req2: std_logic_vector(50 downto 0);
    signal memres, tomem : std_logic_vector(51 downto 0);
    signal full_crq1, full_srq1, full_brs1,full_wb1,full_srs1,full_crq2, full_srq2, full_brs2,full_wb2,full_srs2:std_logic;
    signal reset: std_logic:='1';
@@ -254,6 +255,9 @@ clk_gen : process
     );
    
     interconnect: entity work.AXI(Behavioral) port map(
+    	gfx_upreq => gfx_upreq,
+    	upres => gfx_upres,
+        upreq_full => gfx_upreq_full,
     	gfx_wb => gfx_wb,
     	gfx_wb_ack => gfx_wb_ack,
     	gfxres => gfx_b,
@@ -300,6 +304,8 @@ clk_gen : process
         
     );
      gfx: entity work.gfx(Behavioral) port map(
+    	upres => gfx_upres,
+    	upreq_full => gfx_upreq_full,
     	full_b_m => full_b_m,
     	req => togfx,
     	res => gfx_b,

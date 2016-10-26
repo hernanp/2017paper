@@ -22,7 +22,10 @@ entity gfx is
             wb_ack: out std_logic;
             full_m: out std_logic:='0';
             pwrreq: in std_logic_vector(2 downto 0);
-            pwrres: out std_logic_vector(2 downto 0)
+            pwrres: out std_logic_vector(2 downto 0);
+            upreq: out std_logic_vector(50 downto 0);
+            upres: in std_logic_vector(50 downto 0);
+            upreq_full: in std_logic
             );
 end gfx;
 
@@ -52,7 +55,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
 		Full=>tmp_full,
 		Empty=>emp2
 		); 
-   mem_req_fif: entity  work.STD_FIFO(Behavioral) 
+  mem_req_fif: entity  work.STD_FIFO(Behavioral) 
 	generic map(
 		DATA_WIDTH => 52,
 		FIFO_DEPTH => 256
@@ -82,8 +85,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
                            
         end if;
   end process; 
-  
-    wb_fifo: process(reset,Clock)
+  wb_fifo: process(reset,Clock)
     begin
        if reset='1' then
            we2<='0';
@@ -97,8 +99,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
         end if;
   end process; 
   
-  
- l1: process (reset,Clock)
+  l1: process (reset,Clock)
     
     variable tmplog: std_logic_vector(51 downto 0);
     variable enr: boolean:=false;

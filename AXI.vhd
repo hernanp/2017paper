@@ -26,9 +26,15 @@ entity AXI is
             bus_res2: out STD_LOGIC_VECTOR(50 downto 0);
             tomem: out STD_LOGIC_VECTOR(51 downto 0);
             togfx: out std_logic_vector(51 downto 0);
-            snoop_req1: out STD_LOGIC_VECTOR(50 downto 0);
-            snoop_req2: out STD_LOGIC_VECTOR(50 downto 0);
-            snoop_res1,snoop_res2: in STD_LOGIC_VECTOR(50 downto 0);
+            --add 3 bits in snoop request to indicate the source
+            --000 cpu
+            --001 gfx
+            --010 uart
+            --011 usb
+            --100 audio
+            snoop_req1: out STD_LOGIC_VECTOR(53 downto 0);
+            snoop_req2: out STD_LOGIC_VECTOR(53 downto 0);
+            snoop_res1,snoop_res2: in STD_LOGIC_VECTOR(53 downto 0);
             snp_hit1: in std_logic;
             snp_hit2: in std_logic;
             
@@ -48,7 +54,10 @@ entity AXI is
            	
             pwrreq: out std_logic_vector(4 downto 0);
             pwrreq_full: in std_logic;
-            pwrres: in std_logic_vector(4 downto 0)  
+            pwrres: in std_logic_vector(4 downto 0);
+            gfx_upreq: in std_logic_vector(50 downto 0);
+            gfx_upres: out std_logic_vector(50 downto 0);
+            gfx_upreq_full: out std_logic
      );
 end AXI;
 
@@ -61,11 +70,12 @@ architecture Behavioral of AXI is
     signal memory : memory_type :=(others => (others => '0'));   --memory for queue.
     signal readptr,writeptr : integer range 0 to 31 := 0;  --read and write pointers.begin
     
-    signal in1,in4,in6,in7: std_logic_vector(50 downto 0);
-    signal in2, out2,in5,out5,in3,out3,in8,out8: std_logic_vector(51 downto 0);
-    signal we1,we2,we3,we4,we5,we6,we7,we8,re8,re7,re1,re2,re3,re4,re5,re6: std_logic:='0';
+    signal in1,in4,in6,in7,in9,out9: std_logic_vector(50 downto 0);
+    signal in3,out3,in8,out8: std_logic_vector(51 downto 0);
+    signal in2, out2,in5,out5: std_logic_vector(54 downto 0);
+    signal we1,we2,we3,we4,we5,we6,we7,we8,re8,re9,we9,re7,re1,re2,re3,re4,re5,re6: std_logic:='0';
  signal out1,out4,out6,out7:std_logic_vector(50 downto 0);
- signal emp1,emp2,emp3,emp4,emp5,emp6,emp7,emp8,ful8,ful7,ful1,ful2,ful3,ful4,ful5,ful6: std_logic:='0';
+ signal emp1,emp2,emp3,emp4,emp5,emp6,emp7,emp8,ful8,ful7,ful1,ful2,ful3,ful4,ful5,ful6,ful9,emp9: std_logic:='0';
  
  
  signal bus_res1_1, bus_res1_2,bus_res2_1, bus_res2_2, bus_res1_3,bus_res2_3: std_logic_vector(50 downto 0);
@@ -95,7 +105,7 @@ architecture Behavioral of AXI is
  
  snp_res_fif1: entity work.STD_FIFO
  generic map(
-        DATA_WIDTH => 52,
+        DATA_WIDTH => 55,
         FIFO_DEPTH => 256
     )
     port map(
@@ -144,7 +154,7 @@ architecture Behavioral of AXI is
 	
 	snp_res_fif2: entity  work.STD_FIFO(Behavioral)
 	generic map(
-        DATA_WIDTH => 52,
+        DATA_WIDTH => 55,
         FIFO_DEPTH => 256
     )
 	port map(
@@ -178,7 +188,30 @@ architecture Behavioral of AXI is
 		Full=>full_wb2,
 		Empty=>emp7
 		); 
- 
+		
+	gfx_fif: entity  work.STD_FIFO(Behavioral) port map(
+		CLK=>Clock,
+		RST=>reset,
+		DataIn=>in9,
+		WriteEn=>we9,
+		ReadEn=>re9,
+		DataOut=>out9,
+		Full=>gfx_upreq_full,
+		Empty=>emp9
+		); 
+ 	gfx_fifo: process(reset,Clock)
+	   begin	  
+        	if reset='1' then
+        		we9<='0';
+            elsif rising_edge(Clock) then
+				if(gfx_upreq(50 downto 50)="1") then
+					in9<=gfx_upreq;
+					we9<='1';
+				else
+					we9<='0';
+				end if;	
+			end if;
+	end process;
    
     tomem_arbitor: entity work.arbiter(Behavioral) port map(
     	clock => Clock,
@@ -567,11 +600,11 @@ architecture Behavioral of AXI is
                 	pwr_req1 <= cache_req1(50 downto 46);
                 	state := 4;
                  elsif cache_req1(50 downto 50) = "1" and full_srq1/='1' then
-                    snoop_req2 <= cache_req1;
+                    snoop_req2 <= "000"&cache_req1;
                     adr_0 <= cache_req1(47 downto 32);
                     state :=0;
            		 else
-            		snoop_req2 <= nilreq;
+            		snoop_req2 <= "000"&nilreq;
             		state := 0;
                  end if;
            	elsif state = 1 then
@@ -583,7 +616,7 @@ architecture Behavioral of AXI is
            			count := 0;
            		end if;
            	elsif state = 3 then
-                snoop_req2 <= tmp_sp2;
+                snoop_req2 <= "000"&tmp_sp2;
                 adr_0 <= tmp_sp2(47 downto 32);
            		state := 0;
            	elsif state =4 then
@@ -613,11 +646,11 @@ architecture Behavioral of AXI is
                 	pwr_req2 <= cache_req2(50 downto 46);
                 	state := 4;
            		 elsif cache_req2(50 downto 50) = "1" and full_srq2/='1' then
-                	snoop_req1 <= cache_req2;
+                	snoop_req1 <= "000"&cache_req2;
                 	adr_1 <= cache_req2(47 downto 32);
                 	state :=0;
            		 else
-            		snoop_req1 <= nilreq;
+            		snoop_req1 <= "000"&nilreq;
             		state :=0;
                  end if;
            	elsif state = 1 then
@@ -629,7 +662,7 @@ architecture Behavioral of AXI is
            			state := 3;
            		end if;
            	elsif state = 3 then
-                snoop_req1 <= tmp_sp1;
+                snoop_req1 <= "000"&tmp_sp1;
                 adr_1 <= tmp_sp1(47 downto 32);
            		state := 0;
            	elsif state =4 then

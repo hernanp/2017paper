@@ -18,7 +18,7 @@ entity L1Cache is
            Clock: in std_logic;
            reset: in std_logic;
            cpu_req : in STD_LOGIC_VECTOR(50 downto 0);
-           snoop_req : in STD_LOGIC_VECTOR(50 downto 0);
+           snoop_req : in STD_LOGIC_VECTOR(53 downto 0);
            bus_res  : in  STD_LOGIC_VECTOR(50 downto 0):= (others => '0');
            --01: read response
            --10: write response
@@ -28,7 +28,7 @@ entity L1Cache is
            --10: write response
            --11: fifo full response
            snoop_hit : out std_logic;
-           snoop_res : out STD_LOGIC_VECTOR(50 downto 0):= (others => '0');
+           snoop_res : out STD_LOGIC_VECTOR(53 downto 0):= (others => '0');
            wb_req: out std_logic_vector(50 downto 0);
             --01: read request
             --10: write request
@@ -50,12 +50,13 @@ architecture Behavioral of L1Cache is
 	type rom_type is array (2**10-1 downto 0) of std_logic_vector (40 downto 0);     
 	signal ROM_array : rom_type:= (others => (others =>'0'));
 	signal we1,we2,we3,re1,re2,re3: std_logic:='0';
-	signal out1,out2,out3:std_logic_vector(50 downto 0);
+	signal out1,out3:std_logic_vector(50 downto 0);
+	signal in2,out2,mem_req2,mem_res2: std_logic_vector(53 downto 0);
 	signal emp1,emp2,emp3,ful1,ful2,ful3: std_logic:='0';	
-	signal mem_req1,mem_req2,upd_req,write_req: std_logic_vector(50 downto 0);
-	signal mem_res1,mem_res2,wt_res,upd_res: std_logic_vector(49 downto 0);
+	signal mem_req1,upd_req,write_req: std_logic_vector(50 downto 0);
+	signal mem_res1,wt_res,upd_res: std_logic_vector(49 downto 0);
 	signal hit1,hit2,upd_ack,write_ack,mem_ack1,mem_ack2: std_logic;
-	signal in1,in2,in3: std_logic_vector(50 downto 0);
+	signal in1,in3: std_logic_vector(50 downto 0);
 	signal cpu_res1, cpu_res2: std_logic_vector(50 downto 0);
 	signal ack1, ack2: std_logic;
 	signal wb_req_c, wb_res_c:integer:=1;
@@ -75,7 +76,12 @@ begin
 		Full=>full_cprq,
 		Empty=>emp1
 		);
-	snp_req_fif: entity work.STD_FIFO(Behavioral) port map(
+	snp_req_fif: entity work.STD_FIFO(Behavioral)
+	generic map(
+        DATA_WIDTH => 55,
+        FIFO_DEPTH => 256
+    )
+	port map(
 		CLK=>Clock,
 		RST=>reset,
 		DataIn=>in2,
@@ -226,11 +232,11 @@ begin
 	begin
 		if (reset = '1') then
 			-- reset signals
-			snoop_res <= nilreq;
+			snoop_res <= "000"&nilreq;
 			snoop_hit <='0';
 		elsif rising_edge(Clock) then
 			if state =0 then
-			     snoop_res <= nilreq;
+			     snoop_res <= "000"&nilreq;
 			     if re2='0' and emp2 ='0' then
 			         re2 <= '1';
 			         state := 1;
@@ -238,7 +244,7 @@ begin
 			elsif state =1 then
 				re2 <= '0';
 			    if mem_ack2 = '1' then
-			         tmp_snp_res <= '1'&mem_res2;
+			         tmp_snp_res <= mem_res2;
 			         tmp_hit <= hit2;
 			         state := 2;
 			    end if;
@@ -317,14 +323,14 @@ begin
                         or memcont(37 downto 32)/=mem_req1(47 downto 42) then
 					mem_ack1<='1';
 					hit1 <= '0';
-					mem_res1 <= mem_req1(49 downto 0);
+					mem_res1 <= mem_req1(53 downto 0);
 				else
 					mem_ack1<='1';
 					hit1<='1';
 					if mem_req1(49 downto 48)="10" then
-						mem_res1 <= mem_req1(49 downto 0);
+						mem_res1 <= mem_req1(53 downto 0);
 					else
-						mem_res1 <= mem_req1(49 downto 32)& memcont(31 downto 0);
+						mem_res1 <= mem_req1(53 downto 32)& memcont(31 downto 0);
 					end if;
 				end if;
 			else
