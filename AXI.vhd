@@ -99,6 +99,12 @@ architecture Behavioral of AXI is
  signal tmp_sp1, tmp_sp2: std_logic_vector(50 downto 0);
  signal pwr_req1, pwr_req2, pwr_req3: std_logic_vector(4 downto 0);
  signal pwr_ack1, pwr_ack2, pwr_ack3: std_logic;
+ signal snp1_1,snp1_2,snp1_3,snp1_4,snp1_5,snp1_6,snp2_1,snp2_2,snp2_3,snp2_4,snp2_5,snp2_6: std_logic_vector(53 downto 0);
+ signal snp1_ack1,snp1_ack2,snp1_ack3,snp1_ack4,snp1_ack5,snp1_ack6,snp2_ack1,snp2_ack2,snp2_ack3,snp2_ack4,snp2_ack5,snp2_ack6: std_logic;
+ 
+ signal gfx_upres1,gfx_upres2,gfx_upres3: std_logic_vector(50 downto 0);
+ signal gfx_upres_ack1,gfx_upres_ack2,gfx_upres_ack3: std_logic;
+ 
  
  begin  
  
@@ -212,7 +218,38 @@ architecture Behavioral of AXI is
 				end if;	
 			end if;
 	end process;
-   
+	
+	gfx_upreq_p: process(reset, Clock)
+		variable nilreq:std_logic_vector(50 downto 0):=(others => '0');
+        variable state: integer:=0;
+        variable count: integer:=0;
+    begin
+        if reset='1' then
+        	snoop_req1 <= "000"&nilreq;
+        	
+        	pwr_req1 <= "00000";
+        elsif rising_edge(Clock) then
+           	if stage = 0 then
+    			if re9 = '0' and emp9 ='0' then
+    				re9 <='1';
+    				stage :=1;
+    			end if;
+    	   elsif stage = 1 then
+    	   		re9 <= '0';
+    			if out9(50 downto 50) = "1" then
+    				snp1_2 <= "001"&out9;
+    				stage := 2;
+    			end if;
+    		elsif stage = 2 then
+    			if snp1_ack2 ='1' then
+    				snp1_2 <= "000"&nilreq;
+    				stage :=0;
+    			end if;
+    		end if;
+        end if;
+    end process;
+    
+    
     tomem_arbitor: entity work.arbiter(Behavioral) port map(
     	clock => Clock,
         reset => reset,
@@ -243,7 +280,40 @@ architecture Behavioral of AXI is
         ack3 => brs2_ack3
         
     );
-    
+    snp1_arbitor: entity work.arbiter6(Behavioral) port map(
+    	clock => Clock,
+        reset => reset,
+        din1 => snp1_1,
+        ack1 => snp1_ack1,
+        din2 => snp1_2,
+        ack2 => snp1_ack2,
+        din3 => snp1_3,
+        ack3 => snp1_ack3,
+        din4 => snp1_4,
+        ack4 => snp1_ack4,
+        din5 => snp1_5,
+        ack5 => snp1_ack5,
+        din6 => snp1_6,
+        ack6 => snp1_ack6,
+        dout => snoop_req1
+    );
+    snp2_arbitor: entity work.arbiter6(Behavioral) port map(
+    	clock => Clock,
+        reset => reset,
+        din1 => snp2_1,
+        ack1 => snp2_ack1,
+        din2 => snp2_2,
+        ack2 => snp2_ack2,
+        din3 => snp2_3,
+        ack3 => snp2_ack3,
+        din4 => snp2_4,
+        ack4 => snp2_ack4,
+        din5 => snp2_5,
+        ack5 => snp2_ack5,
+        din6 => snp2_6,
+        ack6 => snp2_ack6,
+        dout => snoop_req2
+    );
     pwr_arbitor: entity work.arbiter3(Behavioral) 
     generic map(
         DATA_WIDTH => 5
@@ -271,7 +341,17 @@ architecture Behavioral of AXI is
         ack3 => brs1_ack3,
         dout => bus_res1
     );
-    
+    gfx_upres_arbitor: entity work.arbitor3(Behavioral) port map(
+    	clock => Clock,
+        reset => reset,
+        din1 => gfx_upres1,
+        ack1 => gfx_upres_ack1,
+       	din2 => gfx_upres2,
+        ack2 => gfx_upres_ack2,
+        din3 => gfx_upres3,
+        ack3 => gfx_upres_ack3,
+        dout => gfx_upres
+    );
     wb_arbitor: entity work.arbiter2(Behavioral) port map(
     	clock => Clock,
         reset => reset,
@@ -600,12 +680,9 @@ architecture Behavioral of AXI is
                 	pwr_req1 <= cache_req1(50 downto 46);
                 	state := 4;
                  elsif cache_req1(50 downto 50) = "1" and full_srq1/='1' then
-                    snoop_req2 <= "000"&cache_req1;
+                    snp2_1 <= "000"&cache_req1;
                     adr_0 <= cache_req1(47 downto 32);
-                    state :=0;
-           		 else
-            		snoop_req2 <= "000"&nilreq;
-            		state := 0;
+                    state :=5;
                  end if;
            	elsif state = 1 then
            		state := 2;
@@ -622,6 +699,11 @@ architecture Behavioral of AXI is
            	elsif state =4 then
            		if pwr_ack1 = '1' then
            			pwr_req1<= "00000";
+           			state := 0;
+           		end if;
+           	elsif state =5 then
+           		if snp2_ack1 ='1' then
+           			snp2_1<="000"&nilreq;
            			state := 0;
            		end if;
            	end if;   
@@ -646,12 +728,10 @@ architecture Behavioral of AXI is
                 	pwr_req2 <= cache_req2(50 downto 46);
                 	state := 4;
            		 elsif cache_req2(50 downto 50) = "1" and full_srq2/='1' then
-                	snoop_req1 <= "000"&cache_req2;
+                	snp1_1 <= "000"&cache_req2;
                 	adr_1 <= cache_req2(47 downto 32);
-                	state :=0;
-           		 else
-            		snoop_req1 <= "000"&nilreq;
-            		state :=0;
+                	state :=5;
+       
                  end if;
            	elsif state = 1 then
            		state := 2;
@@ -670,7 +750,13 @@ architecture Behavioral of AXI is
            			pwr_req2<= "00000";
            			state := 0;
            		end if;
-           	end if;   
+           	elsif state =5 then
+           		if snp1_ack1='1' then
+           			snp1_1<="000"&nilreq;
+           			state :=0;
+           		end if;
+           	end if; 
+           	  
         end if;
     end process;    
    
@@ -698,10 +784,19 @@ architecture Behavioral of AXI is
                 if out2(50 downto 50) = "1" then
                     
                     if out2(51 downto 51) = "1" then --it;s a hit
-                        state := 2;
-                        bus_res2_1 <= out2(50 downto 0);
+                    	
+                    	if out2(53 downto 51)="000" then
+                    		bus_res2_1 <= out2(50 downto 0);
+                    		state := 2;
+                    	elsif out2(53 downto 51)="001" then
+                    		gfx_upres1 <=out2(50 downto 0);
+                    		state := 7;
+                    	end if;
                     else ---it's a miss
-                    	if to_integer(unsigned(out2(47 downto 32)))<32768 then
+                    	if out2(53 downto 51)/="000" then
+                    		snp2_2<=out2;
+                    		state :=8;
+                    	elsif to_integer(unsigned(out2(47 downto 32)))<32768 then
                         	state := 3;
                         	tomem1 <= out2(50 downto 0);
                         else
@@ -716,6 +811,7 @@ architecture Behavioral of AXI is
                         end if;
                     end if;
                 end if;
+              
             elsif state = 2 then
                 if brs2_ack1 = '1' then
                     bus_res2_1 <= nilreq;
@@ -742,7 +838,11 @@ architecture Behavioral of AXI is
             		togfx1<=tmp_togfx1;
             		state :=4;
             	end if;  
-                
+            elsif state =7 then
+            	if gfx_upres_ack1='1' then
+            		gfx_upres1 <= nilreq;
+            		state :=0;
+            	end if;   
             end if;
            
         end if;
