@@ -577,7 +577,7 @@ architecture Behavioral of AXI is
     					cpu1 := '0';
     					stage :=2;
     				elsif out3(53 downto 51)="001" then
-    					gfx_upres
+    					gfx_upres3 <= out3(50 downto 0);
     					stage :=3;
     				end if;
     				
@@ -589,6 +589,11 @@ architecture Behavioral of AXI is
     			elsif cpu1 ='0' and brs2_ack2 ='1' then
     				bus_res2_2 <= nilreq;
     				stage :=0;
+    			end if;
+    		elsif stage = 3 then
+    			if gfx_upres_ack3='1' then
+    				gfx_upres3<=(others => '0');
+    				stage := 0;
     			end if;
     		end if;	
     	end if;
