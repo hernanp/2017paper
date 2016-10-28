@@ -466,7 +466,7 @@ architecture Behavioral of AXI is
 		variable state:integer;
 	begin
 		if reset= '1' then
-    		mem_wb1 <= nilreq;
+    		mem_wb1 <= (others => '0');
     		state := 0;
     		
     	elsif rising_edge(Clock) then
@@ -489,12 +489,12 @@ architecture Behavioral of AXI is
     			
     		elsif state = 2 then
     			if wb_ack1 = '1' then
-    				mem_wb1 <= nilreq;
+    				mem_wb1 <= (others => '0');
     				state :=0;
     			end if;
     		elsif state =3 then
     			if gfx_wb_ack1='1' then
-    				gfx_wb1 <= nilreq;
+    				gfx_wb1 <= (others => '0');
     				state :=0;
     			end if;
     		end if;
@@ -508,7 +508,7 @@ architecture Behavioral of AXI is
 		variable state:integer;
 	begin
 		if reset= '1' then
-    		mem_wb2 <= nilreq;
+    		mem_wb2 <= (others => '0');
     		state := 0;
     		
     	elsif rising_edge(Clock) then
@@ -531,12 +531,12 @@ architecture Behavioral of AXI is
     			
     		elsif state = 2 then
     			if wb_ack2 = '1' then
-    				mem_wb2 <= nilreq;
+    				mem_wb2 <= (others => '0');
     				state :=0;
     			end if;
     		elsif state =3 then
     			if gfx_wb_ack2='1' then
-    				gfx_wb2<=nilreq;
+    				gfx_wb2<= (others => '0');
     				state :=0;
     			end if;
     		end if;
@@ -552,8 +552,8 @@ architecture Behavioral of AXI is
     	variable cpu1 : std_logic;
     begin
     	if reset= '1' then
-    		bus_res1_1 <= nilreq;
-    		bus_res2_2 <= nilreq;
+    		bus_res1_1 <= (others => '0');
+    		bus_res2_2 <= (others => '0');
     	elsif rising_edge(Clock) then
     		if stage = 0 then
     			if re3 = '0' and emp3 ='0' then
@@ -584,10 +584,10 @@ architecture Behavioral of AXI is
     			end if;
     		elsif stage = 2 then
     			if cpu1 ='1' and brs1_ack1 = '1' then
-    				bus_res1_1 <= nilreq;
+    				bus_res1_1 <= (others => '0');
     				stage :=0;
     			elsif cpu1 ='0' and brs2_ack2 ='1' then
-    				bus_res2_2 <= nilreq;
+    				bus_res2_2 <= (others => '0');
     				stage :=0;
     			end if;
     		elsif stage = 3 then
@@ -606,8 +606,8 @@ architecture Behavioral of AXI is
     	variable cpu1 : std_logic;
     begin
     	if reset= '1' then
-    		bus_res1_3 <= nilreq;
-    		bus_res2_3 <= nilreq;
+    		bus_res1_3 <= (others => '0');
+    		bus_res2_3 <= (others => '0');
     	elsif rising_edge(Clock) then
     		if stage = 0 then
     			if re8 = '0' and emp8 ='0' then
@@ -619,12 +619,12 @@ architecture Behavioral of AXI is
     			if out8(50 downto 50) = "1" then
     				stage :=2;
     				---response for cpu1
-    				if out8(51 downto 51) ="0"  then
+    				if out8(53 downto 51) ="000"  then
     					---reg_1 <= out8(50 downto 0);
     					bus_res1_3 <= out8(50 downto 0);
     					cpu1 := '1';
     				---response for cpu2
-    				else
+    				elsif out8(53 downto 51) = "101" then
     					---reg_2 <= out3(50 downto 0);
     					bus_res2_3 <= out8(50 downto 0);
     					cpu1 := '0';
@@ -633,10 +633,10 @@ architecture Behavioral of AXI is
     			end if;
     		elsif stage = 2 then
     			if cpu1 ='1' and brs1_ack3 = '1' then
-    				bus_res1_3 <= nilreq;
+    				bus_res1_3 <= (others => '0');
     				stage :=0;
     			elsif cpu1 ='0' and brs2_ack3 ='1' then
-    				bus_res2_3 <= nilreq;
+    				bus_res2_3 <= (others => '0');
     				stage :=0;
     			end if;
     		end if;	
@@ -733,7 +733,7 @@ architecture Behavioral of AXI is
                 	pwr_req2 <= cache_req2(50 downto 46);
                 	state := 4;
            		 elsif cache_req2(50 downto 50) = "1" and full_srq2/='1' then
-                	snp1_1 <= "000"&cache_req2;
+                	snp1_1 <= "101"&cache_req2;
                 	adr_1 <= cache_req2(47 downto 32);
                 	state :=5;
        
@@ -747,7 +747,7 @@ architecture Behavioral of AXI is
            			state := 3;
            		end if;
            	elsif state = 3 then
-                snoop_req1 <= "000"&tmp_sp1;
+                snoop_req1 <= "101"&tmp_sp1;
                 adr_1 <= tmp_sp1(47 downto 32);
            		state := 0;
            	elsif state =4 then
@@ -773,10 +773,10 @@ architecture Behavioral of AXI is
     begin
         if reset = '1' then
             re2 <= '0';
-            bus_res2_1 <= nilreq;
+            bus_res2_1 <= (others => '0');
             tomem1 <= "000"&nilreq;
-            ---tmp_brs2_1 <= nilreq;
-            ---tmp_mem1 <=nilreq;
+            ---tmp_brs2_1 <= (others => '0');
+            ---tmp_mem1 <= (others => '0');
         elsif rising_edge(Clock) then
             if state =0 then
                 if re2 ='0' and emp2 ='0' then
@@ -803,7 +803,7 @@ architecture Behavioral of AXI is
                     		state :=8;
                     	elsif to_integer(unsigned(out2(47 downto 32)))<32768 then
                         	state := 3;
-                        	tomem1 <= "101"&out2(50 downto 0);
+                        	tomem1 <= out2(53 downto 0);
                         else
                         	if gfxpoweron = '1' then
                         		state :=4;
@@ -819,7 +819,7 @@ architecture Behavioral of AXI is
               
             elsif state = 2 then
                 if brs2_ack1 = '1' then
-                    bus_res2_1 <= nilreq;
+                    bus_res2_1 <= (others => '0');
                     state := 0;
                 end if;
                 
@@ -830,7 +830,7 @@ architecture Behavioral of AXI is
                 end if;
             elsif state =4 then
             	if gfx_ack1 ='1' then
-            		togfx1 <= nilreq;
+            		togfx1 <= (others => '0');
             		state := 0;
             	end if;  
             elsif state =5 then
@@ -845,7 +845,7 @@ architecture Behavioral of AXI is
             	end if;  
             elsif state =7 then
             	if gfx_upres_ack1='1' then
-            		gfx_upres1 <= nilreq;
+            		gfx_upres1 <= (others => '0');
             		state :=0;
             	end if; 
             elsif state =8 then
@@ -864,10 +864,10 @@ architecture Behavioral of AXI is
     begin
         if reset = '1' then
             re5 <= '0';
-            bus_res1_2 <= nilreq;
+            bus_res1_2 <= (others => '0');
             tomem2 <= (others => '0');
-            --tmp_brs1_2 <= nilreq;
-            --tmp_mem2 <=nilreq;
+            --tmp_brs1_2 <= (others => '0');
+            --tmp_mem2 <= (others => '0');
             state := 0;
         elsif rising_edge(Clock) then
             if state =0 then
@@ -893,11 +893,11 @@ architecture Behavioral of AXI is
                         	state := 3;
                         else 
                         	if gfxpoweron = '1' then
-                        		togfx2 <= out5(50 downto 0);
+                        		togfx2 <= "000"&out5(50 downto 0);
                         		state :=4;
                         	else
                         		state :=5;
-                        		tmp_togfx2 <= out5(50 downto 0);
+                        		tmp_togfx2 <= "000"&out5(50 downto 0);
                         		pwr_req3 <= "11000";
                         	end if;
                         end if;
@@ -906,7 +906,7 @@ architecture Behavioral of AXI is
                 
             elsif state =2 then
                 if brs1_ack2 = '1' then
-                    bus_res1_2 <= nilreq;
+                    bus_res1_2 <= (others => '0');
                     state := 0;
                 end if; 
                    
@@ -917,7 +917,7 @@ architecture Behavioral of AXI is
                 end if;
             elsif state =4 then
             	if gfx_ack2 = '1' then
-            		togfx2 <= nilreq;
+            		togfx2 <= (others => '0');
             		state :=0;
             	end if;
             elsif state =5 then
@@ -932,7 +932,7 @@ architecture Behavioral of AXI is
             	end if; 
             elsif state =7 then
             	if gfx_upres_ack2='1' then
-            		gfx_upres2 <= nilreq;
+            		gfx_upres2 <= (others => '0');
             		state :=0;
             	end if; 
             elsif state =8 then
