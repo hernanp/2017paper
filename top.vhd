@@ -28,7 +28,7 @@ architecture Behavioral of top is
    signal snoop_hit1, snoop_hit2: std_logic;
    signal snoop_res1, snoop_res2,snoop_req1,snoop_req2: std_logic_vector(53 downto 0);
    signal  bus_req1, bus_req2: std_logic_vector(50 downto 0);
-   signal memres, tomem : std_logic_vector(51 downto 0);
+   signal memres, tomem : std_logic_vector(53 downto 0);
    signal full_crq1, full_srq1, full_brs1,full_wb1,full_srs1,full_crq2, full_srq2, full_brs2,full_wb2,full_srs2:std_logic;
    signal reset: std_logic:='1';
    signal full_mrs: std_logic;
@@ -290,7 +290,6 @@ clk_gen : process
         full_srs1=>full_srs1,
         full_wb2=>full_wb2,
         full_srs2=>full_srs2,
-        full_mrs=>full_mrs,
         
         full_b_m=>full_b_m,
         full_m=>full_m,

@@ -7,13 +7,13 @@ entity arbiter is
             clock: in std_logic;
             reset: in std_logic;
             
-            din1: 	in STD_LOGIC_VECTOR(50 downto 0);
+            din1: 	in STD_LOGIC_VECTOR(53 downto 0);
             ack1: 	out STD_LOGIC;
             
-            din2:	in std_logic_vector(50 downto 0);
+            din2:	in std_logic_vector(53 downto 0);
             ack2:	out std_logic;
             
-            dout:	out std_logic_vector(51 downto 0)
+            dout:	out std_logic_vector(53 downto 0)
      );
 end arbiter;
 
@@ -41,24 +41,24 @@ begin
             		s_ack2 <= '0';          
                 when "01" =>
                 	if s_ack2 = '0' then
-                    	dout <= '0'& din2;
+                    	dout <=  din2;
                     	s_ack2 <= '1';
                     else
             			dout <= '0'& nilreq;
                     end if;
                 when "10" =>
                 	if s_ack1 = '0' then
-                    	dout <= '1'& din1;
+                    	dout <=  din1;
                     	s_ack1 <= '1';
                     else
                     	dout <= '0'& nilreq;
                     end if;
                 when "11" =>
                     if s_ack2 ='0' then
-                        dout <= '0'& din2;
+                        dout <=  din2;
                     	s_ack2 <= '1';
                     elsif s_ack1 ='0' then
-                        dout <= '1'& din1;
+                        dout <=  din1;
                     	s_ack1 <= '1';
                     else
                         dout <= '0'& nilreq;

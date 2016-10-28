@@ -19,19 +19,20 @@ entity AXI is
             
             wb_req1, wb_req2: in std_logic_vector(50 downto 0);
             
-            memres: in STD_LOGIC_VECTOR(51 downto 0);
+            memres: in STD_LOGIC_VECTOR(53 downto 0);
             gfxres: in std_logic_vector(51 downto 0);
            
             bus_res1: out STD_LOGIC_VECTOR(50 downto 0);    
             bus_res2: out STD_LOGIC_VECTOR(50 downto 0);
-            tomem: out STD_LOGIC_VECTOR(51 downto 0);
+            tomem: out STD_LOGIC_VECTOR(53 downto 0);
             togfx: out std_logic_vector(51 downto 0);
             --add 3 bits in snoop request to indicate the source
-            --000 cpu
+            --000 cpu0
             --001 gfx
             --010 uart
             --011 usb
             --100 audio
+            --101 cpu1
             snoop_req1: out STD_LOGIC_VECTOR(53 downto 0);
             snoop_req2: out STD_LOGIC_VECTOR(53 downto 0);
             snoop_res1,snoop_res2: in STD_LOGIC_VECTOR(53 downto 0);
@@ -40,7 +41,7 @@ entity AXI is
             
             full_srq1,full_srq2: in std_logic;
            	full_brs1,full_brs2: in std_logic;
-           	full_crq1,full_crq2,full_wb1,full_srs1,full_wb2,full_srs2,full_mrs,full_gfxrs: out std_logic;
+           	full_crq1,full_crq2,full_wb1,full_srs1,full_wb2,full_srs2,full_gfxrs: out std_logic;
            	full_m: in std_logic;
             full_b_m: out std_logic:='0';
             
@@ -66,31 +67,25 @@ architecture Behavioral of AXI is
 --fifo has 53 bits
 --3 bits for indicating its source
 --50 bits for packet
-    type memory_type is array (31 downto 0) of std_logic_vector(53 downto 0);
-    signal memory : memory_type :=(others => (others => '0'));   --memory for queue.
-    signal readptr,writeptr : integer range 0 to 31 := 0;  --read and write pointers.begin
     
     signal in1,in4,in6,in7,in9,out9: std_logic_vector(50 downto 0);
     signal in3,out3,in8,out8: std_logic_vector(51 downto 0);
     signal in2, out2,in5,out5: std_logic_vector(54 downto 0);
     signal we1,we2,we3,we4,we5,we6,we7,we8,re8,re9,we9,re7,re1,re2,re3,re4,re5,re6: std_logic:='0';
  signal out1,out4,out6,out7:std_logic_vector(50 downto 0);
- signal emp1,emp2,emp3,emp4,emp5,emp6,emp7,emp8,ful8,ful7,ful1,ful2,ful3,ful4,ful5,ful6,ful9,emp9: std_logic:='0';
+ signal emp1,emp2,emp3,emp4,emp5,emp6,emp7,emp8,emp9: std_logic:='0';
  
  
  signal bus_res1_1, bus_res1_2,bus_res2_1, bus_res2_2, bus_res1_3,bus_res2_3: std_logic_vector(50 downto 0);
- signal mem_req1, mem_req2: std_logic_vector(50 downto 50);
  signal mem_ack1,mem_ack2,gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2,brs1_ack3,brs2_ack3, brs2_ack1, brs2_ack2: std_logic;
  
  
- signal tmp_brs1_1, tmp_brs1_2, tmp_brs2_1, tmp_brs2_2: std_logic_vector(50 downto 0):=(others => '0');
  
- signal tomem1, tomem2, togfx1,tmp_togfx1,tmp_togfx2, togfx2 : std_logic_vector(50 downto 0):=(others => '0');
-    signal tmp_mem1, tmp_mem2: std_logic_vector(50 downto 0):=(others => '0');
-    
+ signal  togfx1,tmp_togfx1,tmp_togfx2, togfx2 : std_logic_vector(50 downto 0):=(others => '0');
+ signal tomem1, tomem2: std_logic_vector(53 downto 0) := (others => '0');
     
     signal wb_ack1, wb_ack2,gfx_wb_ack1, gfx_wb_ack2 : std_logic;
-    signal mem_wb1, mem_wb2, gfx_wb1, gfx_wb2,tmp_mem_wb1, tmp_mem_wb2 : std_logic_vector (50 downto 0):=(others => '0');
+    signal mem_wb1, mem_wb2, gfx_wb1, gfx_wb2 : std_logic_vector (50 downto 0):=(others => '0');
     signal reg_1, reg_2: std_logic_vector(50 downto 0) := (others=>'0');
     --state information of power
  signal gfxpoweron: std_logic:='0';
@@ -138,7 +133,7 @@ architecture Behavioral of AXI is
   WriteEn=>we3,
   ReadEn=>re3,
   DataOut=>out3,
-  Full=>full_mrs,
+  Full=>full_b_m,
   Empty=>emp3
   ); 
  gfx_res_fif: entity  work.STD_FIFO(Behavioral) 
@@ -221,8 +216,8 @@ architecture Behavioral of AXI is
 	
 	gfx_upreq_p: process(reset, Clock)
 		variable nilreq:std_logic_vector(50 downto 0):=(others => '0');
-        variable state: integer:=0;
-        variable count: integer:=0;
+        variable stage: integer:=0;
+        ---variable count: integer:=0;
     begin
         if reset='1' then
         	snoop_req1 <= "000"&nilreq;
@@ -280,7 +275,7 @@ architecture Behavioral of AXI is
         ack3 => brs2_ack3
         
     );
-    snp1_arbitor: entity work.arbitor6(Behavioral) port map(
+    snp1_arbitor: entity work.arbiter6(Behavioral) port map(
     	clock => Clock,
         reset => reset,
         din1 => snp1_1,
@@ -297,7 +292,7 @@ architecture Behavioral of AXI is
         ack6 => snp1_ack6,
         dout => snoop_req1
     );
-    snp2_arbitor: entity work.arbitor6(Behavioral) port map(
+    snp2_arbitor: entity work.arbiter6(Behavioral) port map(
     	clock => Clock,
         reset => reset,
         din1 => snp2_1,
@@ -341,7 +336,7 @@ architecture Behavioral of AXI is
         ack3 => brs1_ack3,
         dout => bus_res1
     );
-    gfx_upres_arbitor: entity work.arbitor3(Behavioral) port map(
+    gfx_upres_arbitor: entity work.arbiter3(Behavioral) port map(
     	clock => Clock,
         reset => reset,
         din1 => gfx_upres1,
@@ -568,17 +563,22 @@ architecture Behavioral of AXI is
     	   elsif stage = 1 then
     	   		re3 <= '0';
     			if out3(50 downto 50) = "1" then
-    				stage :=2;
+    				
     				---response for cpu1
-    				if out3(51 downto 51) ="0"  then
+    				if out3(53 downto 51) ="000"  then
     					reg_1 <= out3(50 downto 0);
     					bus_res1_1 <= out3(50 downto 0);
     					cpu1 := '1';
+    					stage :=2;
     				---response for cpu2
-    				else
+    				elsif out3(53 downto 51)="101" then
     					reg_2 <= out3(50 downto 0);
     					bus_res2_2 <= out3(50 downto 0);
     					cpu1 := '0';
+    					stage :=2;
+    				elsif out3(53 downto 51)="001" then
+    					gfx_upres
+    					stage :=3;
     				end if;
     				
     			end if;
@@ -769,7 +769,7 @@ architecture Behavioral of AXI is
         if reset = '1' then
             re2 <= '0';
             bus_res2_1 <= nilreq;
-            tomem1 <= nilreq;
+            tomem1 <= "000"&nilreq;
             ---tmp_brs2_1 <= nilreq;
             ---tmp_mem1 <=nilreq;
         elsif rising_edge(Clock) then
@@ -798,7 +798,7 @@ architecture Behavioral of AXI is
                     		state :=8;
                     	elsif to_integer(unsigned(out2(47 downto 32)))<32768 then
                         	state := 3;
-                        	tomem1 <= out2(50 downto 0);
+                        	tomem1 <= "101"&out2(50 downto 0);
                         else
                         	if gfxpoweron = '1' then
                         		state :=4;
@@ -820,7 +820,7 @@ architecture Behavioral of AXI is
                 
             elsif state = 3 then
                 if mem_ack1 = '1' then
-                    tomem1 <= nilreq;
+                    tomem1 <= "000"&nilreq;
                     state := 0;
                 end if;
             elsif state =4 then
@@ -842,7 +842,12 @@ architecture Behavioral of AXI is
             	if gfx_upres_ack1='1' then
             		gfx_upres1 <= nilreq;
             		state :=0;
-            	end if;   
+            	end if; 
+            elsif state =8 then
+            	if snp2_ack2 = '1' then
+            		state := 0;
+            		snp2_2 <= (others => '0');
+            	end if;  
             end if;
            
         end if;
@@ -855,7 +860,7 @@ architecture Behavioral of AXI is
         if reset = '1' then
             re5 <= '0';
             bus_res1_2 <= nilreq;
-            tomem2 <= nilreq;
+            tomem2 <= (others => '0');
             --tmp_brs1_2 <= nilreq;
             --tmp_mem2 <=nilreq;
             state := 0;
@@ -868,13 +873,18 @@ architecture Behavioral of AXI is
             elsif state =1 then
             	re5 <= '0';
                 if out5(50 downto 50) = "1" then
-                    
-                    if out5(51 downto 51) = "1" then --it;s a hit
-                        state := 2;
-                        bus_res1_2 <= out5(50 downto 0);
+                	if out5(51 downto 51) = "1" then --it;s a hit
+                		if out5(53 downto 51)="000" then
+                    		bus_res1_2 <= out5(50 downto 0);
+                    		state := 2;
+                    	elsif out5(53 downto 51)="001" then
+                    		gfx_upres2 <=out5(50 downto 0);
+                    		state := 7;
+                    	end if;
+                        
                     else ---it's a miss
                     	if to_integer(unsigned(out5(47 downto 32)))<32768 then
-                        	tomem2 <= out5(50 downto 0);
+                        	tomem2 <= out5(53 downto 0);
                         	state := 3;
                         else 
                         	if gfxpoweron = '1' then
@@ -897,7 +907,7 @@ architecture Behavioral of AXI is
                    
             elsif state =3 then
                 if mem_ack2 = '1' then
-                    tomem2 <= nilreq;
+                    tomem2 <= "000"&nilreq;
                     state := 0;
                 end if;
             elsif state =4 then
@@ -914,6 +924,16 @@ architecture Behavioral of AXI is
             	if pwrres(4 downto 4)="1" then
             		togfx2<=tmp_togfx2;
             		state :=4;
+            	end if; 
+            elsif state =7 then
+            	if gfx_upres_ack2='1' then
+            		gfx_upres2 <= nilreq;
+            		state :=0;
+            	end if; 
+            elsif state =8 then
+            	if snp2_ack2 = '1' then
+            		state := 0;
+            		snp2_2 <= (others => '0');
             	end if; 
             end if;
         end if;
