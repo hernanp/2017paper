@@ -41,7 +41,6 @@ architecture Behavioral of arbiter6 is
 begin  
  	process (reset, clock)
         variable nilreq : std_logic_vector(DATA_WIDTH - 1 downto 0):=(others => '0');
-        variable cmd: std_logic_vector( 5 downto 0);
     begin
         if reset = '1' then
         	s_token <= 0;
@@ -53,7 +52,6 @@ begin
         	s_ack6 <= '0';
         	dout <=  nilreq;
         elsif rising_edge(clock) then
-        	cmd:= din1(DATA_WIDTH-1 downto DATA_WIDTH-1) & din2(DATA_WIDTH-1 downto DATA_WIDTH-1)& din3(DATA_WIDTH-1 downto DATA_WIDTH-1)&din4(DATA_WIDTH-1 downto DATA_WIDTH-1) & din5(DATA_WIDTH-1 downto DATA_WIDTH-1)& din6(DATA_WIDTH-1 downto DATA_WIDTH-1);
         	dout <= nilreq;
             s_ack1 <= '0';
             s_ack2 <= '0';   
@@ -61,69 +59,37 @@ begin
             s_ack4 <= '0';
             s_ack5 <= '0';   
             s_ack6 <= '0'; 
-            case cmd is                  		      
-                when "010000" =>
-                	if s_ack2 = '0' then
-                    	dout <=  din2;
-                    	s_ack2 <= '1';
-                    end if;
-                when "100000" =>
-                	if s_ack1 = '0' then
-                    	dout <= din1;
-                    	s_ack1 <= '1';
-                    end if;
-                when "001000" =>
-                	if s_ack3 = '0' then
-                    	dout <= din3;
-                    	s_ack3 <= '1';
-                    end if;
-                when "000000" =>
-                when "111000" =>
-                    if s_token = 0 and s_ack2 ='0' then
-                        dout <= din2;
-                    	s_ack2 <= '1';
-                    	s_token <= 1;
-                    elsif s_token = 1 and s_ack1 ='0' then
-                        dout <= din1;
-                    	s_ack1 <= '1';
-                    	s_token <= 2;
-                    elsif s_token = 2 and s_ack3 ='0' then
-                    	dout <= din3;
-                    	s_ack3 <= '1';
-                    	s_token <= 0;	
-                    end if;
-               when "011000" =>
-               		if s_token < 1 and s_ack2 ='0' then
-                        dout <= din2;
-                    	s_ack2 <= '1';
-                    	s_token <= 2;
-                    elsif  s_ack3 ='0' then
-                    	dout <= din3;
-                    	s_ack3 <= '1';
-                    	s_token <= 0;	
-                    end if;
-              when "110000" =>
-               		if s_token < 1 and s_ack1 ='0' then
-                        dout <= din1;
-                    	s_ack1 <= '1';
-                    	s_token <= 1;
-                    elsif  s_ack2 ='0' then
-                    	dout <= din2;
-                    	s_ack2 <= '1';
-                    	s_token <= 0;	
-                    end if;
-              when "101000" =>
-               		if s_token < 1 and s_ack1 ='0' then
-                        dout <= din1;
-                    	s_ack1 <= '1';
-                    	s_token <= 1;
-                    elsif  s_ack3 ='0' then
-                    	dout <= din3;
-                    	s_ack3 <= '1';
-                    	s_token <= 0;	
-                    end if;
-             when others =>
-            end case;
+            if din1(DATA_WIDTH-1 downto DATH_WIDTH-1)='1' then
+            	if s_ack1 = '0' then
+                    dout <= din1;
+                    s_ack1 <= '1';
+                end if; 
+            elsif din2(DATA_WIDTH-1 downto DATH_WIDTH-1)='1' then
+            	if s_ack2 = '0' then
+                    dout <= din2;
+                    s_ack2 <= '1';
+                end if; 
+         	elsif din3(DATA_WIDTH-1 downto DATH_WIDTH-1)='1' then
+            	if s_ack3 = '0' then
+                    dout <= din3;
+                    s_ack3 <= '1';
+                end if; 
+            elsif din4(DATA_WIDTH-1 downto DATH_WIDTH-1)='1' then
+            	if s_ack4 = '0' then
+                    dout <= din4;
+                    s_ack4 <= '1';
+                end if; 
+            elsif din5(DATA_WIDTH-1 downto DATH_WIDTH-1)='1' then
+            	if s_ack5 = '0' then
+                    dout <= din5;
+                    s_ack5 <= '1';
+                end if; 
+            elsif din6(DATA_WIDTH-1 downto DATH_WIDTH-1)='1' then
+            	if s_ack6 = '0' then
+                    dout <= din6;
+                    s_ack6 <= '1';
+                end if; 
+            end if;
         end if;
         ack1 <= s_ack1;
         ack2 <= s_ack2;

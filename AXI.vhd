@@ -280,7 +280,7 @@ architecture Behavioral of AXI is
         ack3 => brs2_ack3
         
     );
-    snp1_arbitor: entity work.arbiter6(Behavioral) port map(
+    snp1_arbitor: entity work.arbitor6(Behavioral) port map(
     	clock => Clock,
         reset => reset,
         din1 => snp1_1,
@@ -297,7 +297,7 @@ architecture Behavioral of AXI is
         ack6 => snp1_ack6,
         dout => snoop_req1
     );
-    snp2_arbitor: entity work.arbiter6(Behavioral) port map(
+    snp2_arbitor: entity work.arbitor6(Behavioral) port map(
     	clock => Clock,
         reset => reset,
         din1 => snp2_1,
