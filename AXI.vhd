@@ -81,7 +81,7 @@ architecture Behavioral of AXI is
  
  
  
- signal  togfx1,tmp_togfx1,tmp_togfx2, togfx2 : std_logic_vector(50 downto 0):=(others => '0');
+ signal  togfx1,tmp_togfx1,tmp_togfx2, togfx2 : std_logic_vector(53 downto 0):=(others => '0');
  signal tomem1, tomem2: std_logic_vector(53 downto 0) := (others => '0');
     
     signal wb_ack1, wb_ack2,gfx_wb_ack1, gfx_wb_ack2 : std_logic;
@@ -807,10 +807,10 @@ architecture Behavioral of AXI is
                         else
                         	if gfxpoweron = '1' then
                         		state :=4;
-                        		togfx1 <= out2(50 downto 0);
+                        		togfx1 <= "101"&out2(50 downto 0);
                         	else
                         		state :=5;
-                        		tmp_togfx1 <= out2(50 downto 0);
+                        		tmp_togfx1 <= "101"&out2(50 downto 0);
                         		pwr_req3 <= "11000";
                         	end if;
                         end if;
