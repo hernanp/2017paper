@@ -39,7 +39,7 @@ architecture Behavioral of top is
    signal pwrreq_full : std_logic;
    signal gfxreq, gfxres: std_logic_vector(2 downto 0);
    file trace_file: TEXT open write_mode is "trace1.txt";
-   signal gfx_b,togfx: std_logic_vector(51 downto 0);
+   signal gfx_b,togfx: std_logic_vector(53 downto 0);
 begin
 reset_proc : process
     begin

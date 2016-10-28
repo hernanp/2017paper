@@ -16,9 +16,9 @@ entity gfx is
     Port (  Clock: in std_logic;
             reset: in std_logic;
             full_b_m: in std_logic;
-            req : in STD_LOGIC_VECTOR(51 downto 0);
+            req : in STD_LOGIC_VECTOR(53 downto 0);
             wb_req: in std_logic_vector(50 downto 0);
-            res: out STD_LOGIC_VECTOR(51 downto 0);
+            res: out STD_LOGIC_VECTOR(53 downto 0);
             wb_ack: out std_logic;
             full_m: out std_logic:='0';
             pwrreq: in std_logic_vector(2 downto 0);
@@ -33,7 +33,7 @@ architecture Behavioral of gfx is
    signal poweron: std_logic :='1';
     type rom_type is array (2**16-1 downto 0) of std_logic_vector (31 downto 0);     
        signal ROM_array : rom_type:= (others=> (others=>'0'));
-       signal in3,out3: std_logic_vector(51 downto 0);
+       signal in3,out3: std_logic_vector(53 downto 0);
        signal in2,out2: std_logic_vector(50 downto 0);
        signal we3,re3,we2,re2,emp3,emp2: std_logic:='0';
        signal tmp_full: std_logic;
@@ -57,7 +57,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
 		); 
   mem_req_fif: entity  work.STD_FIFO(Behavioral) 
 	generic map(
-		DATA_WIDTH => 52,
+		DATA_WIDTH => 54,
 		FIFO_DEPTH => 256
 	)
 	port map(
@@ -111,7 +111,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
     variable nilmem: std_logic_vector(31 downto 0) := (others=>'0');
     variable tpmem: std_logic_vector(31 downto 0):= selection(2**31-1,32);
     variable state : integer :=0;
-    variable tmp_req: std_logic_vector(51 downto 0);
+    variable tmp_req: std_logic_vector(53 downto 0);
     variable tmp_wb: std_logic_vector(50 downto 0);
     variable wt: integer:=0;
     begin
@@ -135,7 +135,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
             re3<='0';
             
             if out3(50 downto 50) = "1" then
-                tmp_req := out3;
+               tmp_req := out3;
         	   address:=to_integer(unsigned(out3(47 downto 32)));
         	   if (out3(49 downto 48)="01") then
         	      state :=1;
@@ -162,7 +162,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
                 wt :=0;
             end if;
         elsif state =9 then
-            res <= tmp_req(51 downto 32) & ROM_array(address);
+            res <= tmp_req(53 downto 32) & ROM_array(address);
             state :=0;
         elsif state =2 then
              if wt < 20 then

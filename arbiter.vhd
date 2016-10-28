@@ -31,12 +31,12 @@ begin
         if reset = '1' then
         	s_ack1 <= '0';
         	s_ack2 <= '0';
-        	dout <= '0'& nilreq;
+        	dout <= (others => '0');
         elsif rising_edge(clock) then
         	cmd:= din1(50 downto 50) & din2(50 downto 50);
             case cmd is      
             	when "00" =>
-            		dout <= '0'& nilreq;
+            		dout <= (others => '0');
             		s_ack1 <= '0';
             		s_ack2 <= '0';          
                 when "01" =>
@@ -44,14 +44,14 @@ begin
                     	dout <=  din2;
                     	s_ack2 <= '1';
                     else
-            			dout <= '0'& nilreq;
+            			dout <= (others => '0');
                     end if;
                 when "10" =>
                 	if s_ack1 = '0' then
                     	dout <=  din1;
                     	s_ack1 <= '1';
                     else
-                    	dout <= '0'& nilreq;
+                    	dout <= (others => '0');
                     end if;
                 when "11" =>
                     if s_ack2 ='0' then
@@ -61,7 +61,7 @@ begin
                         dout <=  din1;
                     	s_ack1 <= '1';
                     else
-                        dout <= '0'& nilreq;
+                        dout <= (others => '0');
                     end if;
                 when others =>
             end case;

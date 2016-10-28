@@ -20,12 +20,12 @@ entity AXI is
             wb_req1, wb_req2: in std_logic_vector(50 downto 0);
             
             memres: in STD_LOGIC_VECTOR(53 downto 0);
-            gfxres: in std_logic_vector(51 downto 0);
+            gfxres: in std_logic_vector(53 downto 0);
            
             bus_res1: out STD_LOGIC_VECTOR(50 downto 0);    
             bus_res2: out STD_LOGIC_VECTOR(50 downto 0);
             tomem: out STD_LOGIC_VECTOR(53 downto 0);
-            togfx: out std_logic_vector(51 downto 0);
+            togfx: out std_logic_vector(53 downto 0);
             --add 3 bits in snoop request to indicate the source
             --000 cpu0
             --001 gfx
@@ -69,7 +69,7 @@ architecture Behavioral of AXI is
 --50 bits for packet
     
     signal in1,in4,in6,in7,in9,out9: std_logic_vector(50 downto 0);
-    signal in3,out3,in8,out8: std_logic_vector(51 downto 0);
+    signal in3,out3,in8,out8: std_logic_vector(53 downto 0);
     signal in2, out2,in5,out5: std_logic_vector(54 downto 0);
     signal we1,we2,we3,we4,we5,we6,we7,we8,re8,re9,we9,re7,re1,re2,re3,re4,re5,re6: std_logic:='0';
  signal out1,out4,out6,out7:std_logic_vector(50 downto 0);
@@ -123,7 +123,7 @@ architecture Behavioral of AXI is
  
  mem_res_fif: entity  work.STD_FIFO(Behavioral) 
  generic map(
-  DATA_WIDTH => 52,
+  DATA_WIDTH => 54,
   FIFO_DEPTH => 256
  )
  port map(
@@ -138,7 +138,7 @@ architecture Behavioral of AXI is
   ); 
  gfx_res_fif: entity  work.STD_FIFO(Behavioral) 
  generic map(
-   DATA_WIDTH => 52,
+   DATA_WIDTH => 54,
    FIFO_DEPTH => 256
   )
   port map(
@@ -275,7 +275,11 @@ architecture Behavioral of AXI is
         ack3 => brs2_ack3
         
     );
-    snp1_arbitor: entity work.arbiter6(Behavioral) port map(
+    snp1_arbitor: entity work.arbiter6(Behavioral)
+    generic map(
+            DATA_WIDTH => 54
+        )
+     port map(
     	clock => Clock,
         reset => reset,
         din1 => snp1_1,
@@ -292,7 +296,10 @@ architecture Behavioral of AXI is
         ack6 => snp1_ack6,
         dout => snoop_req1
     );
-    snp2_arbitor: entity work.arbiter6(Behavioral) port map(
+    snp2_arbitor: entity work.arbiter6(Behavioral)generic map(
+                DATA_WIDTH => 54
+        )
+        port map(
     	clock => Clock,
         reset => reset,
         din1 => snp2_1,
@@ -788,7 +795,7 @@ architecture Behavioral of AXI is
             	re2 <= '0';
                 if out2(50 downto 50) = "1" then
                     
-                    if out2(51 downto 51) = "1" then --it;s a hit
+                    if out2(54 downto 54) = "1" then --it;s a hit
                     	
                     	if out2(53 downto 51)="000" then
                     		bus_res2_1 <= out2(50 downto 0);
@@ -799,7 +806,7 @@ architecture Behavioral of AXI is
                     	end if;
                     else ---it's a miss
                     	if out2(53 downto 51)/="000" then
-                    		snp2_2<=out2;
+                    		snp2_2<=out2(53 downto 0);
                     		state :=8;
                     	elsif to_integer(unsigned(out2(47 downto 32)))<32768 then
                         	state := 3;
@@ -878,7 +885,7 @@ architecture Behavioral of AXI is
             elsif state =1 then
             	re5 <= '0';
                 if out5(50 downto 50) = "1" then
-                	if out5(51 downto 51) = "1" then --it;s a hit
+                	if out5(54 downto 54) = "1" then --it;s a hit
                 		if out5(53 downto 51)="000" then
                     		bus_res1_2 <= out5(50 downto 0);
                     		state := 2;
