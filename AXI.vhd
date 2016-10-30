@@ -221,7 +221,6 @@ architecture Behavioral of AXI is
     begin
         if reset='1' then
         	snoop_req1 <= "000"&nilreq;
-        	
         	pwr_req1 <= "00000";
         elsif rising_edge(Clock) then
            	if stage = 0 then
