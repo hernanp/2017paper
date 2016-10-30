@@ -352,8 +352,16 @@ begin
 					hit2<='1';
 					--if it's write, invalidate the cache line
 					if mem_req2(49 downto 48) ="10" then
-						ROM_array(indx)(40) <= '0';
-						mem_res2<=mem_req2(53 downto 0);
+						--only if the request is from CPU, the cache line will be invalidated
+						
+						if mem_req2(53 downto 51)="000" then
+							ROM_array(indx)(40) <= '0';
+							mem_res2<=mem_req2(53 downto 0);
+						else
+						---elsif mem_req2(53 downto 51)="001" then
+							mem_res2<=mem_req2(53 downto 32)&memcont(31 downto 0);
+						end if;
+						
 					else
 					--if it's read, mark the exclusive as 0
 						ROM_array(indx)(38) <= '0';

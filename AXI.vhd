@@ -77,12 +77,12 @@ architecture Behavioral of AXI is
  
  
  signal bus_res1_1, bus_res1_2,bus_res2_1, bus_res2_2, bus_res1_3,bus_res2_3: std_logic_vector(50 downto 0);
- signal mem_ack1,mem_ack2,gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2,brs1_ack3,brs2_ack3, brs2_ack1, brs2_ack2: std_logic;
+ signal mem_ack1,mem_ack2,mem_ack3,gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2,brs1_ack3,brs2_ack3, brs2_ack1, brs2_ack2: std_logic;
  
  
  
  signal  togfx1,tmp_togfx1,tmp_togfx2, togfx2 : std_logic_vector(53 downto 0):=(others => '0');
- signal tomem1, tomem2: std_logic_vector(53 downto 0) := (others => '0');
+ signal tomem1, tomem2,tomem3: std_logic_vector(53 downto 0) := (others => '0');
     
     signal wb_ack1, wb_ack2,gfx_wb_ack1, gfx_wb_ack2 : std_logic;
     signal mem_wb1, mem_wb2, gfx_wb1, gfx_wb2 : std_logic_vector (50 downto 0):=(others => '0');
@@ -800,8 +800,16 @@ architecture Behavioral of AXI is
                     		bus_res2_1 <= out2(50 downto 0);
                     		state := 2;
                     	elsif out2(53 downto 51)="001" then
-                    		gfx_upres1 <=out2(50 downto 0);
-                    		state := 7;
+                    		if out2(49 downto 48)="01" then
+                    			gfx_upres1 <=out2(50 downto 0);
+                    			state := 7;
+                    		else
+                    			if to_integer(unsigned(out2(47 downto 32)))<32768 then
+                    				tomem1 <= out2(53 downto 0);
+                        			state := 3;
+                        		end if;
+                        	end if;
+                    		
                     	end if;
                     else ---it's a miss
                     	if out2(53 downto 51)="001" then
@@ -890,8 +898,15 @@ architecture Behavioral of AXI is
                     		bus_res1_2 <= out5(50 downto 0);
                     		state := 2;
                     	elsif out5(53 downto 51)="001" then
-                    		gfx_upres2 <=out5(50 downto 0);
-                    		state := 7;
+                    		if out5(49 downto 48)="01" then
+                    			gfx_upres2 <=out5(50 downto 0);
+                    			state := 7;
+                    		else
+                    			if to_integer(unsigned(out5(47 downto 32)))<32768 then
+                    				tomem2 <= out5(53 downto 0);
+                        			state := 3;
+                        		end if;
+                        	end if;
                     	end if;
                         
                     else ---it's a miss
