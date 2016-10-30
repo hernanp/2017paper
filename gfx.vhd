@@ -89,11 +89,12 @@ req1: process(reset, Clock)
 	   rand1 := selection(2);
 	   rand2 := '0'&selection(2**2-1,3)&"111111000000";
 	   rand3 := selection(2**15-1,32);
+	   rand2 :="0110101010101010";
 	   ---if rand1=1 then
 	   ---    write(rand2,tmp_req,rand3);
 	   ---else
 	   wait for 170 ps;
-	   read("0110101010101010",tmp_req,rand3);
+	   read(rand2,tmp_req,rand3);
 	   ---end if;
     	
   end loop;	
