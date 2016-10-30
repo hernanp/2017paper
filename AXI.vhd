@@ -220,7 +220,7 @@ architecture Behavioral of AXI is
         ---variable count: integer:=0;
     begin
         if reset='1' then
-        	snoop_req1 <= "000"&nilreq;
+        	---snoop_req1 <= "000"&nilreq;
         	pwr_req1 <= "00000";
         elsif rising_edge(Clock) then
            	if stage = 0 then
@@ -680,7 +680,7 @@ architecture Behavioral of AXI is
         variable count: integer:=0;
     begin
         if reset='1' then
-        	snoop_req2 <= "000"&nilreq;
+        	---snoop_req2 <= "000"&nilreq;
         	pwr_req1 <= "00000";
         elsif rising_edge(Clock) then
            	if state =0 then
@@ -704,9 +704,9 @@ architecture Behavioral of AXI is
            			count := 0;
            		end if;
            	elsif state = 3 then
-                snoop_req2 <= "000"&tmp_sp2;
+                snp2_1 <= "000"&tmp_sp2;
                 adr_0 <= tmp_sp2(47 downto 32);
-           		state := 0;
+           		state := 5;
            	elsif state =4 then
            		if pwr_ack1 = '1' then
            			pwr_req1<= "00000";
@@ -728,7 +728,7 @@ architecture Behavioral of AXI is
         variable count: integer:= 0;
     begin
         if reset='1' then
-            snoop_req1 <= "000"&nilreq;
+            ---snoop_req1 <= "000"&nilreq;
             pwr_req2 <= "00000";
         elsif rising_edge(Clock) then
            	if state =0 then
@@ -753,9 +753,9 @@ architecture Behavioral of AXI is
            			state := 3;
            		end if;
            	elsif state = 3 then
-                snoop_req1 <= "101"&tmp_sp1;
+                snp1_1 <= "101"&tmp_sp1;
                 adr_1 <= tmp_sp1(47 downto 32);
-           		state := 0;
+           		state := 5;
            	elsif state =4 then
            		if pwr_ack2 = '1' then
            			pwr_req2<= "00000";
