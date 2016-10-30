@@ -95,6 +95,7 @@ req1: process(reset, Clock)
 	   ---else
 	   wait for 170 ps;
 	   read(rand2,tmp_req,rand3);
+	 
 	   ---end if;
     	
   end loop;	
