@@ -561,6 +561,7 @@ architecture Behavioral of AXI is
     	if reset= '1' then
     		bus_res1_1 <= (others => '0');
     		bus_res2_2 <= (others => '0');
+    		gfx_upres3<=(others => '0');
     	elsif rising_edge(Clock) then
     		if stage = 0 then
     			if re3 = '0' and emp3 ='0' then
@@ -570,7 +571,6 @@ architecture Behavioral of AXI is
     	   elsif stage = 1 then
     	   		re3 <= '0';
     			if out3(50 downto 50) = "1" then
-    				
     				---response for cpu1
     				if out3(53 downto 51) ="000"  then
     					reg_1 <= out3(50 downto 0);
@@ -782,6 +782,7 @@ architecture Behavioral of AXI is
             re2 <= '0';
             bus_res2_1 <= (others => '0');
             tomem1 <= "000"&nilreq;
+            gfx_upres1<=(others => '0');
             ---tmp_brs2_1 <= (others => '0');
             ---tmp_mem1 <= (others => '0');
         elsif rising_edge(Clock) then
@@ -873,6 +874,7 @@ architecture Behavioral of AXI is
             tomem2 <= (others => '0');
             --tmp_brs1_2 <= (others => '0');
             --tmp_mem2 <= (others => '0');
+            gfx_upres2<=(others => '0');
             state := 0;
         elsif rising_edge(Clock) then
             if state =0 then
