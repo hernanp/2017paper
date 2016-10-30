@@ -304,6 +304,7 @@ clk_gen : process
     );
      gfx: entity work.gfx(Behavioral) port map(
     	upres => gfx_upres,
+    	upreq => gfx_upreq,
     	upreq_full => gfx_upreq_full,
     	full_b_m => full_b_m,
     	req => togfx,

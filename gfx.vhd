@@ -37,7 +37,7 @@ architecture Behavioral of gfx is
        signal in2,out2: std_logic_vector(50 downto 0);
        signal we3,re3,we2,re2,emp3,emp2: std_logic:='0';
        signal tmp_full: std_logic;
-       signal tmp_req: std_logic_vector(53 downto 0);
+       signal tmp_req: std_logic_vector(50 downto 0);
        signal test: integer;
 procedure read( variable adx: in std_logic_vector(15 downto 0);
  				 signal req: out std_logic_vector(50 downto 0);

@@ -219,7 +219,7 @@ begin
     		
     	end if;
   end loop;	
-  done<='1';
+  ---done<='1';
   wait;
 
   end process; 
