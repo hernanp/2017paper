@@ -148,7 +148,7 @@ begin
                 wt :=0;
             end if;
         elsif state =9 then
-            res <= tmp_req(51 downto 32) & ROM_array(address);
+            res <= tmp_req(53 downto 32) & ROM_array(address);
             state :=0;
         elsif state =2 then
              if wt < 20 then

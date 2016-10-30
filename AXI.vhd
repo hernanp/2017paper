@@ -108,8 +108,8 @@ architecture Behavioral of AXI is
  generic map(
         DATA_WIDTH => 55,
         FIFO_DEPTH => 256
-    )
-    port map(
+  )
+  port map(
   CLK=>Clock,
   RST=>reset,
   DataIn=>in2,
@@ -276,8 +276,8 @@ architecture Behavioral of AXI is
     );
     snp1_arbitor: entity work.arbiter6(Behavioral)
     generic map(
-            DATA_WIDTH => 54
-        )
+        DATA_WIDTH => 54
+     )
      port map(
     	clock => Clock,
         reset => reset,
@@ -353,6 +353,7 @@ architecture Behavioral of AXI is
         ack3 => gfx_upres_ack3,
         dout => gfx_upres
     );
+    
     wb_arbitor: entity work.arbiter2(Behavioral) port map(
     	clock => Clock,
         reset => reset,
@@ -793,9 +794,7 @@ architecture Behavioral of AXI is
             elsif state =1 then
             	re2 <= '0';
                 if out2(50 downto 50) = "1" then
-                    
                     if out2(54 downto 54) = "1" then --it;s a hit
-                    	
                     	if out2(53 downto 51)="000" then
                     		bus_res2_1 <= out2(50 downto 0);
                     		state := 2;
@@ -804,7 +803,7 @@ architecture Behavioral of AXI is
                     		state := 7;
                     	end if;
                     else ---it's a miss
-                    	if out2(53 downto 51)/="000" then
+                    	if out2(53 downto 51)="001" then
                     		snp2_2<=out2(53 downto 0);
                     		state :=8;
                     	elsif to_integer(unsigned(out2(47 downto 32)))<32768 then
@@ -941,11 +940,7 @@ architecture Behavioral of AXI is
             		gfx_upres2 <= (others => '0');
             		state :=0;
             	end if; 
-            elsif state =8 then
-            	if snp2_ack2 = '1' then
-            		state := 0;
-            		snp2_2 <= (others => '0');
-            	end if; 
+           
             end if;
         end if;
     end process;  
