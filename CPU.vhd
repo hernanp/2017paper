@@ -117,7 +117,9 @@ begin
 	   ---if rand1=1 then
 	   ---    write(rand2,tmp_req,rand3);
 	   ---else
-	      ---read(rand2,tmp_req,rand3);
+	  	if seed=1 then
+	   		read("0110101010101010",tmp_req,rand3);
+		end if;
 	   ---end if;
     	if seed = 55 then    		 
     		write(flag0,tmp_req,one);
