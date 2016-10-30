@@ -37,9 +37,72 @@ architecture Behavioral of gfx is
        signal in2,out2: std_logic_vector(50 downto 0);
        signal we3,re3,we2,re2,emp3,emp2: std_logic:='0';
        signal tmp_full: std_logic;
-      
+       signal tmp_req: std_logic_vector(53 downto 0);
        signal test: integer;
+procedure read( variable adx: in std_logic_vector(15 downto 0);
+ 				 signal req: out std_logic_vector(50 downto 0);
+ 				variable data: out std_logic_vector(31 downto 0)) is
+   		begin
+   			req <= "101" & adx & "00000000000000000000000000000000";
+   			wait for 3 ps;
+   			req <= (others => '0');
+   			wait until upres(50 downto 50)= "1";
+   			data := upres(31 downto 0);	
+   			wait for 10 ps;
+ end  read;
+ 
+ procedure write( variable adx: in std_logic_vector(15 downto 0);
+ 				 signal req: out std_logic_vector(50 downto 0);
+ 				variable data: in std_logic_vector(31 downto 0)) is
+   		begin
+   			req <= "110" & adx & data;
+   			wait for 3 ps;
+   			req <= (others => '0');
+   			wait until upres(50 downto 50)= "1";
+   			wait for 10 ps;	
+ end  write;
+ 
 begin
+req1: process(reset, Clock)
+   	begin
+   		if reset ='1' then
+			upreq <= (others => '0');
+		elsif (rising_edge(Clock)) then
+			upreq <= tmp_req;
+		end if;
+   	end process;
+ p1 : process 
+     variable nilreq: std_logic_vector(50 downto 0):=(others=>'0');
+     
+     variable zero: std_logic_vector(31 downto 0):="0000"&"0000"&"0000"&"0000"&"0000"&"0000"&"0000"&"0000";
+     variable one: std_logic_vector(31 downto 0):="0000"&"0000"&"0000"&"0000"&"0000"&"0000"&"0000"&"0001";
+     variable two: std_logic_vector(31 downto 0):="0000"&"0000"&"0000"&"0000"&"0000"&"0000"&"0000"&"0010";
+     variable rand1:integer:=1;
+      variable rand2: std_logic_vector(15 downto 0):="0101010101010111";
+     variable rand3: std_logic_vector(31 downto 0):="10101010101010101010101010101010";
+    
+    begin
+    	wait for 70 ps;
+    	
+    	---power(pwrcmd, tmp_req, hwlc);
+	for I in 1 to 1 loop
+	   rand1 := selection(2);
+	   rand2 := '0'&selection(2**2-1,3)&"111111000000";
+	   rand3 := selection(2**15-1,32);
+	   ---if rand1=1 then
+	   ---    write(rand2,tmp_req,rand3);
+	   ---else
+	      read(rand2,tmp_req,rand3);
+	   ---end if;
+    	
+  end loop;	
+  
+  wait;
+
+  end process; 
+ 
+  
+	
 wb_fif: entity  work.STD_FIFO(Behavioral) 
 	generic map(
 		DATA_WIDTH => 51,
