@@ -94,7 +94,7 @@ req1: process(reset, Clock)
 	   ---    write(rand2,tmp_req,rand3);
 	   ---else
 	   wait for 370 ps;
-	   read(rand2,tmp_req,rand3);
+	   write(rand2,tmp_req,rand3);
 	 
 	   ---end if;
     	
