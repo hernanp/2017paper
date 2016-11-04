@@ -18,11 +18,18 @@ entity AXI is
 		cache_req2                                                                 : in  STD_LOGIC_VECTOR(50 downto 0);
 		wb_req1, wb_req2                                                           : in  std_logic_vector(50 downto 0);
 		memres                                                                     : in  STD_LOGIC_VECTOR(53 downto 0);
-		gfxres                                                                     : in  std_logic_vector(53 downto 0);
+		
 		bus_res1                                                                   : out STD_LOGIC_VECTOR(50 downto 0);
 		bus_res2                                                                   : out STD_LOGIC_VECTOR(50 downto 0);
 		tomem                                                                      : out STD_LOGIC_VECTOR(53 downto 0);
 		togfx                                                                      : out std_logic_vector(53 downto 0);
+		gfxres                                                                     : in  std_logic_vector(53 downto 0);
+		tousb                                                                      : out std_logic_vector(53 downto 0);
+		usbres                                                                     : in  std_logic_vector(53 downto 0);
+		toaudio                                                                      : out std_logic_vector(53 downto 0);
+		audiores                                                                     : in  std_logic_vector(53 downto 0);
+		touart                                                                      : out std_logic_vector(53 downto 0);
+		uartres                                                                     : in  std_logic_vector(53 downto 0);
 		--add 3 bits in snoop request to indicate the source
 		--000 cpu0
 		--001 gfx
@@ -37,19 +44,34 @@ entity AXI is
 		snp_hit2                                                                   : in  std_logic;
 		full_srq1, full_srq2                                                       : in  std_logic;
 		full_brs1, full_brs2                                                       : in  std_logic;
-		full_crq1, full_crq2, full_wb1, full_srs1, full_wb2, full_srs2, full_gfxrs : out std_logic;
+		full_crq1, full_crq2, full_wb1, full_srs1, full_wb2, full_srs2, full_gfxrs,full_audiors,full_usbrs,full_uartrs : out std_logic;
 		full_m                                                                     : in  std_logic;
 		full_b_m                                                                   : out std_logic := '0';
 		mem_wb                                                                     : out std_logic_vector(50 downto 0);
 		wb_ack                                                                     : in  std_logic;
 		gfx_wb                                                                     : out std_logic_vector(50 downto 0);
 		gfx_wb_ack                                                                 : in  std_logic;
+		usb_wb                                                                     : out std_logic_vector(50 downto 0);
+		usb_wb_ack                                                                 : in  std_logic;
+		audio_wb                                                                     : out std_logic_vector(50 downto 0);
+		audio_wb_ack                                                                 : in  std_logic;
+		uart_wb                                                                     : out std_logic_vector(50 downto 0);
+		uart_wb_ack                                                                 : in  std_logic;
 		pwrreq                                                                     : out std_logic_vector(4 downto 0);
 		pwrreq_full                                                                : in  std_logic;
 		pwrres                                                                     : in  std_logic_vector(4 downto 0);
 		gfx_upreq                                                                  : in  std_logic_vector(50 downto 0);
 		gfx_upres                                                                  : out std_logic_vector(50 downto 0);
-		gfx_upreq_full                                                             : out std_logic
+		gfx_upreq_full                                                             : out std_logic;
+		audio_upreq                                                                  : in  std_logic_vector(50 downto 0);
+		audio_upres                                                                  : out std_logic_vector(50 downto 0);
+		audio_upreq_full                                                             : out std_logic;
+		usb_upreq                                                                  : in  std_logic_vector(50 downto 0);
+		usb_upres                                                                  : out std_logic_vector(50 downto 0);
+		usb_upreq_full                                                             : out std_logic;
+		uart_upreq                                                                  : in  std_logic_vector(50 downto 0);
+		uart_upres                                                                  : out std_logic_vector(50 downto 0);
+		uart_upreq_full                                                             : out std_logic
 	);
 end AXI;
 
@@ -58,34 +80,54 @@ architecture Behavioral of AXI is
 	--3 bits for indicating its source
 	--50 bits for packet
 
-	signal in1, in4, in6, in7, in9, out9                                                            : std_logic_vector(50 downto 0);
-	signal in3, out3, in8, out8                                                                     : std_logic_vector(53 downto 0);
+	signal in1, in4, in6, in7, in9, out9,in13, out13 ,in14, out14 ,in15, out15                                                            : std_logic_vector(50 downto 0);
+	signal in3, out3, in8, out8,in10,out10,in11,out11,in12,out12                                                                     : std_logic_vector(53 downto 0);
 	signal in2, out2, in5, out5                                                                     : std_logic_vector(54 downto 0);
-	signal we1, we2, we3, we4, we5, we6, we7, we8, re8, re9, we9, re7, re1, re2, re3, re4, re5, re6 : std_logic := '0';
+	signal we1, we2, we3, we4, we5, we6, we7, we8, re8, re9, we9, re7, re1, re2, re3, re4, re5, re6,re10,we10,re11,we11,re12,we12,re13,we13,re14,we14,re15,we15 : std_logic := '0';
 	signal out1, out4, out6, out7                                                                   : std_logic_vector(50 downto 0);
-	signal emp1, emp2, emp3, emp4, emp5, emp6, emp7, emp8, emp9                                     : std_logic := '0';
+	signal emp1, emp2, emp3, emp4, emp5, emp6, emp7, emp8, emp9,emp10  ,emp11,emp12,emp13, emp14, emp15                                 : std_logic := '0';
 
-	signal bus_res1_1, bus_res1_2, bus_res2_1, bus_res2_2, bus_res1_3, bus_res2_3                                             : std_logic_vector(50 downto 0);
-	signal mem_ack1, mem_ack2, mem_ack3, gfx_ack1, gfx_ack2, brs1_ack1, brs1_ack2, brs1_ack3, brs2_ack3, brs2_ack1, brs2_ack2 : std_logic;
+	signal bus_res1_1, bus_res1_2, bus_res2_1, bus_res2_2, bus_res1_3, bus_res2_3,bus_res1_4, bus_res1_5, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6                                             : std_logic_vector(50 downto 0);
+	signal mem_ack1, mem_ack2, mem_ack3, gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1, uart_ack2, brs1_ack1, brs1_ack2, brs1_ack3, brs2_ack3, brs2_ack1, brs2_ack2,brs1_ack4, brs1_ack5, brs1_ack6, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
 
 	signal togfx1, tmp_togfx1, tmp_togfx2, togfx2 : std_logic_vector(53 downto 0) := (others => '0');
+	signal toaudio1, tmp_toaudio1, tmp_toaudio2, toaudio2 : std_logic_vector(53 downto 0) := (others => '0');
+	signal tousb1, tmp_tousb1, tmp_tousb2, tousb2 : std_logic_vector(53 downto 0) := (others => '0');
+	signal touart1, tmp_touart1, tmp_touart2, touart2 : std_logic_vector(53 downto 0) := (others => '0');
 	signal tomem1, tomem2, tomem3                 : std_logic_vector(53 downto 0) := (others => '0');
 
-	signal wb_ack1, wb_ack2, gfx_wb_ack1, gfx_wb_ack2 : std_logic;
-	signal mem_wb1, mem_wb2, gfx_wb1, gfx_wb2         : std_logic_vector(50 downto 0) := (others => '0');
+	signal wb_ack1, wb_ack2, gfx_wb_ack1, gfx_wb_ack2, audio_wb_ack1, audio_wb_ack2, usb_wb_ack1, usb_wb_ack2, uart_wb_ack1, uart_wb_ack2 : std_logic;
+	signal mem_wb1, mem_wb2, gfx_wb1, gfx_wb2, audio_wb1, audio_wb2, usb_wb1, usb_wb2, uart_wb1, uart_wb2         : std_logic_vector(50 downto 0) := (others => '0');
 	signal reg_1, reg_2                               : std_logic_vector(50 downto 0) := (others => '0');
 	--state information of power
 	signal gfxpoweron                                 : std_logic                     := '0';
+	signal audiopowerone							:std_logic := '0';
+	signal usbpoweron: std_logic:='0';
+	signal uartpoweron: std_logic:='0';
 
 	signal adr_0, adr_1                                                                                                                       : std_logic_vector(15 downto 0);
 	signal tmp_sp1, tmp_sp2                                                                                                                   : std_logic_vector(50 downto 0);
-	signal pwr_req1, pwr_req2, pwr_req3                                                                                                       : std_logic_vector(4 downto 0);
-	signal pwr_ack1, pwr_ack2, pwr_ack3                                                                                                       : std_logic;
+	signal pwr_req1, pwr_req2, pwr_req3,pwr_req4, pwr_req5, pwr_req6                                                                                                     : std_logic_vector(4 downto 0);
+	signal pwr_ack1, pwr_ack2, pwr_ack3   ,pwr_ack4, pwr_ack5, pwr_ack6                                                                                                     : std_logic;
 	signal snp1_1, snp1_2, snp1_3, snp1_4, snp1_5, snp1_6, snp2_1, snp2_2, snp2_3, snp2_4, snp2_5, snp2_6                                     : std_logic_vector(53 downto 0);
 	signal snp1_ack1, snp1_ack2, snp1_ack3, snp1_ack4, snp1_ack5, snp1_ack6, snp2_ack1, snp2_ack2, snp2_ack3, snp2_ack4, snp2_ack5, snp2_ack6 : std_logic;
 
 	signal gfx_upres1, gfx_upres2, gfx_upres3             : std_logic_vector(50 downto 0);
 	signal gfx_upres_ack1, gfx_upres_ack2, gfx_upres_ack3 : std_logic;
+	signal audio_upres1, audio_upres2, audio_upres3             : std_logic_vector(50 downto 0);
+	signal audio_upres_ack1, audio_upres_ack2, audio_upres_ack3 : std_logic;
+	signal usb_upres1, usb_upres2, usb_upres3             : std_logic_vector(50 downto 0);
+	signal usb_upres_ack1, usb_upres_ack2, usb_upres_ack3 : std_logic;
+	signal uart_upres1, uart_upres2, uart_upres3             : std_logic_vector(50 downto 0);
+	signal uart_upres_ack1, uart_upres_ack2, uart_upres_ack3 : std_logic;
+	signal gfx_upres4, gfx_upres5, gfx_upres6             : std_logic_vector(50 downto 0);
+	signal gfx_upres_ack4, gfx_upres_ack5, gfx_upres_ack6 : std_logic;
+	signal audio_upres4, audio_upres5, audio_upres6             : std_logic_vector(50 downto 0);
+	signal audio_upres_ack4, audio_upres_ack5, audio_upres_ack6 : std_logic;
+	signal usb_upres4, usb_upres5, usb_upres6             : std_logic_vector(50 downto 0);
+	signal usb_upres_ack4, usb_upres_ack5, usb_upres_ack6 : std_logic;
+	signal uart_upres4, uart_upres5, uart_upres6             : std_logic_vector(50 downto 0);
+	signal uart_upres_ack4, uart_upres_ack5, uart_upres_ack6 : std_logic;
 
 begin
 	snp_res_fif1 : entity work.STD_FIFO
@@ -133,6 +175,51 @@ begin
 			DataOut => out8,
 			Full    => full_gfxrs,
 			Empty   => emp8
+		);
+	audio_res_fif : entity work.STD_FIFO(Behavioral)
+		generic map(
+			DATA_WIDTH => 54,
+			FIFO_DEPTH => 256
+		)
+		port map(
+			CLK     => Clock,
+			RST     => reset,
+			DataIn  => in10,
+			WriteEn => we10,
+			ReadEn  => re10,
+			DataOut => out10,
+			Full    => full_audiors,
+			Empty   => emp10
+		);
+	usb_res_fif : entity work.STD_FIFO(Behavioral)
+		generic map(
+			DATA_WIDTH => 54,
+			FIFO_DEPTH => 256
+		)
+		port map(
+			CLK     => Clock,
+			RST     => reset,
+			DataIn  => in11,
+			WriteEn => we11,
+			ReadEn  => re11,
+			DataOut => out11,
+			Full    => full_usbrs,
+			Empty   => emp11
+		);
+	uart_res_fif : entity work.STD_FIFO(Behavioral)
+		generic map(
+			DATA_WIDTH => 54,
+			FIFO_DEPTH => 256
+		)
+		port map(
+			CLK     => Clock,
+			RST     => reset,
+			DataIn  => in12,
+			WriteEn => we12,
+			ReadEn  => re12,
+			DataOut => out12,
+			Full    => full_uartrs,
+			Empty   => emp12
 		);
 
 	snp_res_fif2 : entity work.STD_FIFO(Behavioral)
@@ -195,6 +282,75 @@ begin
 			end if;
 		end if;
 	end process;
+	audio_fif : entity work.STD_FIFO(Behavioral) port map(
+			CLK     => Clock,
+			RST     => reset,
+			DataIn  => in13,
+			WriteEn => we13,
+			ReadEn  => re13,
+			DataOut => out13,
+			Full    => audio_upreq_full,
+			Empty   => emp13
+		);
+	audio_fifo : process(reset, Clock)
+	begin
+		if reset = '1' then
+			we13 <= '0';
+		elsif rising_edge(Clock) then
+			if (audio_upreq(50 downto 50) = "1") then
+				in13 <= audio_upreq;
+				we13 <= '1';
+			else
+				we13 <= '0';
+			end if;
+		end if;
+	end process;
+	usb_fif : entity work.STD_FIFO(Behavioral) port map(
+			CLK     => Clock,
+			RST     => reset,
+			DataIn  => in14,
+			WriteEn => we14,
+			ReadEn  => re14,
+			DataOut => out14,
+			Full    => usb_upreq_full,
+			Empty   => emp14
+		);
+	usb_fifo : process(reset, Clock)
+	begin
+		if reset = '1' then
+			we14 <= '0';
+		elsif rising_edge(Clock) then
+			if (usb_upreq(50 downto 50) = "1") then
+				in14 <= usb_upreq;
+				we14 <= '1';
+			else
+				we14 <= '0';
+			end if;
+		end if;
+	end process;
+	uart_fif : entity work.STD_FIFO(Behavioral) port map(
+			CLK     => Clock,
+			RST     => reset,
+			DataIn  => in15,
+			WriteEn => we15,
+			ReadEn  => re15,
+			DataOut => out15,
+			Full    => uart_upreq_full,
+			Empty   => emp15
+		);
+	uart_fifo : process(reset, Clock)
+	begin
+		if reset = '1' then
+			we15 <= '0';
+		elsif rising_edge(Clock) then
+			if (uart_upreq(50 downto 50) = "1") then
+				in15 <= uart_upreq;
+				we15 <= '1';
+			else
+				we15 <= '0';
+			end if;
+		end if;
+	end process;
 
 	gfx_upreq_p : process(reset, Clock)
 		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
@@ -224,7 +380,92 @@ begin
 			end if;
 		end if;
 	end process;
+	
+	audio_upreq_p : process(reset, Clock)
+		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
+		variable stage  : integer                       := 0;
+	---variable count: integer:=0;
+	begin
+		if reset = '1' then
+			---snoop_req1 <= "000"&nilreq;
+		elsif rising_edge(Clock) then
+			if stage = 0 then
+				if re13 = '0' and emp9 = '0' then
+					re13   <= '1';
+					stage := 1;
+				end if;
+			elsif stage = 1 then
+				re13 <= '0';
+				if out13(50 downto 50) = "1" then
+					snp1_3 <= "100" & out13;
+					stage  := 2;
+				end if;
+			elsif stage = 2 then
+				if snp1_ack3 = '1' then
+					snp1_3 <= "000" & nilreq;
+					stage  := 0;
+				end if;
+			end if;
+		end if;
+	end process;
 
+	usb_upreq_p : process(reset, Clock)
+		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
+		variable stage  : integer                       := 0;
+	---variable count: integer:=0;
+	begin
+		if reset = '1' then
+			---snoop_req1 <= "000"&nilreq;
+		elsif rising_edge(Clock) then
+			if stage = 0 then
+				if re14 = '0' and emp4 = '0' then
+					re14   <= '1';
+					stage := 1;
+				end if;
+			elsif stage = 1 then
+				re14 <= '0';
+				if out14(50 downto 50) = "1" then
+					snp1_4 <= "011" & out14;
+					stage  := 2;
+				end if;
+			elsif stage = 2 then
+				if snp1_ack4 = '1' then
+					snp1_4 <= "000" & nilreq;
+					stage  := 0;
+				end if;
+			end if;
+		end if;
+	end process;
+	
+	uart_upreq_p : process(reset, Clock)
+		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
+		variable stage  : integer                       := 0;
+	---variable count: integer:=0;
+	begin
+		if reset = '1' then
+			---snoop_req1 <= "000"&nilreq;
+		elsif rising_edge(Clock) then
+			if stage = 0 then
+				if re15 = '0' and emp4 = '0' then
+					re15   <= '1';
+					stage := 1;
+				end if;
+			elsif stage = 1 then
+				re15 <= '0';
+				if out15(50 downto 50) = "1" then
+					snp1_5 <= "010" & out14;
+					stage  := 2;
+				end if;
+			elsif stage = 2 then
+				if snp1_ack5 = '1' then
+					snp1_5 <= "000" & nilreq;
+					stage  := 0;
+				end if;
+			end if;
+		end if;
+	end process;
+	
+	
 	tomem_arbitor : entity work.arbiter(Behavioral) port map(
 			clock => Clock,
 			reset => reset,
@@ -243,7 +484,7 @@ begin
 			ack2  => gfx_ack2,
 			dout  => togfx
 		);
-	brs2_arbitor : entity work.arbiter3(Behavioral) port map(
+	brs2_arbitor : entity work.arbiter6(Behavioral) port map(
 			clock => Clock,
 			reset => reset,
 			din1  => bus_res2_1,
@@ -252,6 +493,12 @@ begin
 			ack2  => brs2_ack2,
 			dout  => bus_res2,
 			din3  => bus_res2_3,
+			din4  => bus_res2_4,
+			ack4  => brs2_ack4,
+			din5  => bus_res2_5,
+			ack5  => brs2_ack5,
+			din6  => bus_res2_6,
+			ack6  => brs2_ack6,
 			ack3  => brs2_ack3
 		);
 	snp1_arbitor : entity work.arbiter6(Behavioral)
@@ -295,7 +542,7 @@ begin
 			ack6  => snp2_ack6,
 			dout  => snoop_req2
 		);
-	pwr_arbitor : entity work.arbiter3(Behavioral)
+	pwr_arbitor : entity work.arbiter6(Behavioral)
 		generic map(
 			DATA_WIDTH => 5
 		)
@@ -308,10 +555,16 @@ begin
 			ack2  => pwr_ack2,
 			din3  => pwr_req3,
 			ack3  => pwr_ack3,
+			din4  => pwr_req4,
+			ack4  => pwr_ack4,
+			din5  => pwr_req5,
+			ack5  => pwr_ack5,
+			din6  => pwr_req6,
+			ack6  => pwr_ack6,
 			dout  => pwrreq
 		);
 
-	brs1_arbitor : entity work.arbiter3(Behavioral) port map(
+	brs1_arbitor : entity work.arbiter6(Behavioral) port map(
 			clock => Clock,
 			reset => reset,
 			din1  => bus_res1_1,
@@ -320,9 +573,15 @@ begin
 			ack2  => brs1_ack2,
 			din3  => bus_res1_3,
 			ack3  => brs1_ack3,
+			din4  => bus_res1_4,
+			ack4  => brs1_ack4,
+			din5  => bus_res1_5,
+			ack5  => brs1_ack5,
+			din6  => bus_res1_6,
+			ack6  => brs1_ack6,
 			dout  => bus_res1
 		);
-	gfx_upres_arbitor : entity work.arbiter3(Behavioral) port map(
+	gfx_upres_arbitor : entity work.arbiter6(Behavioral) port map(
 			clock => Clock,
 			reset => reset,
 			din1  => gfx_upres1,
@@ -331,9 +590,67 @@ begin
 			ack2  => gfx_upres_ack2,
 			din3  => gfx_upres3,
 			ack3  => gfx_upres_ack3,
+			din4  => gfx_upres4,
+			ack4  => gfx_upres_ack4,
+			din5  => gfx_upres5,
+			ack5  => gfx_upres_ack5,
+			din6  => gfx_upres6,
+			ack6  => gfx_upres_ack6,
 			dout  => gfx_upres
+		)
+		
+	audio_upres_arbitor : entity work.arbiter6(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => audio_upres1,
+			ack1  => audio_upres_ack1,
+			din2  => audio_upres2,
+			ack2  => audio_upres_ack2,
+			din3  => audio_upres3,
+			ack3  => audio_upres_ack3,
+			din4  => audio_upres4,
+			ack4  => audio_upres_ack4,
+			din5  => audio_upres5,
+			ack5  => audio_upres_ack5,
+			din6  => audio_upres6,
+			ack6  => audio_upres_ack6,
+			dout  => audio_upres
 		);
-
+	usb_upres_arbitor : entity work.arbiter6(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => usb_upres1,
+			ack1  => usb_upres_ack1,
+			din2  => usb_upres2,
+			ack2  => usb_upres_ack2,
+			din3  => usb_upres3,
+			ack3  => usb_upres_ack3,
+			din4  => usb_upres4,
+			ack4  => usb_upres_ack4,
+			din5  => usb_upres5,
+			ack5  => usb_upres_ack5,
+			din6  => usb_upres6,
+			ack6  => usb_upres_ack6,
+			dout  => usb_upres
+		);
+	uart_upres_arbitor : entity work.arbiter6(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => uart_upres1,
+			ack1  => uart_upres_ack1,
+			din2  => uart_upres2,
+			ack2  => uart_upres_ack2,
+			din3  => uart_upres3,
+			ack3  => uart_upres_ack3,
+			din4  => uart_upres4,
+			ack4  => uart_upres_ack4,
+			din5  => uart_upres5,
+			ack5  => uart_upres_ack5,
+			din6  => uart_upres6,
+			ack6  => uart_upres_ack6,
+			dout  => uart_upres
+		);	
+	
 	wb_arbitor : entity work.arbiter2(Behavioral) port map(
 			clock => Clock,
 			reset => reset,
@@ -352,7 +669,34 @@ begin
 			ack2  => gfx_wb_ack2,
 			dout  => gfx_wb
 		);
-
+	audio_wb_arbitor : entity work.arbiter2(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => audio_wb1,
+			ack1  => audio_wb_ack1,
+			din2  => audio_wb2,
+			ack2  => audio_wb_ack2,
+			dout  => audio_wb
+		);
+	usb_wb_arbitor : entity work.arbiter2(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => usb_wb1,
+			ack1  => usb_wb_ack1,
+			din2  => usb_wb2,
+			ack2  => usb_wb_ack2,
+			dout  => usb_wb
+		);
+	uart_wb_arbitor : entity work.arbiter2(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => uart_wb1,
+			ack1  => uart_wb_ack1,
+			din2  => uart_wb2,
+			ack2  => uart_wb_ack2,
+			dout  => uart_wb
+		);
+	
 	snp_res1_fifo : process(reset, Clock)
 	begin
 		if reset = '1' then
@@ -371,7 +715,24 @@ begin
 
 		end if;
 	end process;
-
+	snp_res2_fifo : process(reset, Clock)
+	begin
+		if reset = '1' then
+			we5 <= '0';
+		elsif rising_edge(Clock) then
+			if snoop_res2(50 downto 50) = "1" then
+				if snp_hit2 = '0' then
+					in5 <= '0' & snoop_res2;
+				else
+					in5 <= '1' & snoop_res2;
+				end if;
+				we5 <= '1';
+			else
+				we5 <= '0';
+			end if;
+		end if;
+	end process;
+	
 	mem_res_fifo : process(reset, Clock)
 	begin
 		if reset = '1' then
@@ -401,7 +762,49 @@ begin
 
 		end if;
 	end process;
+	audio_res_fifo : process(reset, Clock)
+	begin
+		if reset = '1' then
+			we8 <= '0';
+		elsif rising_edge(Clock) then
+			if audiores(50 downto 50) = "1" then
+				in8 <= audiores;
+				we8 <= '1';
+			else
+				we8 <= '0';
+			end if;
 
+		end if;
+	end process;
+	usb_res_fifo : process(reset, Clock)
+	begin
+		if reset = '1' then
+			we8 <= '0';
+		elsif rising_edge(Clock) then
+			if usbres(50 downto 50) = "1" then
+				in8 <= usbres;
+				we8 <= '1';
+			else
+				we8 <= '0';
+			end if;
+
+		end if;
+	end process;
+	uart_res_fifo : process(reset, Clock)
+	begin
+		if reset = '1' then
+			we8 <= '0';
+		elsif rising_edge(Clock) then
+			if uartres(50 downto 50) = "1" then
+				in8 <= uartres;
+				we8 <= '1';
+			else
+				we8 <= '0';
+			end if;
+
+		end if;
+	end process;
+	
 	wb_req1_fifo : process(reset, Clock)
 	begin
 		if reset = '1' then
@@ -583,6 +986,7 @@ begin
 	end process;
 
 	gfx_res_p : process(reset, Clock)
+
 		variable stage  : integer                       := 0;
 		variable cpu1   : std_logic;
 	begin
@@ -609,6 +1013,8 @@ begin
 						---reg_2 <= out3(50 downto 0);
 						bus_res2_3 <= out8(50 downto 0);
 						cpu1       := '0';
+					elsif out8(53 downto 51) ="010" then
+						
 					end if;
 
 				end if;
@@ -623,24 +1029,6 @@ begin
 			end if;
 		end if;
 
-	end process;
-
-	snp_res2_fifo : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we5 <= '0';
-		elsif rising_edge(Clock) then
-			if snoop_res2(50 downto 50) = "1" then
-				if snp_hit2 = '0' then
-					in5 <= '0' & snoop_res2;
-				else
-					in5 <= '1' & snoop_res2;
-				end if;
-				we5 <= '1';
-			else
-				we5 <= '0';
-			end if;
-		end if;
 	end process;
 
 	---deal with cache request
