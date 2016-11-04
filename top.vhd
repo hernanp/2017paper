@@ -23,8 +23,8 @@ architecture Behavioral of top is
 
   -- Clock frequency and signal
    signal Clock : std_logic;
-   signal full_c1_u, full_c2_u, full_b_c1, full_b_c2, full_c1_b, full_c2_b, full_b_m, full_m,gfx_upreq_full:std_logic;
-   signal bus_res1, bus_res2,cpu_res1, cpu_res2, cpu_req1, cpu_req2, wb_req1, wb_req2,gfx_upreq,gfx_upres: std_logic_vector (50 downto 0);
+   signal full_c1_u, full_c2_u, full_b_c1, full_b_c2, full_c1_b, full_c2_b, full_b_m, full_m:std_logic;
+   signal bus_res1, bus_res2,cpu_res1, cpu_res2, cpu_req1, cpu_req2, wb_req1, wb_req2: std_logic_vector (50 downto 0);
    signal snoop_hit1, snoop_hit2: std_logic;
    signal snoop_res1, snoop_res2,snoop_req1,snoop_req2: std_logic_vector(53 downto 0);
    signal  bus_req1, bus_req2: std_logic_vector(50 downto 0);
@@ -33,13 +33,31 @@ architecture Behavioral of top is
    signal reset: std_logic:='1';
    signal full_mrs: std_logic;
    signal done1, done2: std_logic;
-   signal mem_wb,gfx_wb: std_logic_vector(50 downto 0);
-   signal wb_ack,gfx_wb_ack: std_logic;
+   signal mem_wb: std_logic_vector(50 downto 0);
+   signal wb_ack: std_logic;
    signal pwrreq,pwrres: std_logic_vector(4 downto 0);
    signal pwrreq_full : std_logic;
-   signal gfxreq, gfxres: std_logic_vector(2 downto 0);
+   
    file trace_file: TEXT open write_mode is "trace1.txt";
    signal gfx_b,togfx: std_logic_vector(53 downto 0);
+   signal gfx_upreq,gfx_upres,gfx_wb : std_logic_vector (50 downto 0);
+   signal gfx_upreq_full,gfx_wb_ack:std_logic;
+   signal gfxreq, gfxres: std_logic_vector(2 downto 0);
+   
+   signal audio_b,toaudio: std_logic_vector(53 downto 0);
+   signal audio_upreq,audio_upres,audio_wb : std_logic_vector (50 downto 0);
+   signal audio_upreq_full,audio_wb_ack:std_logic;
+   signal audioreq, audiores: std_logic_vector(2 downto 0);
+   
+   signal usb_b,tousb: std_logic_vector(53 downto 0);
+   signal usb_upreq,usb_upres,usb_wb : std_logic_vector (50 downto 0);
+   signal usb_upreq_full,usb_wb_ack:std_logic;
+   signal usbreq, usbres: std_logic_vector(2 downto 0);
+   
+   signal uart_b,touart: std_logic_vector(53 downto 0);
+   signal uart_upreq,uart_upres,uart_wb : std_logic_vector (50 downto 0);
+   signal uart_upreq_full,uart_wb_ack:std_logic;
+   signal uartreq, uartres: std_logic_vector(2 downto 0);
 begin
 reset_proc : process
     begin
@@ -262,6 +280,27 @@ clk_gen : process
     	gfx_wb_ack => gfx_wb_ack,
     	gfxres => gfx_b,
     	togfx => togfx,
+    	audio_upreq => audio_upreq,
+    	audio_upres => audio_upres,
+        audio_upreq_full => audio_upreq_full,
+    	audio_wb => audio_wb,
+    	audio_wb_ack => audio_wb_ack,
+    	audiores => audio_b,
+    	toaudio => toaudio,
+    	usb_upreq => usb_upreq,
+    	usb_upres => usb_upres,
+        usb_upreq_full => usb_upreq_full,
+    	usb_wb => usb_wb,
+    	usb_wb_ack => usb_wb_ack,
+    	usbres => usb_b,
+    	tousb => tousb,
+    	uart_upreq => uart_upreq,
+    	uart_upres => uart_upres,
+        uart_upreq_full => uart_upreq_full,
+    	uart_wb => uart_wb,
+    	uart_wb_ack => uart_wb_ack,
+    	uartres => uart_b,
+    	touart => touart,
         Clock=>Clock,
         reset=>reset,
         cache_req1=>bus_req1,
@@ -306,6 +345,7 @@ clk_gen : process
     	upres => gfx_upres,
     	upreq => gfx_upreq,
     	upreq_full => gfx_upreq_full,
+    	---this is wrong!!!!!!!!!
     	full_b_m => full_b_m,
     	req => togfx,
     	res => gfx_b,
@@ -315,6 +355,48 @@ clk_gen : process
     	reset=>reset,
     	pwrreq=>gfxreq,
     	pwrres=>gfxres
+    );
+    Audio: entity work.Audio(Behavioral) port map(
+    	upres => audio_upres,
+    	upreq => audio_upreq,
+    	upreq_full => audio_upreq_full,
+    	full_b_m => full_b_m,
+    	req => toaudio,
+    	res => audio_b,
+    	wb_req => audio_wb,
+    	wb_ack => audio_wb_ack,
+    	Clock=>Clock,
+    	reset=>reset,
+    	pwrreq=>audioreq,
+    	pwrres=>audiores
+    );
+    USB: entity work.USB(Behavioral) port map(
+    	upres => usb_upres,
+    	upreq => usb_upreq,
+    	upreq_full => usb_upreq_full,
+    	full_b_m => full_b_m,
+    	req => tousb,
+    	res => usb_b,
+    	wb_req => usb_wb,
+    	wb_ack => usb_wb_ack,
+    	Clock=>Clock,
+    	reset=>reset,
+    	pwrreq=>usbreq,
+    	pwrres=>usbres
+    );
+    UART: entity work.UART(Behavioral) port map(
+    	upres => uart_upres,
+    	upreq => uart_upreq,
+    	upreq_full => uart_upreq_full,
+    	full_b_m => full_b_m,
+    	req => touart,
+    	res => uart_b,
+    	wb_req => uart_wb,
+    	wb_ack => uart_wb_ack,
+    	Clock=>Clock,
+    	reset=>reset,
+    	pwrreq=>uartreq,
+    	pwrres=>uartres
     );
     mem: entity work.Memory(Behavioral) port map(   
         Clock=>Clock,

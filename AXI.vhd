@@ -101,7 +101,7 @@ architecture Behavioral of AXI is
 	signal reg_1, reg_2                               : std_logic_vector(50 downto 0) := (others => '0');
 	--state information of power
 	signal gfxpoweron                                 : std_logic                     := '0';
-	signal audiopowerone							:std_logic := '0';
+	signal audiopoweron							:std_logic := '0';
 	signal usbpoweron: std_logic:='0';
 	signal uartpoweron: std_logic:='0';
 
@@ -483,6 +483,33 @@ begin
 			din2  => togfx2,
 			ack2  => gfx_ack2,
 			dout  => togfx
+		);
+	toaudio_arbitor : entity work.arbiter(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => toaudio1,
+			ack1  => audio_ack1,
+			din2  => toaudio2,
+			ack2  => audio_ack2,
+			dout  => toaudio
+		);
+	tousb_arbitor : entity work.arbiter(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => tousb1,
+			ack1  => usb_ack1,
+			din2  => tousb2,
+			ack2  => usb_ack2,
+			dout  => tousb
+		);
+	touart_arbitor : entity work.arbiter(Behavioral) port map(
+			clock => Clock,
+			reset => reset,
+			din1  => touart1,
+			ack1  => uart_ack1,
+			din2  => touart2,
+			ack2  => uart_ack2,
+			dout  => touart
 		);
 	brs2_arbitor : entity work.arbiter6(Behavioral) port map(
 			clock => Clock,
@@ -1155,16 +1182,13 @@ begin
 						cpu1       := '1';
 						stage := 2;
 					elsif out11(53 downto 51) ="001" then
-						gfx_upres4 <= out11(50 downto 0);
+						gfx_upres5 <= out11(50 downto 0);
 						stage := 3;
 					elsif out11(53 downto 51) ="010" then
-						uart_upres4 <= out11(50 downto 0);
+						uart_upres5 <= out11(50 downto 0);
 						stage := 4;
-					elsif out11(53 downto 51) ="011" then
-						usb_upres4 <= out11(50 downto 0);
-						stage := 5;
 					elsif out11(53 downto 51) ="100" then
-						audio_upres4 <= out11(50 downto 0);
+						audio_upres5 <= out11(50 downto 0);
 						stage := 6;
 					---response for cpu2
 					elsif out11(53 downto 51) = "101" then
@@ -1183,23 +1207,18 @@ begin
 					stage      := 0;
 				end if;
 			elsif stage =3 then
-				if gfx_upres_ack4 ='1' then
-					gfx_upres4 <= (others => '0');
+				if gfx_upres_ack5 ='1' then
+					gfx_upres5 <= (others => '0');
 					stage :=0;
 				end if;
 			elsif stage =4 then
-				if uart_upres_ack4 ='1' then
-					uart_upres4 <= (others => '0');
-					stage :=0;
-				end if;
-			elsif stage =5 then
-				if usb_upres_ack4 ='1' then
-					usb_upres4 <= (others => '0');
+				if uart_upres_ack5 ='1' then
+					uart_upres5 <= (others => '0');
 					stage :=0;
 				end if;
 			elsif stage =6 then
-				if audio_upres_ack4 ='1' then
-					usb_upres4 <= (others => '0');
+				if audio_upres_ack5 ='1' then
+					usb_upres5 <= (others => '0');
 					stage :=0;
 				end if;
 			end if;
@@ -1213,70 +1232,64 @@ begin
 		variable cpu1   : std_logic;
 	begin
 		if reset = '1' then
-			bus_res1_3 <= (others => '0');
-			bus_res2_3 <= (others => '0');
+			bus_res1_6 <= (others => '0');
+			bus_res2_6 <= (others => '0');
 		elsif rising_edge(Clock) then
 			if stage = 0 then
-				if re8 = '0' and emp8 = '0' then
-					re8   <= '1';
+				if re11 = '0' and emp11 = '0' then
+					re11   <= '1';
 					stage := 1;
 				end if;
 			elsif stage = 1 then
-				re8 <= '0';
-				if out8(50 downto 50) = "1" then
+				re11 <= '0';
+				if out11(50 downto 50) = "1" then
 					
 					---response for cpu1
-					if out8(53 downto 51) = "000" then
-						---reg_1 <= out8(50 downto 0);
-						bus_res1_3 <= out8(50 downto 0);
+					if out11(53 downto 51) = "000" then
+						---reg_1 <= out11(50 downto 0);
+						bus_res1_6 <= out11(50 downto 0);
 						cpu1       := '1';
 						stage := 2;
-					elsif out8(53 downto 51) ="001" then
-						gfx_upres3 <= out8(50 downto 0);
+					elsif out11(53 downto 51) ="001" then
+						gfx_upres6 <= out11(50 downto 0);
 						stage := 3;
-					elsif out8(53 downto 51) ="010" then
-						uart_upres3 <= out8(50 downto 0);
-						stage := 4;
-					elsif out8(53 downto 51) ="011" then
-						usb_upres3 <= out8(50 downto 0);
+					
+					elsif out11(53 downto 51) ="011" then
+						usb_upres6 <= out11(50 downto 0);
 						stage := 5;
-					elsif out8(53 downto 51) ="100" then
-						audio_upres3 <= out8(50 downto 0);
+					elsif out11(53 downto 51) ="100" then
+						audio_upres6 <= out11(50 downto 0);
 						stage := 6;
 					---response for cpu2
-					elsif out8(53 downto 51) = "101" then
+					elsif out11(53 downto 51) = "101" then
 						---reg_2 <= out3(50 downto 0);
-						bus_res2_3 <= out8(50 downto 0);
+						bus_res2_6 <= out11(50 downto 0);
 						cpu1       := '0';
 						stage := 2;
 					end if;
 				end if;
 			elsif stage = 2 then
-				if cpu1 = '1' and brs1_ack3 = '1' then
-					bus_res1_3 <= (others => '0');
+				if cpu1 = '1' and brs1_ack6 = '1' then
+					bus_res1_6 <= (others => '0');
 					stage      := 0;
-				elsif cpu1 = '0' and brs2_ack3 = '1' then
-					bus_res2_3 <= (others => '0');
+				elsif cpu1 = '0' and brs2_ack6 = '1' then
+					bus_res2_6 <= (others => '0');
 					stage      := 0;
 				end if;
 			elsif stage =3 then
-				if gfx_upres_ack3 ='1' then
-					gfx_upres3 <= (others => '0');
+				if gfx_upres_ack6 ='1' then
+					gfx_upres6 <= (others => '0');
 					stage :=0;
 				end if;
-			elsif stage =4 then
-				if uart_upres_ack3 ='1' then
-					uart_upres3 <= (others => '0');
-					stage :=0;
-				end if;
+			
 			elsif stage =5 then
-				if usb_upres_ack3 ='1' then
-					usb_upres3 <= (others => '0');
+				if usb_upres_ack6 ='1' then
+					usb_upres6 <= (others => '0');
 					stage :=0;
 				end if;
 			elsif stage =6 then
-				if audio_upres_ack3 ='1' then
-					usb_upres3 <= (others => '0');
+				if audio_upres_ack6 ='1' then
+					usb_upres6 <= (others => '0');
 					stage :=0;
 				end if;
 			end if;
@@ -1389,7 +1402,14 @@ begin
 			re2        <= '0';
 			bus_res2_1 <= (others => '0');
 			tomem1     <= "000" & nilreq;
+			togfx1     <= "000" & nilreq;
+			toaudio1     <= "000" & nilreq;
+			tousb1     <= "000" & nilreq;
+			touart1     <= "000" & nilreq;
 			gfx_upres1 <= (others => '0');
+			audio_upres1 <= (others => '0');
+			usb_upres1 <= (others => '0');
+			uart_upres1 <= (others => '0');
 		---tmp_brs2_1 <= (others => '0');
 		---tmp_mem1 <= (others => '0');
 		elsif rising_edge(Clock) then
@@ -1406,12 +1426,39 @@ begin
 						if out2(53 downto 51) = "000" then
 							bus_res2_1 <= out2(50 downto 0);
 							state      := 2;
-						elsif out2(53 downto 51) = "001" then
+						elsif out2(53 downto 51) = "001" or out2(53 downto 51) = "010" or out2(53 downto 51) = "011" or out2(53 downto 51) = "100" then
 							if out2(49 downto 48) = "01" then
-								gfx_upres1 <= out2(50 downto 0);
-								state      := 7;
+								if out2(47 downto 45)="001" then
+									gfx_upres1 <= out2(50 downto 0);
+									state      := 7;
+								elsif out2(47 downto 45)="010" then
+									audio_upres1 <= out2(50 downto 0);
+									state      := 17;
+								elsif out2(47 downto 45)="011" then
+									usb_upres1 <= out2(50 downto 0);
+									state      := 18;
+								elsif out2(47 downto 45)="100" then
+									uart_upres1 <= out2(50 downto 0);
+									state      := 19;	
+								else
+									tomem1 <= out2(53 downto 0);
+									state  := 3;
+								end if; 
+								
 							else
-								if to_integer(unsigned(out2(47 downto 32))) < 32768 then
+								if out2(47 downto 45)="001" then
+									togfx1 <= out2(53 downto 0);
+									state  := 4;
+								elsif out2(47 downto 45)="010" then
+									toaudio1 <= out2(53 downto 0);
+									state  := 8;
+								elsif out2(47 downto 45)="011" then
+									tousb1 <= out2(53 downto 0);
+									state  := 9;
+								elsif out2(47 downto 45)="100" then
+									touart1 <= out2(53 downto 0);
+									state  := 10;	
+								else
 									tomem1 <= out2(53 downto 0);
 									state  := 3;
 								end if;
@@ -1419,13 +1466,11 @@ begin
 
 						end if;
 					else                ---it's a miss
-						if out2(53 downto 51) = "001" then
+						if out2(53 downto 51) = "001" or out2(53 downto 51) = "010" or out2(53 downto 51) = "011" or out2(53 downto 51) = "100" then
 							snp2_2 <= out2(53 downto 0);
 							state  := 8;
-						elsif to_integer(unsigned(out2(47 downto 32))) < 32768 then
-							state  := 3;
-							tomem1 <= out2(53 downto 0);
-						else
+						
+						elsif out2(47 downto 45)="001" then
 							if gfxpoweron = '1' then
 								state  := 4;
 								togfx1 <= "101" & out2(50 downto 0);
@@ -1434,6 +1479,36 @@ begin
 								tmp_togfx1 <= "101" & out2(50 downto 0);
 								pwr_req3   <= "11000";
 							end if;
+						elsif out2(47 downto 45)="010" then
+							if audiopoweron = '1' then
+								state  := 8;
+								toaudio1 <= "101" & out2(50 downto 0);
+							else
+								state      := 11;
+								tmp_toaudio1 <= "101" & out2(50 downto 0);
+								pwr_req3   <= "11000";
+							end if;
+						elsif out2(47 downto 45)="011" then
+							if usbpoweron = '1' then
+								state  := 9;
+								tousb1 <= "101" & out2(50 downto 0);
+							else
+								state      := 12;
+								tmp_tousb1 <= "101" & out2(50 downto 0);
+								pwr_req3   <= "11000";
+							end if;
+						elsif out2(47 downto 45)="100" then
+							if uartpoweron = '1' then
+								state  := 10;
+								touart1 <= "101" & out2(50 downto 0);
+							else
+								state      := 13;
+								tmp_touart1 <= "101" & out2(50 downto 0);
+								pwr_req3   <= "11000";
+							end if;
+						else
+							state  := 3;
+							tomem1 <= out2(53 downto 0);
 						end if;
 					end if;
 				end if;
@@ -1454,19 +1529,79 @@ begin
 					togfx1 <= (others => '0');
 					state  := 0;
 				end if;
+			elsif state = 8 then
+				if audio_ack1 = '1' then
+					toaudio1 <= (others => '0');
+					state  := 0;
+				end if;
+			elsif state = 9 then
+				if usb_ack1 = '1' then
+					tousb1 <= (others => '0');
+					state  := 0;
+				end if;
+			elsif state = 10 then
+				if uart_ack1 = '1' then
+					touart1 <= (others => '0');
+					state  := 0;
+				end if;
 			elsif state = 5 then
 				if pwr_ack3 = '1' then
 					pwr_req3 <= "00000";
 					state    := 6;
+				end if;
+			elsif state = 11 then
+				if pwr_ack3 = '1' then
+					pwr_req3 <= "00000";
+					state    := 14;
+				end if;
+			elsif state = 12 then
+				if pwr_ack3 = '1' then
+					pwr_req3 <= "00000";
+					state    := 15;
+				end if;
+			elsif state = 13 then
+				if pwr_ack3 = '1' then
+					pwr_req3 <= "00000";
+					state    := 16;
 				end if;
 			elsif state = 6 then
 				if pwrres(4 downto 4) = "1" then
 					togfx1 <= tmp_togfx1;
 					state  := 4;
 				end if;
+			elsif state = 14 then
+				if pwrres(4 downto 4) = "1" then
+					toaudio1 <= tmp_toaudio1;
+					state  := 4;
+				end if;
+			elsif state = 15 then
+				if pwrres(4 downto 4) = "1" then
+					tousb1 <= tmp_tousb1;
+					state  := 4;
+				end if;
+			elsif state = 16 then
+				if pwrres(4 downto 4) = "1" then
+					touart1 <= tmp_touart1;
+					state  := 4;
+				end if;
 			elsif state = 7 then
 				if gfx_upres_ack1 = '1' then
 					gfx_upres1 <= (others => '0');
+					state      := 0;
+				end if;
+			elsif state = 17 then
+				if audio_upres_ack1 = '1' then
+					audio_upres1 <= (others => '0');
+					state      := 0;
+				end if;
+			elsif state = 18 then
+				if usb_upres_ack1 = '1' then
+					usb_upres1 <= (others => '0');
+					state      := 0;
+				end if;
+			elsif state = 19 then
+				if uart_upres_ack1 = '1' then
+					uart_upres1 <= (others => '0');
 					state      := 0;
 				end if;
 			elsif state = 8 then
@@ -1490,6 +1625,9 @@ begin
 			--tmp_brs1_2 <= (others => '0');
 			--tmp_mem2 <= (others => '0');
 			gfx_upres2 <= (others => '0');
+			audio_upres2 <= (others => '0');
+			usb_upres2 <= (others => '0');
+			uart_upres2 <= (others => '0');
 			state      := 0;
 		elsif rising_edge(Clock) then
 			if state = 0 then
@@ -1504,32 +1642,87 @@ begin
 						if out5(53 downto 51) = "000" then
 							bus_res1_2 <= out5(50 downto 0);
 							state      := 2;
-						elsif out5(53 downto 51) = "001" then
+						elsif out5(53 downto 51) = "001" or out5(53 downto 51) = "010" or out5(53 downto 51) = "011" or out5(53 downto 51) = "100" then
 							if out5(49 downto 48) = "01" then
-								gfx_upres2 <= out5(50 downto 0);
-								state      := 7;
+								if out5(47 downto 45)="001" then
+									gfx_upres2 <= out5(50 downto 0);
+									state      := 7;
+								elsif out5(47 downto 45)="010" then
+									audio_upres2 <= out5(50 downto 0);
+									state      := 17;
+								elsif out5(47 downto 45)="011" then
+									usb_upres2 <= out5(50 downto 0);
+									state      := 18;
+								elsif out5(47 downto 45)="100" then
+									uart_upres2 <= out5(50 downto 0);
+									state      := 19;	
+								else
+									tomem2 <= out5(53 downto 0);
+									state  := 3;
+								end if; 
+								
 							else
-								if to_integer(unsigned(out5(47 downto 32))) < 32768 then
+								if out5(47 downto 45)="001" then
+									togfx2 <= out5(53 downto 0);
+									state  := 4;
+								elsif out5(47 downto 45)="010" then
+									toaudio2 <= out5(53 downto 0);
+									state  := 8;
+								elsif out5(47 downto 45)="011" then
+									tousb2 <= out5(53 downto 0);
+									state  := 9;
+								elsif out5(47 downto 45)="100" then
+									touart2 <= out5(53 downto 0);
+									state  := 10;	
+								else
 									tomem2 <= out5(53 downto 0);
 									state  := 3;
 								end if;
 							end if;
-						end if;
 
+						end if;
 					else                ---it's a miss
-						if to_integer(unsigned(out5(47 downto 32))) < 32768 then
-							tomem2 <= out5(53 downto 0);
-							state  := 3;
-						else
+						if out2(47 downto 45)="001" then
 							if gfxpoweron = '1' then
-								togfx2 <= "000" & out5(50 downto 0);
 								state  := 4;
+								togfx2 <= "101" & out2(50 downto 0);
 							else
 								state      := 5;
-								tmp_togfx2 <= "000" & out5(50 downto 0);
+								tmp_togfx2 <= "101" & out2(50 downto 0);
 								pwr_req3   <= "11000";
 							end if;
+						elsif out2(47 downto 45)="010" then
+							if audiopoweron = '1' then
+								state  := 8;
+								toaudio2 <= "101" & out2(50 downto 0);
+							else
+								state      := 11;
+								tmp_toaudio2 <= "101" & out2(50 downto 0);
+								pwr_req3   <= "11000";
+							end if;
+						elsif out2(47 downto 45)="011" then
+							if usbpoweron = '1' then
+								state  := 9;
+								tousb2 <= "101" & out2(50 downto 0);
+							else
+								state      := 12;
+								tmp_tousb2 <= "101" & out2(50 downto 0);
+								pwr_req3   <= "11000";
+							end if;
+						elsif out2(47 downto 45)="100" then
+							if uartpoweron = '1' then
+								state  := 10;
+								touart2 <= "101" & out2(50 downto 0);
+							else
+								state      := 13;
+								tmp_touart2 <= "101" & out2(50 downto 0);
+								pwr_req3   <= "11000";
+							end if;
+						else
+							state  := 3;
+							tomem2 <= out2(53 downto 0);
 						end if;
+						
 					end if;
 				end if;
 
@@ -1564,7 +1757,67 @@ begin
 					gfx_upres2 <= (others => '0');
 					state      := 0;
 				end if;
-
+			elsif state = 8 then
+				if audio_ack2 = '1' then
+					toaudio2 <= (others => '0');
+					state  := 0;
+				end if;
+			elsif state = 9 then
+				if usb_ack2 = '1' then
+					tousb2 <= (others => '0');
+					state  := 0;
+				end if;
+			elsif state = 10 then
+				if uart_ack2 = '1' then
+					touart2 <= (others => '0');
+					state  := 0;
+				end if;
+			elsif state = 11 then
+				if pwr_ack3 = '1' then
+					pwr_req3 <= "00000";
+					state    := 14;
+				end if;
+			elsif state = 12 then
+				if pwr_ack3 = '1' then
+					pwr_req3 <= "00000";
+					state    := 15;
+				end if;
+			elsif state = 13 then
+				if pwr_ack3 = '1' then
+					pwr_req3 <= "00000";
+					state    := 16;
+				end if;
+			elsif state = 14 then
+				if pwrres(4 downto 4) = "1" then
+					toaudio2 <= tmp_toaudio2;
+					state  := 4;
+				end if;
+			elsif state = 15 then
+				if pwrres(4 downto 4) = "1" then
+					tousb2 <= tmp_tousb2;
+					state  := 4;
+				end if;
+			elsif state = 16 then
+				if pwrres(4 downto 4) = "1" then
+					touart2 <= tmp_touart2;
+					state  := 4;
+				end if;
+			
+			elsif state = 17 then
+				if audio_upres_ack2 = '1' then
+					audio_upres2 <= (others => '0');
+					state      := 0;
+				end if;
+			elsif state = 18 then
+				if usb_upres_ack2 = '1' then
+					usb_upres2 <= (others => '0');
+					state      := 0;
+				end if;
+			elsif state = 19 then
+				if uart_upres_ack2 = '1' then
+					uart_upres2 <= (others => '0');
+					state      := 0;
+				end if;
 			end if;
 		end if;
 	end process;
