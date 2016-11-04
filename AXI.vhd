@@ -597,8 +597,7 @@ begin
 			din6  => gfx_upres6,
 			ack6  => gfx_upres_ack6,
 			dout  => gfx_upres
-		)
-		
+		);
 	audio_upres_arbitor : entity work.arbiter6(Behavioral) port map(
 			clock => Clock,
 			reset => reset,
@@ -1002,21 +1001,32 @@ begin
 			elsif stage = 1 then
 				re8 <= '0';
 				if out8(50 downto 50) = "1" then
-					stage := 2;
+					
 					---response for cpu1
 					if out8(53 downto 51) = "000" then
 						---reg_1 <= out8(50 downto 0);
 						bus_res1_3 <= out8(50 downto 0);
 						cpu1       := '1';
+						stage := 2;
+					elsif out8(53 downto 51) ="001" then
+						gfx_upres3 <= out8(50 downto 0);
+						stage := 3;
+					elsif out8(53 downto 51) ="010" then
+						uart_upres3 <= out8(50 downto 0);
+						stage := 4;
+					elsif out8(53 downto 51) ="011" then
+						usb_upres3 <= out8(50 downto 0);
+						stage := 5;
+					elsif out8(53 downto 51) ="100" then
+						audio_upres3 <= out8(50 downto 0);
+						stage := 6;
 					---response for cpu2
 					elsif out8(53 downto 51) = "101" then
 						---reg_2 <= out3(50 downto 0);
 						bus_res2_3 <= out8(50 downto 0);
 						cpu1       := '0';
-					elsif out8(53 downto 51) ="010" then
-						
+						stage := 2;
 					end if;
-
 				end if;
 			elsif stage = 2 then
 				if cpu1 = '1' and brs1_ack3 = '1' then
@@ -1026,11 +1036,253 @@ begin
 					bus_res2_3 <= (others => '0');
 					stage      := 0;
 				end if;
+			elsif stage =3 then
+				if gfx_upres_ack3 ='1' then
+					gfx_upres3 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =4 then
+				if uart_upres_ack3 ='1' then
+					uart_upres3 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =5 then
+				if usb_upres_ack3 ='1' then
+					usb_upres3 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =6 then
+				if audio_upres_ack3 ='1' then
+					usb_upres3 <= (others => '0');
+					stage :=0;
+				end if;
 			end if;
 		end if;
 
 	end process;
+	audio_res_p : process(reset, Clock)
 
+		variable stage  : integer                       := 0;
+		variable cpu1   : std_logic;
+	begin
+		if reset = '1' then
+			bus_res1_4 <= (others => '0');
+			bus_res2_4 <= (others => '0');
+		elsif rising_edge(Clock) then
+			if stage = 0 then
+				if re10 = '0' and emp10 = '0' then
+					re10   <= '1';
+					stage := 1;
+				end if;
+			elsif stage = 1 then
+				re10 <= '0';
+				if out10(50 downto 50) = "1" then
+					
+					---response for cpu1
+					if out10(53 downto 51) = "000" then
+						---reg_1 <= out10(50 downto 0);
+						bus_res1_4 <= out10(50 downto 0);
+						cpu1       := '1';
+						stage := 2;
+					elsif out10(53 downto 51) ="001" then
+						gfx_upres4 <= out10(50 downto 0);
+						stage := 3;
+					elsif out10(53 downto 51) ="010" then
+						uart_upres4 <= out10(50 downto 0);
+						stage := 4;
+					elsif out10(53 downto 51) ="011" then
+						usb_upres4 <= out10(50 downto 0);
+						stage := 5;
+					
+					---response for cpu2
+					elsif out10(53 downto 51) = "101" then
+						---reg_2 <= out3(50 downto 0);
+						bus_res2_4 <= out10(50 downto 0);
+						cpu1       := '0';
+						stage := 2;
+					end if;
+				end if;
+			elsif stage = 2 then
+				if cpu1 = '1' and brs1_ack3 = '1' then
+					bus_res1_4 <= (others => '0');
+					stage      := 0;
+				elsif cpu1 = '0' and brs2_ack3 = '1' then
+					bus_res2_4 <= (others => '0');
+					stage      := 0;
+				end if;
+			elsif stage =3 then
+				if gfx_upres_ack4 ='1' then
+					gfx_upres4 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =4 then
+				if uart_upres_ack4 ='1' then
+					uart_upres4 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =5 then
+				if usb_upres_ack4 ='1' then
+					usb_upres4 <= (others => '0');
+					stage :=0;
+				end if;
+			
+			end if;
+		end if;
+
+	end process;
+	usb_res_p : process(reset, Clock)
+
+		variable stage  : integer                       := 0;
+		variable cpu1   : std_logic;
+	begin
+		if reset = '1' then
+			bus_res1_5 <= (others => '0');
+			bus_res2_5 <= (others => '0');
+		elsif rising_edge(Clock) then
+			if stage = 0 then
+				if re11 = '0' and emp11 = '0' then
+					re11   <= '1';
+					stage := 1;
+				end if;
+			elsif stage = 1 then
+				re11 <= '0';
+				if out11(50 downto 50) = "1" then
+					
+					---response for cpu1
+					if out11(53 downto 51) = "000" then
+						---reg_1 <= out11(50 downto 0);
+						bus_res1_5 <= out11(50 downto 0);
+						cpu1       := '1';
+						stage := 2;
+					elsif out11(53 downto 51) ="001" then
+						gfx_upres4 <= out11(50 downto 0);
+						stage := 3;
+					elsif out11(53 downto 51) ="010" then
+						uart_upres4 <= out11(50 downto 0);
+						stage := 4;
+					elsif out11(53 downto 51) ="011" then
+						usb_upres4 <= out11(50 downto 0);
+						stage := 5;
+					elsif out11(53 downto 51) ="100" then
+						audio_upres4 <= out11(50 downto 0);
+						stage := 6;
+					---response for cpu2
+					elsif out11(53 downto 51) = "101" then
+						---reg_2 <= out3(50 downto 0);
+						bus_res2_5 <= out11(50 downto 0);
+						cpu1       := '0';
+						stage := 2;
+					end if;
+				end if;
+			elsif stage = 2 then
+				if cpu1 = '1' and brs1_ack3 = '1' then
+					bus_res1_5 <= (others => '0');
+					stage      := 0;
+				elsif cpu1 = '0' and brs2_ack3 = '1' then
+					bus_res2_5 <= (others => '0');
+					stage      := 0;
+				end if;
+			elsif stage =3 then
+				if gfx_upres_ack4 ='1' then
+					gfx_upres4 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =4 then
+				if uart_upres_ack4 ='1' then
+					uart_upres4 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =5 then
+				if usb_upres_ack4 ='1' then
+					usb_upres4 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =6 then
+				if audio_upres_ack4 ='1' then
+					usb_upres4 <= (others => '0');
+					stage :=0;
+				end if;
+			end if;
+		end if;
+
+	end process;
+	
+	uart_res_p : process(reset, Clock)
+
+		variable stage  : integer                       := 0;
+		variable cpu1   : std_logic;
+	begin
+		if reset = '1' then
+			bus_res1_3 <= (others => '0');
+			bus_res2_3 <= (others => '0');
+		elsif rising_edge(Clock) then
+			if stage = 0 then
+				if re8 = '0' and emp8 = '0' then
+					re8   <= '1';
+					stage := 1;
+				end if;
+			elsif stage = 1 then
+				re8 <= '0';
+				if out8(50 downto 50) = "1" then
+					
+					---response for cpu1
+					if out8(53 downto 51) = "000" then
+						---reg_1 <= out8(50 downto 0);
+						bus_res1_3 <= out8(50 downto 0);
+						cpu1       := '1';
+						stage := 2;
+					elsif out8(53 downto 51) ="001" then
+						gfx_upres3 <= out8(50 downto 0);
+						stage := 3;
+					elsif out8(53 downto 51) ="010" then
+						uart_upres3 <= out8(50 downto 0);
+						stage := 4;
+					elsif out8(53 downto 51) ="011" then
+						usb_upres3 <= out8(50 downto 0);
+						stage := 5;
+					elsif out8(53 downto 51) ="100" then
+						audio_upres3 <= out8(50 downto 0);
+						stage := 6;
+					---response for cpu2
+					elsif out8(53 downto 51) = "101" then
+						---reg_2 <= out3(50 downto 0);
+						bus_res2_3 <= out8(50 downto 0);
+						cpu1       := '0';
+						stage := 2;
+					end if;
+				end if;
+			elsif stage = 2 then
+				if cpu1 = '1' and brs1_ack3 = '1' then
+					bus_res1_3 <= (others => '0');
+					stage      := 0;
+				elsif cpu1 = '0' and brs2_ack3 = '1' then
+					bus_res2_3 <= (others => '0');
+					stage      := 0;
+				end if;
+			elsif stage =3 then
+				if gfx_upres_ack3 ='1' then
+					gfx_upres3 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =4 then
+				if uart_upres_ack3 ='1' then
+					uart_upres3 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =5 then
+				if usb_upres_ack3 ='1' then
+					usb_upres3 <= (others => '0');
+					stage :=0;
+				end if;
+			elsif stage =6 then
+				if audio_upres_ack3 ='1' then
+					usb_upres3 <= (others => '0');
+					stage :=0;
+				end if;
+			end if;
+		end if;
+
+	end process;
 	---deal with cache request
 	cache_req1_p : process(reset, Clock)
 		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
