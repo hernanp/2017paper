@@ -112,7 +112,7 @@ begin
     	---power(pwrcmd, tmp_req, hwlc);
 	for I in 1 to 1 loop
 	   rand1 := selection(2);
-	   rand2 := '1'&selection(2**2-1,3)&"111111000000";
+	   rand2 := "001"&selection(2**2-1,3)&"0101110000";
 	   rand3 := selection(2**15-1,32);
 	   ---if rand1=1 then
 	   ---    write(rand2,tmp_req,rand3);
