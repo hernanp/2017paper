@@ -1468,7 +1468,7 @@ begin
 					else                ---it's a miss
 						if out2(53 downto 51) = "001" or out2(53 downto 51) = "010" or out2(53 downto 51) = "011" or out2(53 downto 51) = "100" then
 							snp2_2 <= out2(53 downto 0);
-							state  := 8;
+							state  := 20;
 						elsif out2(47 downto 45)="001" then
 							if gfxpoweron = '1' then
 								state  := 4;
@@ -1603,7 +1603,7 @@ begin
 					uart_upres1 <= (others => '0');
 					state      := 0;
 				end if;
-			elsif state = 8 then
+			elsif state = 20 then
 				if snp2_ack2 = '1' then
 					state  := 0;
 					snp2_2 <= (others => '0');
