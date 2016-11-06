@@ -569,7 +569,7 @@ begin
 			ack6  => snp2_ack6,
 			dout  => snoop_req2
 		);
-	pwr_arbitor : entity work.arbiter6(Behavioral)
+	pwr_arbitor : entity work.arbiter61(Behavioral)
 		generic map(
 			DATA_WIDTH => 5
 		)
