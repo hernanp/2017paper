@@ -1790,17 +1790,17 @@ begin
 			elsif state = 14 then
 				if pwrres(4 downto 4) = "1" then
 					toaudio2 <= tmp_toaudio2;
-					state  := 4;
+					state  := 17;
 				end if;
 			elsif state = 15 then
 				if pwrres(4 downto 4) = "1" then
 					tousb2 <= tmp_tousb2;
-					state  := 4;
+					state  := 18;
 				end if;
 			elsif state = 16 then
 				if pwrres(4 downto 4) = "1" then
 					touart2 <= tmp_touart2;
-					state  := 4;
+					state  := 19;
 				end if;
 			
 			elsif state = 17 then
