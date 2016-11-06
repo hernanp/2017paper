@@ -791,13 +791,13 @@ begin
 	audio_res_fifo : process(reset, Clock)
 	begin
 		if reset = '1' then
-			we8 <= '0';
+			we10 <= '0';
 		elsif rising_edge(Clock) then
 			if audiores(50 downto 50) = "1" then
-				in8 <= audiores;
-				we8 <= '1';
+				in10 <= audiores;
+				we10 <= '1';
 			else
-				we8 <= '0';
+				we10 <= '0';
 			end if;
 
 		end if;
@@ -805,13 +805,13 @@ begin
 	usb_res_fifo : process(reset, Clock)
 	begin
 		if reset = '1' then
-			we8 <= '0';
+			we11 <= '0';
 		elsif rising_edge(Clock) then
 			if usbres(50 downto 50) = "1" then
-				in8 <= usbres;
-				we8 <= '1';
+				in11 <= usbres;
+				we11 <= '1';
 			else
-				we8 <= '0';
+				we11 <= '0';
 			end if;
 
 		end if;
@@ -819,13 +819,13 @@ begin
 	uart_res_fifo : process(reset, Clock)
 	begin
 		if reset = '1' then
-			we8 <= '0';
+			we12 <= '0';
 		elsif rising_edge(Clock) then
 			if uartres(50 downto 50) = "1" then
-				in8 <= uartres;
-				we8 <= '1';
+				in12 <= uartres;
+				we12 <= '1';
 			else
-				we8 <= '0';
+				we12 <= '0';
 			end if;
 
 		end if;
@@ -1235,34 +1235,34 @@ begin
 			bus_res2_6 <= (others => '0');
 		elsif rising_edge(Clock) then
 			if stage = 0 then
-				if re11 = '0' and emp11 = '0' then
-					re11   <= '1';
+				if re12 = '0' and emp12 = '0' then
+					re12   <= '1';
 					stage := 1;
 				end if;
 			elsif stage = 1 then
-				re11 <= '0';
-				if out11(50 downto 50) = "1" then
+				re12 <= '0';
+				if out12(50 downto 50) = "1" then
 					
 					---response for cpu1
-					if out11(53 downto 51) = "000" then
-						---reg_1 <= out11(50 downto 0);
-						bus_res1_6 <= out11(50 downto 0);
+					if out12(53 downto 51) = "000" then
+						---reg_1 <= out12(50 downto 0);
+						bus_res1_6 <= out12(50 downto 0);
 						cpu1       := '1';
 						stage := 2;
-					elsif out11(53 downto 51) ="001" then
-						gfx_upres6 <= out11(50 downto 0);
+					elsif out12(53 downto 51) ="001" then
+						gfx_upres6 <= out12(50 downto 0);
 						stage := 3;
 					
-					elsif out11(53 downto 51) ="011" then
-						usb_upres6 <= out11(50 downto 0);
+					elsif out12(53 downto 51) ="011" then
+						usb_upres6 <= out12(50 downto 0);
 						stage := 5;
-					elsif out11(53 downto 51) ="100" then
-						audio_upres6 <= out11(50 downto 0);
+					elsif out12(53 downto 51) ="100" then
+						audio_upres6 <= out12(50 downto 0);
 						stage := 6;
 					---response for cpu2
-					elsif out11(53 downto 51) = "101" then
+					elsif out12(53 downto 51) = "101" then
 						---reg_2 <= out3(50 downto 0);
-						bus_res2_6 <= out11(50 downto 0);
+						bus_res2_6 <= out12(50 downto 0);
 						cpu1       := '0';
 						stage := 2;
 					end if;
