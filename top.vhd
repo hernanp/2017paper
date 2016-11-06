@@ -43,6 +43,9 @@ architecture Behavioral of top is
    signal gfx_upreq,gfx_upres,gfx_wb : std_logic_vector (50 downto 0);
    signal gfx_upreq_full,gfx_wb_ack:std_logic;
    signal pwr_gfxreq, pwr_gfxres: std_logic_vector(2 downto 0);
+    signal pwr_audioreq, pwr_audiores: std_logic_vector(2 downto 0);
+     signal pwr_usbreq, pwr_usbres: std_logic_vector(2 downto 0);
+      signal pwr_uartreq, pwr_uartres: std_logic_vector(2 downto 0);
    
    signal audio_b,toaudio: std_logic_vector(53 downto 0);
    signal audio_upreq,audio_upres,audio_wb : std_logic_vector (50 downto 0);
@@ -263,6 +266,12 @@ clk_gen : process
          	wb_req => wb_req2
        );
    power: entity work.PWR(Behavioral) port map(
+   		audioreq => pwr_audioreq,
+    	usbreq => pwr_usbreq,
+    	uartreq => pwr_uartreq,
+    	audiores => pwr_audiores,
+    	usbres => pwr_usbres,
+    	uartres => pwr_uartres,
     	Clock=>Clock,
     	reset=>reset,
     	req=>pwrreq,
@@ -367,8 +376,8 @@ clk_gen : process
     	wb_ack => audio_wb_ack,
     	Clock=>Clock,
     	reset=>reset,
-    	pwrreq=>audioreq,
-    	pwrres=>audiores
+    	pwrreq=>pwr_audioreq,
+    	pwrres=>pwr_audiores
     );
     USB: entity work.USB(Behavioral) port map(
     	upres => usb_upres,
@@ -381,8 +390,8 @@ clk_gen : process
     	wb_ack => usb_wb_ack,
     	Clock=>Clock,
     	reset=>reset,
-    	pwrreq=>usbreq,
-    	pwrres=>usbres
+    	pwrreq=>pwr_usbreq,
+    	pwrres=>pwr_usbres
     );
     UART: entity work.UART(Behavioral) port map(
     	upres => uart_upres,
@@ -395,8 +404,8 @@ clk_gen : process
     	wb_ack => uart_wb_ack,
     	Clock=>Clock,
     	reset=>reset,
-    	pwrreq=>uartreq,
-    	pwrres=>uartres
+    	pwrreq=>pwr_uartreq,
+    	pwrres=>pwr_uartres
     );
     mem: entity work.Memory(Behavioral) port map(   
         Clock=>Clock,

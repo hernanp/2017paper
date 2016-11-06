@@ -39,7 +39,13 @@ entity PWR is
             full_preq: out std_logic:='0';
             
             gfxres : in STD_LOGIC_VECTOR(2 downto 0);
-            gfxreq : out STD_LOGIC_VECTOR(2 downto 0)
+            gfxreq : out STD_LOGIC_VECTOR(2 downto 0);
+            audiores : in STD_LOGIC_VECTOR(2 downto 0);
+            audioreq : out STD_LOGIC_VECTOR(2 downto 0);
+            usbres : in STD_LOGIC_VECTOR(2 downto 0);
+            usbreq : out STD_LOGIC_VECTOR(2 downto 0);
+            uartres : in STD_LOGIC_VECTOR(2 downto 0);
+            uartreq : out STD_LOGIC_VECTOR(2 downto 0)
             );
             
 end PWR;
@@ -95,6 +101,9 @@ begin
 		  res <= "00000";
 			if state =0 then
 				gfxreq <= nilreq(2 downto 0);
+				audioreq <= nilreq(2 downto 0);
+				usbreq <= nilreq(2 downto 0);
+				uartreq <= nilreq(2 downto 0);
 				if re1 = '0' and emp1 ='0' then
 					re1 <= '1';
 					state := 1;
@@ -103,16 +112,46 @@ begin
 			elsif state = 1 then
 				re1 <= '0';
 				if out1(4 downto 4)="1" then
+					tmp_req <= out1;
 					if out1(1 downto 0)="00" then
-						tmp_req <= out1;
 						state := 2;
+					elsif out1(1 downto 0) ="01" then
+						state := 3;
+					elsif out1(1 downto 0) ="10" then
+						state := 4;
+					elsif out1(1 downto 0) ="11" then
+						state := 5;
 					end if;
 				end if;
 			elsif state = 2 then
 				gfxreq<=tmp_req(4 downto 2);
-				state := 3;
+				state := 6;
 			elsif state = 3 then
+				audioreq<=tmp_req(4 downto 2);
+				state := 7;
+			elsif state = 4 then
+				usbreq<=tmp_req(4 downto 2);
+				state := 8;
+			elsif state = 5then
+				uartreq<=tmp_req(4 downto 2);
+				state := 9;
+			elsif state = 6 then
 				if gfxres(2 downto 2) = "1" then
+					res <= tmp_req;
+					state :=0;
+				end if;
+			elsif state = 7 then
+				if audiores(2 downto 2) = "1" then
+					res <= tmp_req;
+					state :=0;
+				end if;
+			elsif state = 8 then
+				if usbres(2 downto 2) = "1" then
+					res <= tmp_req;
+					state :=0;
+				end if;
+			elsif state = 9 then
+				if uartres(2 downto 2) = "1" then
 					res <= tmp_req;
 					state :=0;
 				end if;
