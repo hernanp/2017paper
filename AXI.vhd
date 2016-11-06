@@ -1682,7 +1682,7 @@ begin
 
 						end if;
 					else                ---it's a miss
-						if out2(47 downto 45)="001" then
+						if out5(47 downto 45)="001" then
 							if gfxpoweron = '1' then
 								state  := 4;
 								togfx2 <=  out5(53 downto 0);
@@ -1691,7 +1691,7 @@ begin
 								tmp_togfx2 <=  out5(53 downto 0);
 								pwr_req4   <= "11000";
 							end if;
-						elsif out2(47 downto 45)="010" then
+						elsif out5(47 downto 45)="010" then
 							if audiopoweron = '1' then
 								state  := 8;
 								toaudio2 <=  out5(53 downto 0);
@@ -1700,7 +1700,7 @@ begin
 								tmp_toaudio2 <=  out5(53 downto 0);
 								pwr_req4   <= "11000";
 							end if;
-						elsif out2(47 downto 45)="011" then
+						elsif out5(47 downto 45)="011" then
 							if usbpoweron = '1' then
 								state  := 9;
 								tousb2 <=  out5(53 downto 0);
@@ -1709,7 +1709,7 @@ begin
 								tmp_tousb2 <=  out5(53 downto 0);
 								pwr_req4   <= "11000";
 							end if;
-						elsif out2(47 downto 45)="100" then
+						elsif out5(47 downto 45)="100" then
 							if uartpoweron = '1' then
 								state  := 10;
 								touart2 <=  out5(53 downto 0);
@@ -1720,7 +1720,7 @@ begin
 							end if;
 						else
 							state  := 3;
-							tomem2 <= out2(53 downto 0);
+							tomem2 <= out5(53 downto 0);
 						end if;
 						
 					end if;
