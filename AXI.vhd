@@ -1629,6 +1629,7 @@ begin
 			usb_upres2 <= (others => '0');
 			uart_upres2 <= (others => '0');
 			state      := 0;
+			pwr_req4 <="00000";
 		elsif rising_edge(Clock) then
 			if state = 0 then
 				if re5 = '0' and emp5 = '0' then
@@ -1689,7 +1690,7 @@ begin
 							else
 								state      := 5;
 								tmp_togfx2 <=  out5(53 downto 0);
-								pwr_req3   <= "11000";
+								pwr_req4   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="010" then
 							if audiopoweron = '1' then
@@ -1698,7 +1699,7 @@ begin
 							else
 								state      := 11;
 								tmp_toaudio2 <=  out5(53 downto 0);
-								pwr_req3   <= "11000";
+								pwr_req4   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="011" then
 							if usbpoweron = '1' then
@@ -1707,7 +1708,7 @@ begin
 							else
 								state      := 12;
 								tmp_tousb2 <=  out5(53 downto 0);
-								pwr_req3   <= "11000";
+								pwr_req4   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="100" then
 							if uartpoweron = '1' then
@@ -1716,7 +1717,7 @@ begin
 							else
 								state      := 13;
 								tmp_touart2 <=  out5(53 downto 0);
-								pwr_req3   <= "11000";
+								pwr_req4   <= "11000";
 							end if;
 						else
 							state  := 3;
@@ -1743,8 +1744,8 @@ begin
 					state  := 0;
 				end if;
 			elsif state = 5 then
-				if pwr_ack3 = '1' then
-					pwr_req3 <= "00000";
+				if pwr_ack4 = '1' then
+					pwr_req4 <= "00000";
 					state    := 6;
 				end if;
 			elsif state = 6 then
@@ -1773,18 +1774,18 @@ begin
 					state  := 0;
 				end if;
 			elsif state = 11 then
-				if pwr_ack3 = '1' then
-					pwr_req3 <= "00000";
+				if pwr_ack4 = '1' then
+					pwr_req4 <= "00000";
 					state    := 14;
 				end if;
 			elsif state = 12 then
-				if pwr_ack3 = '1' then
-					pwr_req3 <= "00000";
+				if pwr_ack4 = '1' then
+					pwr_req4 <= "00000";
 					state    := 15;
 				end if;
 			elsif state = 13 then
-				if pwr_ack3 = '1' then
-					pwr_req3 <= "00000";
+				if pwr_ack4 = '1' then
+					pwr_req4 <= "00000";
 					state    := 16;
 				end if;
 			elsif state = 14 then
