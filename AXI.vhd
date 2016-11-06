@@ -1410,6 +1410,7 @@ begin
 			audio_upres1 <= (others => '0');
 			usb_upres1 <= (others => '0');
 			uart_upres1 <= (others => '0');
+			pwr_req3   <= "0000";
 		---tmp_brs2_1 <= (others => '0');
 		---tmp_mem1 <= (others => '0');
 		elsif rising_edge(Clock) then
