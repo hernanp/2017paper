@@ -42,7 +42,7 @@ architecture Behavioral of top is
    signal gfx_b,togfx: std_logic_vector(53 downto 0);
    signal gfx_upreq,gfx_upres,gfx_wb : std_logic_vector (50 downto 0);
    signal gfx_upreq_full,gfx_wb_ack:std_logic;
-   signal gfxreq, gfxres: std_logic_vector(2 downto 0);
+   signal pwr_gfxreq, pwr_gfxres: std_logic_vector(2 downto 0);
    
    signal audio_b,toaudio: std_logic_vector(53 downto 0);
    signal audio_upreq,audio_upres,audio_wb : std_logic_vector (50 downto 0);
@@ -268,8 +268,8 @@ clk_gen : process
     	req=>pwrreq,
     	res=>pwrres,
     	full_preq=>pwrreq_full,
-    	gfxreq=>gfxreq,
-    	gfxres=>gfxres
+    	gfxreq=>pwr_gfxreq,
+    	gfxres=>pwr_gfxres
     );
    
     interconnect: entity work.AXI(Behavioral) port map(
@@ -353,8 +353,8 @@ clk_gen : process
     	wb_ack => gfx_wb_ack,
     	Clock=>Clock,
     	reset=>reset,
-    	pwrreq=>gfxreq,
-    	pwrres=>gfxres
+    	pwrreq=>pwr_gfxreq,
+    	pwrres=>pwr_gfxres
     );
     Audio: entity work.Audio(Behavioral) port map(
     	upres => audio_upres,

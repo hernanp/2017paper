@@ -1028,7 +1028,6 @@ begin
 			elsif stage = 1 then
 				re8 <= '0';
 				if out8(50 downto 50) = "1" then
-					
 					---response for cpu1
 					if out8(53 downto 51) = "000" then
 						---reg_1 <= out8(50 downto 0);
