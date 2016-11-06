@@ -69,22 +69,22 @@ begin
                     dout <= din2;
                     s_ack2 <= '1';
                 end if; 
-         	elsif din3(50 downto 50 ) ="1" then
+         	elsif din3(DATA_WIDTH-1 downto DATA_WIDTH-1 ) ="1" then
             	if s_ack3 = '0' then
                     dout <= din3;
                     s_ack3 <= '1';
                 end if; 
-            elsif din4(50 downto 50 ) ="1" then
+            elsif din4(DATA_WIDTH-1 downto DATA_WIDTH-1 ) ="1" then
             	if s_ack4 = '0' then
                     dout <= din4;
                     s_ack4 <= '1';
                 end if; 
-            elsif din5(50 downto 50 ) ="1" then
+            elsif din5(DATA_WIDTH-1 downto DATA_WIDTH-1 ) ="1" then
             	if s_ack5 = '0' then
                     dout <= din5;
                     s_ack5 <= '1';
                 end if; 
-            elsif din6(50 downto 50 ) ="1" then
+            elsif din6(DATA_WIDTH-1 downto DATA_WIDTH-1 ) ="1" then
             	if s_ack6 = '0' then
                     dout <= din6;
                     s_ack6 <= '1';
