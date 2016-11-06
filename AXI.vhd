@@ -1473,37 +1473,37 @@ begin
 						elsif out2(47 downto 45)="001" then
 							if gfxpoweron = '1' then
 								state  := 4;
-								togfx1 <= "101" & out2(50 downto 0);
+								togfx1 <=  out2(53 downto 0);
 							else
 								state      := 5;
-								tmp_togfx1 <= "101" & out2(50 downto 0);
+								tmp_togfx1 <=  out2(53 downto 0);
 								pwr_req3   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="010" then
 							if audiopoweron = '1' then
 								state  := 8;
-								toaudio1 <= "101" & out2(50 downto 0);
+								toaudio1 <=  out2(53 downto 0);
 							else
 								state      := 11;
-								tmp_toaudio1 <= "101" & out2(50 downto 0);
+								tmp_toaudio1 <=  out2(53 downto 0);
 								pwr_req3   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="011" then
 							if usbpoweron = '1' then
 								state  := 9;
-								tousb1 <= "101" & out2(50 downto 0);
+								tousb1 <=  out2(53 downto 0);
 							else
 								state      := 12;
-								tmp_tousb1 <= "101" & out2(50 downto 0);
+								tmp_tousb1 <=  out2(53 downto 0);
 								pwr_req3   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="100" then
 							if uartpoweron = '1' then
 								state  := 10;
-								touart1 <= "101" & out2(50 downto 0);
+								touart1 <=  out2(53 downto 0);
 							else
 								state      := 13;
-								tmp_touart1 <= "101" & out2(50 downto 0);
+								tmp_touart1 <=  out2(53 downto 0);
 								pwr_req3   <= "11000";
 							end if;
 						else
@@ -1685,37 +1685,37 @@ begin
 						if out2(47 downto 45)="001" then
 							if gfxpoweron = '1' then
 								state  := 4;
-								togfx2 <= "101" & out2(50 downto 0);
+								togfx2 <=  out5(53 downto 0);
 							else
 								state      := 5;
-								tmp_togfx2 <= "101" & out2(50 downto 0);
+								tmp_togfx2 <=  out5(53 downto 0);
 								pwr_req3   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="010" then
 							if audiopoweron = '1' then
 								state  := 8;
-								toaudio2 <= "101" & out2(50 downto 0);
+								toaudio2 <=  out5(53 downto 0);
 							else
 								state      := 11;
-								tmp_toaudio2 <= "101" & out2(50 downto 0);
+								tmp_toaudio2 <=  out5(53 downto 0);
 								pwr_req3   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="011" then
 							if usbpoweron = '1' then
 								state  := 9;
-								tousb2 <= "101" & out2(50 downto 0);
+								tousb2 <=  out5(53 downto 0);
 							else
 								state      := 12;
-								tmp_tousb2 <= "101" & out2(50 downto 0);
+								tmp_tousb2 <=  out5(53 downto 0);
 								pwr_req3   <= "11000";
 							end if;
 						elsif out2(47 downto 45)="100" then
 							if uartpoweron = '1' then
 								state  := 10;
-								touart2 <= "101" & out2(50 downto 0);
+								touart2 <=  out5(53 downto 0);
 							else
 								state      := 13;
-								tmp_touart2 <= "101" & out2(50 downto 0);
+								tmp_touart2 <=  out5(53 downto 0);
 								pwr_req3   <= "11000";
 							end if;
 						else
