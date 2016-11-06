@@ -1469,7 +1469,6 @@ begin
 						if out2(53 downto 51) = "001" or out2(53 downto 51) = "010" or out2(53 downto 51) = "011" or out2(53 downto 51) = "100" then
 							snp2_2 <= out2(53 downto 0);
 							state  := 8;
-						
 						elsif out2(47 downto 45)="001" then
 							if gfxpoweron = '1' then
 								state  := 4;

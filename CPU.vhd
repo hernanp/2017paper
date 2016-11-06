@@ -117,7 +117,7 @@ begin
 	   ---if rand1=1 then
 	   ---    write(rand2,tmp_req,rand3);
 	   ---else
-	   rand2 := "0110101010101010";
+	   ---rand2 := "0110101010101010";
 	  	if seed=2 then
 	   		read(rand2,tmp_req,rand3);
 		end if;
