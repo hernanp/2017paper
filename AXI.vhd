@@ -865,9 +865,25 @@ begin
 		elsif rising_edge(Clock) then
 			if pwrres(4 downto 4) = "1" then
 				if pwrres(3 downto 2) = "00" then
-					gfxpoweron <= '0';
+					if pwrres(1 downto 0)="00" then
+						gfxpoweron <= '0';
+					elsif pwrres(1 downto 0)="01" then
+						audiopoweron <= '0';
+					elsif pwrres(1 downto 0)="10" then
+						usbpoweron <= '0';
+					elsif pwrres(1 downto 0)="11" then
+						uartpoweron <= '0';
+					end if;
 				elsif pwrres(3 downto 2) = "10" then
-					gfxpoweron <= '1';
+					if pwrres(1 downto 0)="00" then
+						gfxpoweron <= '1';
+					elsif pwrres(1 downto 0)="01" then
+						audiopoweron <= '1';
+					elsif pwrres(1 downto 0)="10" then
+						usbpoweron <= '1';
+					elsif pwrres(1 downto 0)="11" then
+						uartpoweron <= '1';
+					end if;
 				end if;
 			end if;
 		end if;
@@ -1565,21 +1581,25 @@ begin
 				end if;
 			elsif state = 6 then
 				if pwrres(4 downto 4) = "1" then
+					gfxpoweron <= '1';
 					togfx1 <= tmp_togfx1;
 					state  := 4;
 				end if;
 			elsif state = 14 then
 				if pwrres(4 downto 4) = "1" then
+					audiopoweron <= '1';
 					toaudio1 <= tmp_toaudio1;
 					state  := 4;
 				end if;
 			elsif state = 15 then
 				if pwrres(4 downto 4) = "1" then
+					usbpoweron <= '1';
 					tousb1 <= tmp_tousb1;
 					state  := 4;
 				end if;
 			elsif state = 16 then
 				if pwrres(4 downto 4) = "1" then
+					uartpoweron <= '1';
 					touart1 <= tmp_touart1;
 					state  := 4;
 				end if;
@@ -1749,6 +1769,7 @@ begin
 				end if;
 			elsif state = 6 then
 				if pwrres(4 downto 4) = "1" then
+					gfxpoweron <= '1';
 					togfx2 <= tmp_togfx2;
 					state  := 4;
 				end if;
@@ -1789,16 +1810,19 @@ begin
 				end if;
 			elsif state = 14 then
 				if pwrres(4 downto 4) = "1" then
+					audiopoweron <= '1';
 					toaudio2 <= tmp_toaudio2;
 					state  := 17;
 				end if;
 			elsif state = 15 then
 				if pwrres(4 downto 4) = "1" then
+					usbpoweron <= '1';
 					tousb2 <= tmp_tousb2;
 					state  := 18;
 				end if;
 			elsif state = 16 then
 				if pwrres(4 downto 4) = "1" then
+					uartpoweron <= '1';
 					touart2 <= tmp_touart2;
 					state  := 19;
 				end if;
