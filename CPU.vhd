@@ -55,7 +55,7 @@ architecture Behavioral of CPU is
  				signal req: out std_logic_vector(50 downto 0);
  				variable hw: in std_logic_vector(1 downto 0)) is
    		begin
-   			req <= "111" & cmd & hw & "00000000"&"00000000"&"00000000"&"00000000"&"00000000"&"0000" ;
+   			req <= "1" & cmd & hw & "0000000000"&"00000000"&"00000000"&"00000000"&"00000000"&"0000" ;
    			wait for 3 ps;
    			req <= (others => '0');
    			---wait until cpu_res(50 downto 50)= "1";
