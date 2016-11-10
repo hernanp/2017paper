@@ -76,7 +76,7 @@ clk_gen : process
        ---variable logsr: string(8 downto 1);
       --- variable x : integer:=0;
        variable empp: string(51 downto 1) := (others => 'N');
-       variable coma: string(2 downto 1) := ", ";
+       variable coma: string(2 downto 1) := " ";
    begin
    -- Generate a clock cycle
    loop
