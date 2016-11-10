@@ -23,7 +23,7 @@ architecture Behavioral of top is
 
   -- Clock frequency and signal
    signal Clock : std_logic;
-   signal full_c1_u, full_c2_u, full_b_c1, full_b_c2, full_c1_b, full_c2_b, full_b_m, full_m:std_logic;
+   signal full_c1_u, full_c2_u,  full_b_m, full_m:std_logic;
    signal bus_res1, bus_res2,cpu_res1, cpu_res2, cpu_req1, cpu_req2, wb_req1, wb_req2: std_logic_vector (50 downto 0);
    signal snoop_hit1, snoop_hit2: std_logic;
    signal snoop_res1, snoop_res2,snoop_req1,snoop_req2: std_logic_vector(53 downto 0);
@@ -31,7 +31,7 @@ architecture Behavioral of top is
    signal memres, tomem : std_logic_vector(53 downto 0);
    signal full_crq1, full_srq1, full_brs1,full_wb1,full_srs1,full_crq2, full_srq2, full_brs2,full_wb2,full_srs2:std_logic;
    signal reset: std_logic:='1';
-   signal full_mrs: std_logic;
+   ---signal full_mrs: std_logic;
    signal done1, done2: std_logic;
    signal mem_wb: std_logic_vector(50 downto 0);
    signal wb_ack: std_logic;
@@ -50,17 +50,14 @@ architecture Behavioral of top is
    signal audio_b,toaudio: std_logic_vector(53 downto 0);
    signal audio_upreq,audio_upres,audio_wb : std_logic_vector (50 downto 0);
    signal audio_upreq_full,audio_wb_ack:std_logic;
-   signal audioreq, audiores: std_logic_vector(2 downto 0);
    
    signal usb_b,tousb: std_logic_vector(53 downto 0);
    signal usb_upreq,usb_upres,usb_wb : std_logic_vector (50 downto 0);
    signal usb_upreq_full,usb_wb_ack:std_logic;
-   signal usbreq, usbres: std_logic_vector(2 downto 0);
    
    signal uart_b,touart: std_logic_vector(53 downto 0);
    signal uart_upreq,uart_upres,uart_wb : std_logic_vector (50 downto 0);
    signal uart_upreq_full,uart_wb_ack:std_logic;
-   signal uartreq, uartres: std_logic_vector(2 downto 0);
 begin
 reset_proc : process
     begin
@@ -76,8 +73,8 @@ clk_gen : process
   
        variable line_output:line;
        --variable ll:line;
-       variable logsr: string(8 downto 1);
-       variable x : integer:=0;
+       ---variable logsr: string(8 downto 1);
+      --- variable x : integer:=0;
        variable empp: string(51 downto 1) := (others => 'N');
        variable coma: string(2 downto 1) := ", ";
    begin
@@ -87,24 +84,28 @@ clk_gen : process
      	wait for 2 ps;
      	Clock <= '1';
      	wait for 2 ps;
+     	--- 1
      	if cpu_req1(50 downto 50) = "1" then
      	  	write(line_output, cpu_req1);
 		else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 2
 		if cpu_req2(50 downto 50) = "1" then
 			write(line_output, cpu_req2);
 		else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 3
      	if cpu_res1(50 downto 50) = "1" then
             write(line_output, cpu_res1);
         else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 4
         if cpu_res2(50 downto 50) = "1" then
 
             write(line_output, cpu_res2);
@@ -112,18 +113,21 @@ clk_gen : process
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		---5
         if bus_req1(50 downto 50) = "1" then
             write(line_output, bus_req1);
         else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 6
         if bus_req2(50 downto 50) = "1" then
             write(line_output, bus_req2);
         else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);     
+		--- 7
      	if bus_res1(50 downto 50) = "1" then
      		
            	write(line_output, bus_res1);
@@ -131,39 +135,42 @@ clk_gen : process
             write(line_output, empp); 	 
         end if;
         write(line_output, coma);
+        --- 8
         if bus_res2(50 downto 50) = "1" then
            	write(line_output, bus_res2);
         else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 9
         if wb_req1(50 downto 50) = "1" then
             write(line_output, wb_req1);
         else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 10
         if wb_req2(50 downto 50) = "1" then
-        	
             write(line_output, wb_req2);
         else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);    
-        
+        --- 11
         if snoop_req1(50 downto 50) = "1" then
             write(line_output, snoop_req1);
        	else
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 12
         if snoop_req2(50 downto 50) = "1" then
-
             write(line_output, snoop_req2);
         else
 		    write(line_output, empp);  
 		end if;
-		write(line_output, coma);      
+		write(line_output, coma);    
+		--- 13
          if snoop_res1(50 downto 50) = "1" then
 
             write(line_output, snoop_res1);
@@ -171,6 +178,7 @@ clk_gen : process
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 14
         if snoop_res2(50 downto 50) = "1" then
         	
             write(line_output, snoop_res2);
@@ -178,6 +186,7 @@ clk_gen : process
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 15
         if tomem(50 downto 50) = "1" then
         	
             write(line_output, tomem);
@@ -185,6 +194,7 @@ clk_gen : process
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma);
+		--- 16
         if memres(50 downto 50) = "1" then
         	
             write(line_output, memres);
@@ -192,7 +202,7 @@ clk_gen : process
 		    write(line_output, empp);  
 		end if;
 		write(line_output, coma); 
-		      
+		--- 17     
         if mem_wb(50 downto 50) = "1" then
             write(line_output, mem_wb);
         else
@@ -200,8 +210,264 @@ clk_gen : process
 		end if;
 		
 		write(line_output, coma);
-		
+		---18
 		write(line_output,wb_ack);
+		write(line_output,coma);
+		
+		
+		
+		--19
+		if gfx_upreq(50 downto 50)= "1" then
+			write(line_output,gfx_upreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--20
+		if gfx_upres(50 downto 50)= "1" then
+			write(line_output,gfx_upres);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		--- 21    
+        if gfx_wb(50 downto 50) = "1" then
+            write(line_output, gfx_wb);
+        else
+		    write(line_output, empp);  
+		end if;
+		
+		write(line_output, coma);
+		---22
+		write(line_output,gfx_wb_ack);
+		write(line_output,coma);
+		
+		--23
+		if togfx(50 downto 50)= "1" then
+			write(line_output,togfx);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--24
+		if gfx_b(50 downto 50)= "1" then
+			write(line_output,gfx_b);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		--25
+		if pwr_gfxreq(2 downto 2)= "1" then
+			write(line_output,pwr_gfxreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--26
+		if pwr_gfxres(2 downto 2)= "1" then
+			write(line_output,pwr_gfxres);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		
+		--19
+		if audio_upreq(50 downto 50)= "1" then
+			write(line_output,audio_upreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--20
+		if audio_upres(50 downto 50)= "1" then
+			write(line_output,audio_upres);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		--- 21    
+        if audio_wb(50 downto 50) = "1" then
+            write(line_output, audio_wb);
+        else
+		    write(line_output, empp);  
+		end if;
+		
+		write(line_output, coma);
+		---22
+		write(line_output,audio_wb_ack);
+		write(line_output,coma);
+		
+		--23
+		if toaudio(50 downto 50)= "1" then
+			write(line_output,toaudio);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--24
+		if audio_b(50 downto 50)= "1" then
+			write(line_output,audio_b);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		--25
+		if pwr_audioreq(2 downto 2)= "1" then
+			write(line_output,pwr_audioreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--26
+		if pwr_audiores(2 downto 2)= "1" then
+			write(line_output,pwr_audiores);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		
+		--19
+		if usb_upreq(50 downto 50)= "1" then
+			write(line_output,usb_upreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--20
+		if usb_upres(50 downto 50)= "1" then
+			write(line_output,usb_upres);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		--- 21    
+        if usb_wb(50 downto 50) = "1" then
+            write(line_output, usb_wb);
+        else
+		    write(line_output, empp);  
+		end if;
+		
+		write(line_output, coma);
+		---22
+		write(line_output,usb_wb_ack);
+		write(line_output,coma);
+		
+		--23
+		if tousb(50 downto 50)= "1" then
+			write(line_output,tousb);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--24
+		if usb_b(50 downto 50)= "1" then
+			write(line_output,usb_b);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		--25
+		if pwr_usbreq(2 downto 2)= "1" then
+			write(line_output,pwr_usbreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--26
+		if pwr_usbres(2 downto 2)= "1" then
+			write(line_output,pwr_usbres);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		
+		
+		
+		
+		--19
+		if uart_upreq(50 downto 50)= "1" then
+			write(line_output,uart_upreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--20
+		if uart_upres(50 downto 50)= "1" then
+			write(line_output,uart_upres);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		--- 21    
+        if uart_wb(50 downto 50) = "1" then
+            write(line_output, uart_wb);
+        else
+		    write(line_output, empp);  
+		end if;
+		
+		write(line_output, coma);
+		---22
+		write(line_output,uart_wb_ack);
+		write(line_output,coma);
+		
+		--23
+		if touart(50 downto 50)= "1" then
+			write(line_output,touart);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--24
+		if uart_b(50 downto 50)= "1" then
+			write(line_output,uart_b);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		--25
+		if pwr_uartreq(2 downto 2)= "1" then
+			write(line_output,pwr_uartreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		--26
+		if pwr_uartres(2 downto 2)= "1" then
+			write(line_output,pwr_uartres);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		---51 
+		if pwrreq(4 downto 4) ="1" then
+			write(line_output,pwrreq);
+		else
+			write(line_output,empp);
+		end if;
+		write(line_output,coma);
+		
+		---52 
+		if pwrres(4 downto 4) ="1" then
+			write(line_output,pwrres);
+		else
+			write(line_output,empp);
+		end if;
+		
+		
+		
+		
 		writeline(trace_file, line_output);
 		if done1='1' and done2='1' then
 		  wait;
