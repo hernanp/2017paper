@@ -136,21 +136,25 @@ begin
 				uartreq<=tmp_req(4 downto 2);
 				state := 9;
 			elsif state = 6 then
+				gfxreq <= (others => '0');
 				if gfxres(2 downto 2) = "1" then
 					res <= tmp_req;
 					state :=0;
 				end if;
 			elsif state = 7 then
+				audioreq <= (others => '0');
 				if audiores(2 downto 2) = "1" then
 					res <= tmp_req;
 					state :=0;
 				end if;
 			elsif state = 8 then
+				usbreq <= (others => '0');
 				if usbres(2 downto 2) = "1" then
 					res <= tmp_req;
 					state :=0;
 				end if;
 			elsif state = 9 then
+				uartreq <= (others => '0');
 				if uartres(2 downto 2) = "1" then
 					res <= tmp_req;
 					state :=0;

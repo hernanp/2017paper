@@ -264,7 +264,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
     	if pwrreq(2 downto 2)="1" then
     		if pwrreq( 1 downto 0) = "00" then
     			poweron <= '0';
-    		elsif pwrreq(1 downto 0) ="10" then
+    		elsif pwrreq(1 downto 0) ="11" or pwrreq(1 downto 0) = "10 "then
     			poweron <= '1';
     		end if;
     		pwrres <= pwrreq;
