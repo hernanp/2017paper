@@ -175,7 +175,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
     variable nada: std_logic_vector(51 downto 0) :=(others=>'0');
     variable bo :boolean;
     variable nilmem: std_logic_vector(31 downto 0) := (others=>'0');
-    variable tpmem: std_logic_vector(31 downto 0):= selection(2**31-1,32);
+    --variable tpmem: std_logic_vector(31 downto 0):= selection(2**31-1,32);
     variable state : integer :=0;
     variable tmp_req: std_logic_vector(53 downto 0);
     variable tmp_wb: std_logic_vector(50 downto 0);
