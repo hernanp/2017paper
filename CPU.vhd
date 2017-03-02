@@ -33,11 +33,11 @@ architecture Behavioral of CPU is
  				variable data: out std_logic_vector(31 downto 0)) is
    		begin
    			req <= "101" & adx & "00000000000000000000000000000000";
-   			wait for 3 ps;
+   			--wait for 3 ps;
    			req <= (others => '0');
-   			wait until cpu_res(50 downto 50)= "1";
+   			--wait until cpu_res(50 downto 50)= "1";
    			data := cpu_res(31 downto 0);	
-   			wait for 10 ps;
+   			--wait for 10 ps;
  end  read;
  
  procedure write( variable adx: in std_logic_vector(15 downto 0);
@@ -45,10 +45,10 @@ architecture Behavioral of CPU is
  				variable data: in std_logic_vector(31 downto 0)) is
    		begin
    			req <= "110" & adx & data;
-   			wait for 3 ps;
+   			--wait for 3 ps;
    			req <= (others => '0');
    			wait until cpu_res(50 downto 50)= "1";
-   			wait for 10 ps;	
+   			--wait for 10 ps;	
  end  write;
  
  procedure power( variable cmd: in std_logic_vector(1 downto 0);
@@ -56,10 +56,10 @@ architecture Behavioral of CPU is
  				variable hw: in std_logic_vector(1 downto 0)) is
    		begin
    			req <= "1" & cmd & hw & "0000000000"&"00000000"&"00000000"&"00000000"&"00000000"&"0000" ;
-   			wait for 3 ps;
+   			--wait for 3 ps;
    			req <= (others => '0');
    			---wait until cpu_res(50 downto 50)= "1";
-   			wait for 50 ps;	
+   			--wait for 50 ps;	
  end  power;
  
  
@@ -106,7 +106,7 @@ begin
      variable pwrcmd: std_logic_vector(1 downto 0);
      variable hwlc: std_logic_vector(1 downto 0);
     begin
-    	wait for 70 ps;
+    	--wait for 70 ps;
     	pwrcmd := "00";
     	hwlc := "00";
     	---power(pwrcmd, tmp_req, hwlc);
