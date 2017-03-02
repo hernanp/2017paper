@@ -1436,442 +1436,94 @@ begin
 
 		end if;
 	end process;
-
-	snp_res1_p : process(reset, Clock)
-		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
-		variable state  : integer                       := 0;
-	begin
-		if reset = '1' then
-			re2          <= '0';
-			bus_res2_1   <= (others => '0');
-			tomem1       <= "000" & nilreq;
-			togfx1       <= "000" & nilreq;
-			toaudio1     <= "000" & nilreq;
-			tousb1       <= "000" & nilreq;
-			touart1      <= "000" & nilreq;
-			gfx_upres1   <= (others => '0');
-			audio_upres1 <= (others => '0');
-			usb_upres1   <= (others => '0');
-			uart_upres1  <= (others => '0');
-			pwr_req3     <= "00000";
-		---tmp_brs2_1 <= (others => '0');
-		---tmp_mem1 <= (others => '0');
-		elsif rising_edge(Clock) then
-			if state = 0 then
-				if re2 = '0' and emp2 = '0' then
-					re2   <= '1';
-					state := 1;
-				end if;
-
-			elsif state = 1 then
-				re2 <= '0';
-				if out2(50 downto 50) = "1" then
-					if out2(54 downto 54) = "1" then --it;s a hit
-						if out2(53 downto 51) = "000" then
-							bus_res2_1 <= out2(50 downto 0);
-							state      := 2;
-						elsif out2(53 downto 51) = "001" or out2(53 downto 51) = "010" or out2(53 downto 51) = "011" or out2(53 downto 51) = "100" then
-							if out2(49 downto 48) = "01" then
-								if out2(47 downto 45) = "001" then
-									gfx_upres1 <= out2(50 downto 0);
-									state      := 7;
-								elsif out2(47 downto 45) = "010" then
-									audio_upres1 <= out2(50 downto 0);
-									state        := 17;
-								elsif out2(47 downto 45) = "011" then
-									usb_upres1 <= out2(50 downto 0);
-									state      := 18;
-								elsif out2(47 downto 45) = "100" then
-									uart_upres1 <= out2(50 downto 0);
-									state       := 19;
-								else
-									tomem1 <= out2(53 downto 0);
-									state  := 3;
-								end if;
-
-							else
-								if out2(47 downto 45) = "001" then
-									togfx1 <= out2(53 downto 0);
-									state  := 4;
-								elsif out2(47 downto 45) = "010" then
-									toaudio1 <= out2(53 downto 0);
-									state    := 8;
-								elsif out2(47 downto 45) = "011" then
-									tousb1 <= out2(53 downto 0);
-									state  := 9;
-								elsif out2(47 downto 45) = "100" then
-									touart1 <= out2(53 downto 0);
-									state   := 10;
-								else
-									tomem1 <= out2(53 downto 0);
-									state  := 3;
-								end if;
-							end if;
-
-						end if;
-					else                ---it's a miss
-						if out2(53 downto 51) = "001" or out2(53 downto 51) = "010" or out2(53 downto 51) = "011" or out2(53 downto 51) = "100" then
-							snp2_2 <= out2(53 downto 0);
-							state  := 20;
-						elsif out2(47 downto 45) = "001" then
-							if gfxpoweron = '1' then
-								state  := 4;
-								togfx1 <= out2(53 downto 0);
-							else
-								state      := 5;
-								tmp_togfx1 <= out2(53 downto 0);
-								pwr_req3   <= "11000";
-							end if;
-						elsif out2(47 downto 45) = "010" then
-							if audiopoweron = '1' then
-								state    := 8;
-								toaudio1 <= out2(53 downto 0);
-							else
-								state        := 11;
-								tmp_toaudio1 <= out2(53 downto 0);
-								pwr_req3     <= "11001";
-							end if;
-						elsif out2(47 downto 45) = "011" then
-							if usbpoweron = '1' then
-								state  := 9;
-								tousb1 <= out2(53 downto 0);
-							else
-								state      := 12;
-								tmp_tousb1 <= out2(53 downto 0);
-								pwr_req3   <= "11010";
-							end if;
-						elsif out2(47 downto 45) = "100" then
-							if uartpoweron = '1' then
-								state   := 10;
-								touart1 <= out2(53 downto 0);
-							else
-								state       := 13;
-								tmp_touart1 <= out2(53 downto 0);
-								pwr_req3    <= "11011";
-							end if;
-						else
-							state  := 3;
-							tomem1 <= out2(53 downto 0);
-						end if;
-					end if;
-				end if;
-
-			elsif state = 2 then
-				if brs2_ack1 = '1' then
-					bus_res2_1 <= (others => '0');
-					state      := 0;
-				end if;
-
-			elsif state = 3 then
-				if mem_ack1 = '1' then
-					tomem1 <= "000" & nilreq;
-					state  := 0;
-				end if;
-			elsif state = 4 then
-				if gfx_ack1 = '1' then
-					togfx1 <= (others => '0');
-					state  := 0;
-				end if;
-			elsif state = 8 then
-				if audio_ack1 = '1' then
-					toaudio1 <= (others => '0');
-					state    := 0;
-				end if;
-			elsif state = 9 then
-				if usb_ack1 = '1' then
-					tousb1 <= (others => '0');
-					state  := 0;
-				end if;
-			elsif state = 10 then
-				if uart_ack1 = '1' then
-					touart1 <= (others => '0');
-					state   := 0;
-				end if;
-			elsif state = 5 then
-				if pwr_ack3 = '1' then
-					pwr_req3 <= "00000";
-					state    := 6;
-				end if;
-			elsif state = 11 then
-				if pwr_ack3 = '1' then
-					pwr_req3 <= "00000";
-					state    := 14;
-				end if;
-			elsif state = 12 then
-				if pwr_ack3 = '1' then
-					pwr_req3 <= "00000";
-					state    := 15;
-				end if;
-			elsif state = 13 then
-				if pwr_ack3 = '1' then
-					pwr_req3 <= "00000";
-					state    := 16;
-				end if;
-			elsif state = 6 then
-				if pwrres(4 downto 4) = "1" then
-					gfxpoweron <= '1';
-					togfx1     <= tmp_togfx1;
-					state      := 4;
-				end if;
-			elsif state = 14 then
-				if pwrres(4 downto 4) = "1" then
-					audiopoweron <= '1';
-					toaudio1     <= tmp_toaudio1;
-					state        := 4;
-				end if;
-			elsif state = 15 then
-				if pwrres(4 downto 4) = "1" then
-					usbpoweron <= '1';
-					tousb1     <= tmp_tousb1;
-					state      := 4;
-				end if;
-			elsif state = 16 then
-				if pwrres(4 downto 4) = "1" then
-					uartpoweron <= '1';
-					touart1     <= tmp_touart1;
-					state       := 4;
-				end if;
-			elsif state = 7 then
-				if gfx_upres_ack1 = '1' then
-					gfx_upres1 <= (others => '0');
-					state      := 0;
-				end if;
-			elsif state = 17 then
-				if audio_upres_ack1 = '1' then
-					audio_upres1 <= (others => '0');
-					state        := 0;
-				end if;
-			elsif state = 18 then
-				if usb_upres_ack1 = '1' then
-					usb_upres1 <= (others => '0');
-					state      := 0;
-				end if;
-			elsif state = 19 then
-				if uart_upres_ack1 = '1' then
-					uart_upres1 <= (others => '0');
-					state       := 0;
-				end if;
-			elsif state = 20 then
-				if snp2_ack2 = '1' then
-					state  := 0;
-					snp2_2 <= (others => '0');
-				end if;
-			end if;
-
-		end if;
-	end process;
-
-	snp_res2_p : process(reset, Clock)
-		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
-		variable state  : integer                       := 0;
-	begin
-		if reset = '1' then
-			re5          <= '0';
-			bus_res1_2   <= (others => '0');
-			tomem2       <= (others => '0');
-			--tmp_brs1_2 <= (others => '0');
-			--tmp_mem2 <= (others => '0');
-			gfx_upres2   <= (others => '0');
-			audio_upres2 <= (others => '0');
-			usb_upres2   <= (others => '0');
-			uart_upres2  <= (others => '0');
-			state        := 0;
-			pwr_req4     <= "00000";
-		elsif rising_edge(Clock) then
-			if state = 0 then
-				if re5 = '0' and emp5 = '0' then
-					re5   <= '1';
-					state := 1;
-				end if;
-			elsif state = 1 then
-				re5 <= '0';
-				if out5(50 downto 50) = "1" then
-					if out5(54 downto 54) = "1" then --it;s a hit
-						if out5(53 downto 51) = "000" then
-							bus_res1_2 <= out5(50 downto 0);
-							state      := 2;
-						elsif out5(53 downto 51) = "001" or out5(53 downto 51) = "010" or out5(53 downto 51) = "011" or out5(53 downto 51) = "100" then
-							if out5(49 downto 48) = "01" then
-								if out5(47 downto 45) = "001" then
-									gfx_upres2 <= out5(50 downto 0);
-									state      := 7;
-								elsif out5(47 downto 45) = "010" then
-									audio_upres2 <= out5(50 downto 0);
-									state        := 17;
-								elsif out5(47 downto 45) = "011" then
-									usb_upres2 <= out5(50 downto 0);
-									state      := 18;
-								elsif out5(47 downto 45) = "100" then
-									uart_upres2 <= out5(50 downto 0);
-									state       := 19;
-								else
-									tomem2 <= out5(53 downto 0);
-									state  := 3;
-								end if;
-
-							else
-								if out5(47 downto 45) = "001" then
-									togfx2 <= out5(53 downto 0);
-									state  := 4;
-								elsif out5(47 downto 45) = "010" then
-									toaudio2 <= out5(53 downto 0);
-									state    := 8;
-								elsif out5(47 downto 45) = "011" then
-									tousb2 <= out5(53 downto 0);
-									state  := 9;
-								elsif out5(47 downto 45) = "100" then
-									touart2 <= out5(53 downto 0);
-									state   := 10;
-								else
-									tomem2 <= out5(53 downto 0);
-									state  := 3;
-								end if;
-							end if;
-
-						end if;
-					else                ---it's a miss
-						if out5(47 downto 45) = "001" then
-							if gfxpoweron = '1' then
-								state  := 4;
-								togfx2 <= out5(53 downto 0);
-							else
-								state      := 5;
-								tmp_togfx2 <= out5(53 downto 0);
-								pwr_req4   <= "11000";
-							end if;
-						elsif out5(47 downto 45) = "010" then
-							if audiopoweron = '1' then
-								state    := 8;
-								toaudio2 <= out5(53 downto 0);
-							else
-								state        := 11;
-								tmp_toaudio2 <= out5(53 downto 0);
-								pwr_req4     <= "11001";
-							end if;
-						elsif out5(47 downto 45) = "011" then
-							if usbpoweron = '1' then
-								state  := 9;
-								tousb2 <= out5(53 downto 0);
-							else
-								state      := 12;
-								tmp_tousb2 <= out5(53 downto 0);
-								pwr_req4   <= "11010";
-							end if;
-						elsif out5(47 downto 45) = "100" then
-							if uartpoweron = '1' then
-								state   := 10;
-								touart2 <= out5(53 downto 0);
-							else
-								state       := 13;
-								tmp_touart2 <= out5(53 downto 0);
-								pwr_req4    <= "11011";
-							end if;
-						else
-							state  := 3;
-							tomem2 <= out5(53 downto 0);
-						end if;
-
-					end if;
-				end if;
-
-			elsif state = 2 then
-				if brs1_ack2 = '1' then
-					bus_res1_2 <= (others => '0');
-					state      := 0;
-				end if;
-
-			elsif state = 3 then
-				if mem_ack2 = '1' then
-					tomem2 <= "000" & nilreq;
-					state  := 0;
-				end if;
-			elsif state = 4 then
-				if gfx_ack2 = '1' then
-					togfx2 <= (others => '0');
-					state  := 0;
-				end if;
-			elsif state = 5 then
-				if pwr_ack4 = '1' then
-					pwr_req4 <= "00000";
-					state    := 6;
-				end if;
-			elsif state = 6 then
-				if pwrres(4 downto 4) = "1" then
-					gfxpoweron <= '1';
-					togfx2     <= tmp_togfx2;
-					state      := 4;
-				end if;
-			elsif state = 7 then
-				if gfx_upres_ack2 = '1' then
-					gfx_upres2 <= (others => '0');
-					state      := 0;
-				end if;
-			elsif state = 8 then
-				if audio_ack2 = '1' then
-					toaudio2 <= (others => '0');
-					state    := 0;
-				end if;
-			elsif state = 9 then
-				if usb_ack2 = '1' then
-					tousb2 <= (others => '0');
-					state  := 0;
-				end if;
-			elsif state = 10 then
-				if uart_ack2 = '1' then
-					touart2 <= (others => '0');
-					state   := 0;
-				end if;
-			elsif state = 11 then
-				if pwr_ack4 = '1' then
-					pwr_req4 <= "00000";
-					state    := 14;
-				end if;
-			elsif state = 12 then
-				if pwr_ack4 = '1' then
-					pwr_req4 <= "00000";
-					state    := 15;
-				end if;
-			elsif state = 13 then
-				if pwr_ack4 = '1' then
-					pwr_req4 <= "00000";
-					state    := 16;
-				end if;
-			elsif state = 14 then
-				if pwrres(4 downto 4) = "1" then
-					audiopoweron <= '1';
-					toaudio2     <= tmp_toaudio2;
-					state        := 17;
-				end if;
-			elsif state = 15 then
-				if pwrres(4 downto 4) = "1" then
-					usbpoweron <= '1';
-					tousb2     <= tmp_tousb2;
-					state      := 18;
-				end if;
-			elsif state = 16 then
-				if pwrres(4 downto 4) = "1" then
-					uartpoweron <= '1';
-					touart2     <= tmp_touart2;
-					state       := 19;
-				end if;
-
-			elsif state = 17 then
-				if audio_upres_ack2 = '1' then
-					audio_upres2 <= (others => '0');
-					state        := 0;
-				end if;
-			elsif state = 18 then
-				if usb_upres_ack2 = '1' then
-					usb_upres2 <= (others => '0');
-					state      := 0;
-				end if;
-			elsif state = 19 then
-				if uart_upres_ack2 = '1' then
-					uart_upres2 <= (others => '0');
-					state       := 0;
-				end if;
-			end if;
-		end if;
-	end process;
-
+	
+	snp_res1_p: process(reset, Clock)
+        variable nilreq:std_logic_vector(552 downto 0):=(others => '0');
+        variable state: integer:= 0;
+    begin
+        if reset = '1' then
+            re2 <= '0';
+            bus_res2_1 <= nilreq;
+            tomem1 <= nilreq(72 downto 0);
+            ---tmp_brs2_1 <= nilreq;
+            ---tmp_mem1 <=nilreq;
+        elsif rising_edge(Clock) then
+            if state =0 then
+                if re2 ='0' and emp2 ='0' then
+                    re2 <= '1';
+                    state := 1;
+                end if;
+                
+            elsif state =1 then
+            	re2 <= '0';
+                if out2(552 downto 552) = "1" then
+                    
+                    if out2(553 downto 553) = "1" then --it;s a hit
+                        state := 2;
+                        bus_res2_1 <= out2(552 downto 0);
+                    else ---it's a miss
+                        state := 3;
+                        tomem1 <= out2(552 downto 480);
+                    end if;
+                end if;
+            elsif state = 2 then
+                if brs2_ack1 = '1' then
+                    bus_res2_1 <= nilreq;
+                    state := 0;
+                end if;
+                
+            elsif state = 3 then
+                if mem_ack1 = '1' then
+                    tomem1 <= nilreq(72 downto 0);
+                    state := 0;
+                end if;
+                          
+            end if;
+           
+        end if;
+    end process;   
+    snp_res2_p: process(reset, Clock)
+        variable nilreq:std_logic_vector(552 downto 0):=(others => '0');
+        variable state: integer :=0;
+    begin
+        if reset = '1' then
+            re5 <= '0';
+            bus_res1_2 <= nilreq;
+            tomem2 <= nilreq(72 downto 0);
+            --tmp_brs1_2 <= nilreq;
+            --tmp_mem2 <=nilreq;
+            state := 0;
+        elsif rising_edge(Clock) then
+            if state =0 then
+                if re5 ='0' and emp5 ='0' then
+                    re5 <= '1';
+                    state := 1;
+                end if;
+            elsif state =1 then
+            	re5 <= '0';
+                if out5(552 downto 552) = "1" then
+                    
+                    if out5(553 downto 553) = "1" then --it;s a hit
+                        state := 2;
+                        bus_res1_2 <= out5(552 downto 0);
+                    else ---it's a miss
+                        tomem2 <= out5(552 downto 480);
+                        state := 3;
+                    end if;
+                end if;  
+                
+            elsif state =2 then
+                if brs1_ack2 = '1' then
+                    bus_res1_2 <= nilreq;
+                    state := 0;
+                end if; 
+                   
+            elsif state =3 then
+                if mem_ack2 = '1' then
+                    tomem2 <= nilreq(72 downto 0);
+                    state := 0;
+                end if;
+            end if;
+        end if;
+    end process;  
 end Behavioral;
