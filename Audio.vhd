@@ -44,11 +44,11 @@ procedure read( variable adx: in std_logic_vector(15 downto 0);
  				variable data: out std_logic_vector(31 downto 0)) is
    		begin
    			req <= "101" & adx & "00000000000000000000000000000000";
-   			wait for 3 ps;
+--   			wait for 3 ps;
    			req <= (others => '0');
    			wait until upres(50 downto 50)= "1";
    			data := upres(31 downto 0);	
-   			wait for 10 ps;
+--   			wait for 10 ps;
  end  read;
  
  procedure write( variable adx: in std_logic_vector(15 downto 0);
@@ -56,10 +56,10 @@ procedure read( variable adx: in std_logic_vector(15 downto 0);
  				variable data: in std_logic_vector(31 downto 0)) is
    		begin
    			req <= "110" & adx & data;
-   			wait for 3 ps;
+----   			wait for 3 ps;
    			req <= (others => '0');
    			wait until upres(50 downto 50)= "1";
-   			wait for 10 ps;	
+--   			wait for 10 ps;	
  end  write;
  
 begin
@@ -82,7 +82,7 @@ req1: process(reset, Clock)
      variable rand3: std_logic_vector(31 downto 0):="10101010101010101010101010101010";
     
     begin
-    	wait for 70 ps;
+--    	wait for 70 ps;
     	
     	---power(pwrcmd, tmp_req, hwlc);
 	for I in 1 to 1 loop
@@ -93,7 +93,7 @@ req1: process(reset, Clock)
 	   ---if rand1=1 then
 	   ---    write(rand2,tmp_req,rand3);
 	   ---else
-	   wait for 370 ps;
+--	   wait for 370 ps;
 	   ---write(rand2,tmp_req,rand3);
 	 
 	   ---end if;
@@ -175,7 +175,7 @@ wb_fif: entity  work.STD_FIFO(Behavioral)
     variable nada: std_logic_vector(51 downto 0) :=(others=>'0');
     variable bo :boolean;
     variable nilmem: std_logic_vector(31 downto 0) := (others=>'0');
-    variable tpmem: std_logic_vector(31 downto 0):= selection(2**31-1,32);
+--    variable tpmem: std_logic_vector(31 downto 0):= selection(2**31-1,32);
     variable state : integer :=0;
     variable tmp_req: std_logic_vector(53 downto 0);
     variable tmp_wb: std_logic_vector(50 downto 0);
