@@ -29,6 +29,8 @@ entity L1Cache is
            --11: fifo full response
            snoop_hit : out std_logic;
            snoop_res : out STD_LOGIC_VECTOR(552 downto 0):= (others => '0');
+           
+           
            --goes to cache controller ask for data
            snoop_c_req: out std_logic_vector(72 downto 0);
            snoop_c_res: in std_logic_vector(552 downto 0);
@@ -103,7 +105,7 @@ begin
 		DataIn=>in2,
 		WriteEn=>we2,
 		ReadEn=>re2,
-		DataOut=>mem_req2,
+		DataOut=>out2,
 		Full=>full_srq,
 		Empty=>emp2
 		);
@@ -140,9 +142,18 @@ begin
 		ack1 =>snp_c_ack1,
 		din2 => snp_c_req2,
 		ack2 =>snp_c_ack2,
-		dout=> snoop_c_req
-			
-			
+		dout=> snoop_c_req			
+	);
+	
+	mem_req2_arbitor: entity work.arbiter2(Behavioral)
+	port map(
+		clock =>Clock,
+		reset => reset,
+		din1 => mem_req2_1,
+		ack1 => mem_req2_ack1,
+		din2 => mem_req2_2,
+		ack2 => mem_req2_ack2,
+		dout => mem_req2
 	);
 	-- Store CPU requests into fifo	
 	cpu_req_fifo: process (Clock)      
