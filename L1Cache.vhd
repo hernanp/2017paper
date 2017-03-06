@@ -61,6 +61,8 @@ architecture Behavioral of L1Cache is
 	signal out1,out2,out3:std_logic_vector(72 downto 0);
 	signal emp1,emp2,emp3,ful1,ful2,ful3: std_logic:='0';	
 	signal mem_req1,mem_req2,write_req: std_logic_vector(72 downto 0);
+	signal mem_req2_1, mem_req2_2: std_logic_vector(72 downto 0);
+	signal mem_req2_ack1, mem_req2_ack2: std_logic;
 	signal upd_req,in3: std_logic_vector(552 downto 0);
 	signal mem_res1,wt_res,upd_res: std_logic_vector(71 downto 0);
 	signal mem_res2 : std_logic_vector(551 downto 0);
@@ -271,9 +273,8 @@ begin
 	--deal with snoop request
    snp_req_p:process (reset, Clock)
         	
-        variable nilreq:std_logic_vector(72 downto 0):=(others => '0');
         variable nilreq1:std_logic_vector(552 downto 0):=(others => '0');
-
+		variable addr: std_logic_vector(31 downto 0);
 		variable state: integer:=0;
 	begin
 		if (reset = '1') then
@@ -289,7 +290,18 @@ begin
 			     end if;
 			elsif state =1 then
 				re2 <= '0';
-			    if mem_ack2 = '1' then
+				if out2(72 downto 72)="1" then
+					mem_req2_1 <= out2;
+					addr := out2(63 downto 32);
+					state := 3;
+				end if;
+			elsif state = 3 then
+				if mem_req2_ack1 = '1' then
+					mem_req2_1 <= (others => '0');
+					state := 4;
+				end if;
+			elsif state = 4 then
+			    if mem_ack2 = '1' and mem_res2(63 downto 32)=addr then
 			         tmp_snp_res <= '1'&mem_res2;
 			         tmp_hit <= hit2;
 			         state := 2;

@@ -501,7 +501,7 @@ clk_gen : process
          snoop_c_req => snoop_req2,
          snoop_c_res=> snoop_res2,
          snoop_c_hit=> snoop_hit2,
-         snoop_req=>snoop_req1,
+         snoop_req=>open,
          bus_res=>bus_res1,
          cpu_res=>cpu_res1,
          full_cprq=>full_c1_u,
@@ -523,7 +523,7 @@ clk_gen : process
             snoop_c_req => snoop_req1,
          	snoop_c_res=> snoop_res1,
          	snoop_c_hit=> snoop_hit1,
-            snoop_req=>snoop_req1,
+            snoop_req=>open,
             bus_res=>bus_res2,
             cpu_res=>cpu_res2,
             full_cprq=>full_c2_u,
@@ -588,17 +588,12 @@ clk_gen : process
         cache_req2=>bus_req2,
         wb_req1 => wb_req1,
         wb_req2 => wb_req2,
-        memres=>memres,
         bus_res1=>bus_res1,
         bus_res2=>bus_res2,
-        tomem=>tomem,
         
         snoop_req1=>snoop_req1,
-        snoop_req2=>snoop_req2,
         snoop_res1=>snoop_res1,
-        snoop_res2=>snoop_res2,
         snp_hit1=>snoop_hit1,
-        snp_hit2=>snoop_hit2,
         
         full_srq1 => full_srq1,
         full_srq2 => full_srq2,
@@ -611,14 +606,11 @@ clk_gen : process
         full_wb2=>full_wb2,
         full_srs2=>full_srs2,
         
-        full_b_m=>full_b_m,
-        full_m=>full_m,
         
         pwrreq =>pwrreq,
         pwrres =>pwrres,
         pwrreq_full =>pwrreq_full,
         
-        mem_wb => mem_wb,
         wb_ack => wb_ack
         
     );
@@ -627,11 +619,7 @@ clk_gen : process
     	upreq => gfx_upreq,
     	upreq_full => gfx_upreq_full,
     	---this is wrong!!!!!!!!!
-    	full_b_m => full_b_m,
-    	req => togfx,
-    	res => gfx_b,
-    	wb_req => gfx_wb,
-    	wb_ack => gfx_wb_ack,
+    	
     	Clock=>Clock,
     	reset=>reset,
     	pwrreq=>pwr_gfxreq,
@@ -655,11 +643,7 @@ clk_gen : process
     	upres => usb_upres,
     	upreq => usb_upreq,
     	upreq_full => usb_upreq_full,
-    	full_b_m => full_b_m,
-    	req => tousb,
-    	res => usb_b,
-    	wb_req => usb_wb,
-    	wb_ack => usb_wb_ack,
+    	
     	Clock=>Clock,
     	reset=>reset,
     	pwrreq=>pwr_usbreq,
@@ -681,12 +665,7 @@ clk_gen : process
     );
     mem: entity work.Memory(Behavioral) port map(   
         Clock=>Clock,
-        reset=>reset,
-        req=>tomem,
-        wb_req => mem_wb,
-        wb_ack => wb_ack,
-        res=>memres,
-        full_b_m=>full_b_m,
-        full_m=>full_m
+        reset=>reset
+        
     );
 end Behavioral;

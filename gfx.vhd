@@ -56,7 +56,6 @@ end gfx;
 
 architecture Behavioral of gfx is
 	type ram_type is array (0 to (2 ** waddr'length - 1) - 1) of std_logic_vector(wdata'range);
-
 	signal ROM_array : ram_type  := (others => (others => '0'));
 	signal tmp_int   : integer   := 0;
 	signal poweron   : std_logic := '1';
@@ -65,14 +64,7 @@ architecture Behavioral of gfx is
 	signal tmp_req                        : std_logic_vector(50 downto 0);
 
 begin
-	req1 : process(reset, Clock)
-	begin
-		if reset = '1' then
-			upreq <= (others => '0');
-		elsif (rising_edge(Clock)) then
-			upreq <= tmp_req;
-		end if;
-	end process;
+	
 	p1 : process
 		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
 
