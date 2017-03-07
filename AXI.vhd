@@ -38,27 +38,18 @@ entity AXI is
 		--100 audio
 		--101 cpu1
 
-		full_gfxrs, full_audiors, full_usbrs, full_uartrs  : out std_logic;
-		wb_ack                                             : in  std_logic;
-		gfx_wb                                             : out std_logic_vector(50 downto 0);
-		gfx_wb_ack                                         : in  std_logic;
-		usb_wb                                             : out std_logic_vector(50 downto 0);
-		usb_wb_ack                                         : in  std_logic;
-		audio_wb                                           : out std_logic_vector(50 downto 0);
-		audio_wb_ack                                       : in  std_logic;
-		uart_wb                                            : out std_logic_vector(50 downto 0);
-		uart_wb_ack                                        : in  std_logic;
-		gfx_upreq                                          : in  std_logic_vector(50 downto 0);
-		gfx_upres                                          : out std_logic_vector(50 downto 0);
+		
+		gfx_upreq                                          : in  std_logic_vector(72 downto 0);
+		gfx_upres                                          : out std_logic_vector(72 downto 0);
 		gfx_upreq_full                                     : out std_logic;
-		audio_upreq                                        : in  std_logic_vector(50 downto 0);
-		audio_upres                                        : out std_logic_vector(50 downto 0);
+		audio_upreq                                        : in  std_logic_vector(72 downto 0);
+		audio_upres                                        : out std_logic_vector(72 downto 0);
 		audio_upreq_full                                   : out std_logic;
-		usb_upreq                                          : in  std_logic_vector(50 downto 0);
-		usb_upres                                          : out std_logic_vector(50 downto 0);
+		usb_upreq                                          : in  std_logic_vector(72 downto 0);
+		usb_upres                                          : out std_logic_vector(72 downto 0);
 		usb_upreq_full                                     : out std_logic;
-		uart_upreq                                         : in  std_logic_vector(50 downto 0);
-		uart_upres                                         : out std_logic_vector(50 downto 0);
+		uart_upreq                                         : in  std_logic_vector(72 downto 0);
+		uart_upres                                         : out std_logic_vector(72 downto 0);
 		uart_upreq_full                                    : out std_logic;
 
 		---write address channel
@@ -251,7 +242,7 @@ architecture Behavioral of AXI is
 	signal tmp_sp1, tmp_sp2                               : std_logic_vector(72 downto 0);
 	signal pwr_req1, pwr_req2                             : std_logic_vector(4 downto 0);
 	signal pwr_ack1, pwr_ack2                             : std_logic;
-	signal mem_wb                                         : std_logic_vector(552 downto 0);
+	signal mem_wb,gfx_wb,audio_wb,usb_wb,uart_wb                                         : std_logic_vector(552 downto 0);
 	signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(73 downto 0);
 
 	signal in9, out9, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(50 downto 0);
@@ -314,67 +305,7 @@ begin
 			Empty   => emp2
 		);
 
-	gfx_res_fif : entity work.STD_FIFO(Behavioral)
-		generic map(
-			DATA_WIDTH => 54,
-			FIFO_DEPTH => 256
-		)
-		port map(
-			CLK     => Clock,
-			RST     => reset,
-			DataIn  => in8,
-			WriteEn => we8,
-			ReadEn  => re8,
-			DataOut => out8,
-			Full    => full_gfxrs,
-			Empty   => emp8
-		);
-	audio_res_fif : entity work.STD_FIFO(Behavioral)
-		generic map(
-			DATA_WIDTH => 54,
-			FIFO_DEPTH => 256
-		)
-		port map(
-			CLK     => Clock,
-			RST     => reset,
-			DataIn  => in10,
-			WriteEn => we10,
-			ReadEn  => re10,
-			DataOut => out10,
-			Full    => full_audiors,
-			Empty   => emp10
-		);
-	usb_res_fif : entity work.STD_FIFO(Behavioral)
-		generic map(
-			DATA_WIDTH => 54,
-			FIFO_DEPTH => 256
-		)
-		port map(
-			CLK     => Clock,
-			RST     => reset,
-			DataIn  => in11,
-			WriteEn => we11,
-			ReadEn  => re11,
-			DataOut => out11,
-			Full    => full_usbrs,
-			Empty   => emp11
-		);
-	uart_res_fif : entity work.STD_FIFO(Behavioral)
-		generic map(
-			DATA_WIDTH => 54,
-			FIFO_DEPTH => 256
-		)
-		port map(
-			CLK     => Clock,
-			RST     => reset,
-			DataIn  => in12,
-			WriteEn => we12,
-			ReadEn  => re12,
-			DataOut => out12,
-			Full    => full_uartrs,
-			Empty   => emp12
-		);
-
+	
 	snp_res_fif2 : entity work.STD_FIFO(Behavioral)
 		generic map(
 			DATA_WIDTH => 55,
@@ -772,15 +703,19 @@ begin
 				uart_upres2 <= (others => '0');
 				audio_upres2<= (others => '0');
 				usb_upres2 <= (others => '0');
-				if togfx_p(72 downto 72) = "1" then
+				--if read request
+				if togfx_p(72 downto 72) = "1" and togfx_p(71 downto 64) = "10000000"then
 					tep_gfx := togfx_p;
 					state :=6;
+				elsif togfx_p(72 downto 72) = "1" and togfx_p(71 downto 64) = "01000000"then
+					tep_gfx := togfx_p;
+					state :=9;
 				end if;
 			elsif state =6 then
 				if rready_gfx = '1' then
 					--gfx_ack <= '0';
 					rvalid_gfx  <= '1';
-					raddr_gfx   <= togfx_p(63 downto 32);
+					raddr_gfx   <= tep_gfx(63 downto 32);
 					rlen_gfx    <= "00001" & "00000";
 					rsize_gfx  <= "00001" & "00000";
 					state   := 1;
@@ -850,6 +785,34 @@ begin
 					audio_upres2 <= (others => '0');
 					state :=0;
 				end if;	
+			elsif state =9 then
+    				if wready = '0' then
+    					wvalid_gfx <= '1';
+    					waddr_gfx <= tep_gfx(63 downto 32);
+    					wlen_gfx <= "00000"&"10000";
+    					wsize_gfx <= "00001"&"00000";
+    					--wdata_audio := tep_gfx(31 downto 0);
+    					state := 10;
+    				end if;
+    			elsif state = 10 then
+    				if wdataready_gfx = '1' then
+    					wdvalid_gfx <= '1';
+    					wtrb_gfx <= "1111";
+    					wdata_gfx <=tep_gfx(lp+31 downto lp);
+    					wlast_gfx <= '1';
+    					state := 11;
+    				end if;
+    		
+    			elsif state = 11 then
+    		 		wdvalid_gfx <= '0';
+    		 		wrready_gfx <= '1';
+    		 		if wrvalid_gfx = '1' then
+    		 			if wrsp_gfx="00" then
+    		 				state := 0;
+    		 				---this is a successful write back, yayyy
+    		 			end if;
+    		 			wrready_gfx <= '0';
+    		 		end if;
 			end if;
 		end if;
 	end process;
@@ -975,7 +938,35 @@ begin
 				if audio_upres_ack4 ='1' then
 					audio_upres4 <= (others => '0');
 					state :=0;
-				end if;	
+				end if;
+			elsif state =9 then
+    				if wready = '0' then
+    					wvalid_usb <= '1';
+    					waddr_usb <= tep_usb(63 downto 32);
+    					wlen_usb <= "00000"&"10000";
+    					wsize_usb <= "00001"&"00000";
+    					--wdata_usb := tep_usb(31 downto 0);
+    					state := 10;
+    				end if;
+    			elsif state = 10 then
+    				if wdataready_usb = '1' then
+    					wdvalid_usb <= '1';
+    					wtrb_usb <= "1111";
+    					wdata_usb <=tep_usb(lp+31 downto lp);
+    					wlast_usb <= '1';
+    					state := 11;
+    				end if;
+    		
+    			elsif state = 11 then
+    		 		wdvalid_usb <= '0';
+    		 		wrready_usb <= '1';
+    		 		if wrvalid_usb = '1' then
+    		 			if wrsp_usb="00" then
+    		 				state := 0;
+    		 				---this is a successful write back, yayyy
+    		 			end if;
+    		 			wrready_usb <= '0';
+    		 		end if;	
 			end if;
 		end if;
 	end process;
@@ -1088,6 +1079,34 @@ begin
 					audio_upres3 <= (others => '0');
 					state :=0;
 				end if;	
+			elsif state =9 then
+    				if wready = '0' then
+    					wvalid_uart <= '1';
+    					waddr_uart <= tep_uart(63 downto 32);
+    					wlen_uart <= "00000"&"10000";
+    					wsize_uart <= "00001"&"00000";
+    					--wdata_uart := tep_uart(31 downto 0);
+    					state := 10;
+    				end if;
+    			elsif state = 10 then
+    				if wdataready_uart = '1' then
+    					wdvalid_uart <= '1';
+    					wtrb_uart <= "1111";
+    					wdata_uart <=tep_uart(lp+31 downto lp);
+    					wlast_uart <= '1';
+    					state := 11;
+    				end if;
+    		
+    			elsif state = 11 then
+    		 		wdvalid_uart <= '0';
+    		 		wrready_uart <= '1';
+    		 		if wrvalid_uart = '1' then
+    		 			if wrsp_uart="00" then
+    		 				state := 0;
+    		 				---this is a successful write back, yayyy
+    		 			end if;
+    		 			wrready_uart <= '0';
+    		 		end if;
 			end if;
 		end if;
 	end process;
@@ -1381,6 +1400,34 @@ begin
 					audio_upres5 <= (others => '0');
 					state :=0;
 				end if;	
+			elsif state =9 then
+    				if wready = '0' then
+    					wvalid_audio <= '1';
+    					waddr_audio <= tep_audio(63 downto 32);
+    					wlen_audio <= "00000"&"10000";
+    					wsize_audio <= "00001"&"00000";
+    					--wdata_audio := tep_audio(31 downto 0);
+    					state := 10;
+    				end if;
+    			elsif state = 10 then
+    				if wdataready_audio = '1' then
+    					wdvalid_audio <= '1';
+    					wtrb_audio <= "1111";
+    					wdata_audio <=tep_audio(lp+31 downto lp);
+    					wlast_audio <= '1';
+    					state := 11;
+    				end if;
+    		
+    			elsif state = 11 then
+    		 		wdvalid_audio <= '0';
+    		 		wrready_audio <= '1';
+    		 		if wrvalid_audio = '1' then
+    		 			if wrsp_audio="00" then
+    		 				state := 0;
+    		 				---this is a successful write back, yayyy
+    		 			end if;
+    		 			wrready_audio <= '0';
+    		 		end if;
 			end if;
 		end if;
 	end process;	
@@ -1580,7 +1627,51 @@ begin
 
 		end if;
 	end process;
-
+	wb_channel: process(reset, Clock)
+    variable lp: integer := 0;
+    variable state: integer := 0;
+    variable tdata: std_logic_vector(511 downto 0);
+    begin
+    	if reset= '1' then
+    		wvalid <= '0';
+    		wrready <= '0';
+    	elsif rising_edge(Clock) then
+    		if state =0 then
+    			if mem_wb(552 downto 552)="0" and wready = '0' then
+    				wvalid <= '1';
+    				waddr <= mem_wb(543 downto 512);
+    				wlen <= "00000"&"10000";
+    				wsize <= "00001"&"00000";
+    				tdata := mem_wb(511 downto 0);
+    				state := 1;
+    			end if;
+    		elsif state = 1 then
+    			if wdataready = '1' then
+    				wdvalid <= '1';
+    				wtrb <= "1111";
+    				wdata <= tdata(lp+31 downto lp);
+    				lp := lp + 32;
+    				if lp = 512 then
+    					wlast <= '1';
+    					state := 2;
+    					lp := 0;
+    				end if;
+    			end if;
+    		
+    		elsif state = 2 then
+    		 	wdvalid <= '0';
+    		 	wrready <= '1';
+    		 	if wrvalid = '1' then
+    		 		state := 3;
+    		 		if wrsp="00" then
+    		 			---this is a successful write back, yayyy
+    		 		end if;
+    		 		wrready <= '0';
+    		 	end if;
+    		end if;
+    	end if;
+    	
+    end process;
 	gfx_res_p : process(reset, Clock)
 		variable stage : integer := 0;
 		variable cpu1  : std_logic;
