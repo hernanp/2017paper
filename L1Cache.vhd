@@ -474,7 +474,7 @@ begin
 				--if tags do not match, dirty bit is 1, and write_back fifo in BUS is not full, 
 				if memcont(56 downto 56) = "1" 
 				and memcont(55 downto 55) = "1" and memcont(53 downto 32)/=upd_req(63 downto 42) and full_wb /= '1' then
-					wb_req <= "110000000"& upd_req(45 downto 32)&memcont(31 downto 0)
+					wb_req <= "110000000"& upd_req(63 downto 32)&memcont(31 downto 0)
 					& ROM_array(indx+1)(31 downto 0)
 					& ROM_array(indx+2)(31 downto 0)
 					& ROM_array(indx+3)(31 downto 0)
@@ -509,7 +509,7 @@ begin
 							memcont := ROM_array(indx);
 							--if tags do not match, dirty bit is 1, and write_back fifo in BUS is not full, 
 							if memcont(56 downto 56) = "1" and memcont(53 downto 32)/=upd_req(63 downto 42) and full_wb /= '1' then
-								wb_req <= "110000000"& upd_req(45 downto 32)&memcont(31 downto 0)
+								wb_req <= "110000000"& upd_req(63 downto 32)&memcont(31 downto 0)
 								& ROM_array(indx+1)(31 downto 0)
 								& ROM_array(indx+2)(31 downto 0)
 								& ROM_array(indx+3)(31 downto 0)
