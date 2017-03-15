@@ -36,7 +36,10 @@ entity L1Cache is
            snoop_c_res: in std_logic_vector(552 downto 0);
            snoop_c_hit: in std_logic;
            
-           
+           up_snoop: in std_logic_vector(75 downto 0);
+			  up_snoop_res: out std_logic_vector(75 downto 0);
+			  up_snoop_hit: out std_logic;
+			  
            wb_req: out std_logic_vector(552 downto 0);
             --01: read request
             --10: write request
