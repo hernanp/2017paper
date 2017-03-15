@@ -20,12 +20,10 @@ entity AXI is
 		bus_res1                                           : out STD_LOGIC_VECTOR(552 downto 0);
 		bus_res2                                           : out STD_LOGIC_VECTOR(552 downto 0);
 		snoop_req1                                         : out STD_LOGIC_VECTOR(72 downto 0);
-		snoop_req2                                         : out STD_LOGIC_VECTOR(72 downto 0);
-		snoop_res1, snoop_res2                             : in  STD_LOGIC_VECTOR(552 downto 0);
+		snoop_res1                            : in  STD_LOGIC_VECTOR(552 downto 0);
 		snp_hit1                                           : in  std_logic;
-		snp_hit2                                           : in  std_logic;
-		full_srq1, full_srq2                               : in  std_logic;
-		full_wb1, full_srs1, full_wb2, full_srs2, full_mrs : out std_logic;
+		full_srq1                              : in  std_logic;
+		full_wb1, full_srs1, full_wb2,  full_mrs : out std_logic;
 		pwrreq                                             : out std_logic_vector(4 downto 0);
 		pwrreq_full                                        : in  std_logic;
 		pwrres                                             : in  std_logic_vector(4 downto 0);
