@@ -2122,8 +2122,8 @@ begin
 	begin
 		if reset = '1' then
 			re2        <= '0';
-			bus_res2_1 <= nilreq;
-			tomem1     <= nilreq(72 downto 0);
+			bus_res2_1 <= (others => '0');
+			tomem1     <= nilreq(75 downto 0);
 		---tmp_brs2_1 <= nilreq;
 		---tmp_mem1 <=nilreq;
 		elsif rising_edge(Clock) then
@@ -2141,7 +2141,7 @@ begin
 						bus_res2_1 <= out2(552 downto 0);
 					else                ---it's a miss
 						state  := 3;
-						tomem1 <= out2(552 downto 480);
+						tomem1 <= "101"&out2(552 downto 480);
 					end if;
 				end if;
 			elsif state = 2 then
@@ -2152,7 +2152,7 @@ begin
 
 			elsif state = 3 then
 				if mem_ack1 = '1' then
-					tomem1 <= nilreq(72 downto 0);
+					tomem1 <= nilreq(75 downto 0);
 					state  := 0;
 				end if;
 
@@ -2167,7 +2167,7 @@ begin
 		if reset = '1' then
 			re5        <= '0';
 			bus_res1_2 <= nilreq;
-			tomem2     <= nilreq(72 downto 0);
+			tomem2     <= nilreq(75 downto 0);
 			--tmp_brs1_2 <= nilreq;
 			--tmp_mem2 <=nilreq;
 			state      := 0;
@@ -2184,7 +2184,7 @@ begin
 						state      := 2;
 						bus_res1_2 <= out5(552 downto 0);
 					else                ---it's a miss
-						tomem2 <= out5(552 downto 480);
+						tomem2 <= "000"&out5(552 downto 480);
 						state  := 3;
 					end if;
 				end if;
@@ -2197,7 +2197,7 @@ begin
 
 			elsif state = 3 then
 				if mem_ack2 = '1' then
-					tomem2 <= nilreq(72 downto 0);
+					tomem2 <= nilreq(75 downto 0);
 					state  := 0;
 				end if;
 			end if;

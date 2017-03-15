@@ -59,7 +59,7 @@ end USB;
 
 architecture Behavioral of USB  is
    signal poweron: std_logic :='1';
-    type rom_type is array (2**16-1 downto 0) of std_logic_vector (31 downto 0);     
+    type rom_type is array (2**29-1 downto 0) of std_logic_vector (31 downto 0);     
        signal ROM_array : rom_type:= (others=> (others=>'0'));
        signal in3,out3: std_logic_vector(53 downto 0);
        signal in2,out2: std_logic_vector(50 downto 0);
@@ -67,7 +67,7 @@ architecture Behavioral of USB  is
        signal tmp_full: std_logic;
        signal tmp_req: std_logic_vector(50 downto 0);
        signal test: integer;
-
+signal tmp_int: integer:=0;
 begin
 
 write: process (Clock, reset)
