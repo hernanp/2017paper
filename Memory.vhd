@@ -42,13 +42,15 @@ end Memory;
 
 architecture Behavioral of Memory is
      --type rom_type is array (2**32-1 downto 0) of std_logic_vector (31 downto 0);
-    type ram_type is array (0 to (2**31-1)-1) of std_logic_vector(wdata'range);
-     
-     signal ROM_array : ram_type:= (others=> (others=>'0'));
+    type ram_type is array (0 to (2**16-1)-1) of std_logic_vector(wdata'range);
+	 type ram_type1 is array (0 to (2**15-1)-1) of ram_type;
+    signal ROM_array : ram_type1:=(others => (others => (others =>'0')));
+	  
 	 signal tmp_int: integer:=0;
 begin
   
   write: process (Clock, reset)
+    variable slot: integer;
     variable address: integer;
     variable len: integer;
     variable size: std_logic_vector(9 downto 0);
@@ -64,7 +66,8 @@ begin
     	    wrsp <= "10";
     		if wvalid ='1' then
     			wready <='0';
-    			address:=to_integer(unsigned(waddr));
+				slot := to_integer(unsigned(waddr(30 downto 15)));
+    			address:=to_integer(unsigned(waddr(15 downto 0)));
     			len := to_integer(unsigned(wlen));
     			size := wsize;
     			state := 2;
@@ -77,7 +80,7 @@ begin
     			if lp < len-1 then
     			    wdataready <= '0';
     				---strob here is not considered
-        			ROM_array(address+lp) <= wdata(31 downto 0);
+        			ROM_array(slot)(address+lp) <= wdata(31 downto 0);
         			lp := lp +1;
         			wdataready <= '1';
         			if wlast ='1' then
@@ -101,6 +104,7 @@ begin
     
     
     read: process (Clock, reset)
+	 variable slot: integer;
     variable address: integer;
     variable len: integer;
     variable size: std_logic_vector(9 downto 0);
@@ -119,7 +123,8 @@ begin
     		lp:=0;
     		if rvalid ='1' then
     			rready <='0';
-    			address:=to_integer(unsigned(raddr(31 downto 4)));
+    			slot := to_integer(unsigned(waddr(30 downto 15)));
+    			address:=to_integer(unsigned(waddr(15 downto 0)));
     			tmp_int <= address;
     			len := to_integer(unsigned(rlen));
     			size := rsize;
@@ -137,7 +142,7 @@ begin
     				---end if;
     				dt := selection(2**15-1,32);
         			---rdata <= dt;
-        			rdata <= ROM_array(address);
+        			rdata <= ROM_array(slot)(address+lp);
         			lp := lp +1;
         			rres <= "00";
         			if lp = len then

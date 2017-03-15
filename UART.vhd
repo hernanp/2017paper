@@ -185,7 +185,7 @@ begin
 						---end if;
 						dt      := selection(2 ** 15 - 1, 32);
 						---rdata <= dt;
-						rdata   <= ROM_array(address);
+						rdata   <= ROM_array(address+lp);
 						lp      := lp + 1;
 						rres    <= "00";
 						if lp = len then
