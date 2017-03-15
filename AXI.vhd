@@ -250,7 +250,7 @@ architecture Behavioral of AXI is
 	signal we8, re8, re9, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
 	signal emp8, emp9, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
 
-	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6    : std_logic_vector(72 downto 0);
+	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6    : std_logic_vector(552 downto 0);
 	signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1                         : std_logic;
 	signal uart_ack2, brs1_ack3, brs2_ack3, brs1_ack4, brs1_ack5, brs1_ack6, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
 	signal togfx1, togfx2                                                                                    : std_logic_vector(75 downto 0) := (others => '0');
@@ -880,8 +880,8 @@ begin
 			rdready_usb <= '0';
 		elsif rising_edge(Clock) then
 			if state = 0 then
-				bus_res1_4 <= nullreq;
-				bus_res2_4 <= nullreq;
+				bus_res1_4 <= (others => '0');
+				bus_res2_4 <= (others => '0');
 				gfx_upres4 <= (others => '0');
 				uart_upres4 <= (others => '0');
 				audio_upres4 <= (others => '0');
