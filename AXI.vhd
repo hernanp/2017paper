@@ -243,20 +243,20 @@ architecture Behavioral of AXI is
 	signal pwr_req1, pwr_req2                             : std_logic_vector(4 downto 0);
 	signal pwr_ack1, pwr_ack2                             : std_logic;
 	signal mem_wb,gfx_wb,audio_wb,usb_wb,uart_wb                                         : std_logic_vector(552 downto 0);
-	signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(73 downto 0);
+	signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(75 downto 0);
 
-	signal in9, out9, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(50 downto 0);
-	signal in8, out8, in10, out10, in11, out11, in12, out12                                           : std_logic_vector(53 downto 0);
+	signal in9, out9, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(72 downto 0);
+	signal in8, out8, in10, out10, in11, out11, in12, out12                                           : std_logic_vector(75 downto 0);
 	signal we8, re8, re9, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
 	signal emp8, emp9, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
 
-	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6    : std_logic_vector(50 downto 0);
+	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6    : std_logic_vector(72 downto 0);
 	signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1                         : std_logic;
 	signal uart_ack2, brs1_ack3, brs2_ack3, brs1_ack4, brs1_ack5, brs1_ack6, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
-	signal togfx1, togfx2                                                                                    : std_logic_vector(53 downto 0) := (others => '0');
-	signal toaudio1, toaudio2                                                                                : std_logic_vector(53 downto 0) := (others => '0');
-	signal tousb1, tousb2                                                                                    : std_logic_vector(53 downto 0) := (others => '0');
-	signal touart1, touart2                                                                                  : std_logic_vector(53 downto 0) := (others => '0');
+	signal togfx1, togfx2                                                                                    : std_logic_vector(75 downto 0) := (others => '0');
+	signal toaudio1, toaudio2                                                                                : std_logic_vector(75 downto 0) := (others => '0');
+	signal tousb1, tousb2                                                                                    : std_logic_vector(75 downto 0) := (others => '0');
+	signal touart1, touart2                                                                                  : std_logic_vector(75 downto 0) := (others => '0');
 
 	signal gfx_wb_ack1, gfx_wb_ack2, audio_wb_ack1, audio_wb_ack2, usb_wb_ack1, usb_wb_ack2, uart_wb_ack1, uart_wb_ack2 : std_logic;
 	signal gfx_wb1, gfx_wb2, audio_wb1, audio_wb2, usb_wb1, usb_wb2, uart_wb1, uart_wb2                                 : std_logic_vector(552 downto 0) := (others => '0');
@@ -268,24 +268,24 @@ architecture Behavioral of AXI is
 	signal pwr_req3, pwr_req4, pwr_req5, pwr_req6 : std_logic_vector(4 downto 0);
 	signal pwr_ack3, pwr_ack4, pwr_ack5, pwr_ack6 : std_logic;
 
-	signal snp1_1, snp1_2, snp1_3, snp1_4, snp1_5, snp1_6, snp2_1, snp2_2, snp2_3, snp2_4, snp2_5, snp2_6                                     : std_logic_vector(53 downto 0);
+	signal snp1_1, snp1_2, snp1_3, snp1_4, snp1_5, snp1_6, snp2_1, snp2_2, snp2_3, snp2_4, snp2_5, snp2_6                                     : std_logic_vector(75 downto 0);
 	signal snp1_ack1, snp1_ack2, snp1_ack3, snp1_ack4, snp1_ack5, snp1_ack6, snp2_ack1, snp2_ack2, snp2_ack3, snp2_ack4, snp2_ack5, snp2_ack6 : std_logic;
 
-	signal gfx_upres1, gfx_upres2, gfx_upres3                   : std_logic_vector(50 downto 0);
+	signal gfx_upres1, gfx_upres2, gfx_upres3                   : std_logic_vector(72 downto 0);
 	signal gfx_upres_ack1, gfx_upres_ack2, gfx_upres_ack3       : std_logic;
-	signal audio_upres1, audio_upres2, audio_upres3             : std_logic_vector(50 downto 0);
+	signal audio_upres1, audio_upres2, audio_upres3             : std_logic_vector(72 downto 0);
 	signal audio_upres_ack1, audio_upres_ack2, audio_upres_ack3 : std_logic;
-	signal usb_upres1, usb_upres2, usb_upres3                   : std_logic_vector(50 downto 0);
+	signal usb_upres1, usb_upres2, usb_upres3                   : std_logic_vector(72 downto 0);
 	signal usb_upres_ack1, usb_upres_ack2, usb_upres_ack3       : std_logic;
-	signal uart_upres1, uart_upres2, uart_upres3                : std_logic_vector(50 downto 0);
+	signal uart_upres1, uart_upres2, uart_upres3                : std_logic_vector(72 downto 0);
 	signal uart_upres_ack1, uart_upres_ack2, uart_upres_ack3    : std_logic;
-	signal gfx_upres4, gfx_upres5, gfx_upres6                   : std_logic_vector(50 downto 0);
+	signal gfx_upres4, gfx_upres5, gfx_upres6                   : std_logic_vector(72 downto 0);
 	signal gfx_upres_ack4, gfx_upres_ack5, gfx_upres_ack6       : std_logic;
-	signal audio_upres4, audio_upres5, audio_upres6             : std_logic_vector(50 downto 0);
+	signal audio_upres4, audio_upres5, audio_upres6             : std_logic_vector(72 downto 0);
 	signal audio_upres_ack4, audio_upres_ack5, audio_upres_ack6 : std_logic;
-	signal usb_upres4, usb_upres5, usb_upres6                   : std_logic_vector(50 downto 0);
+	signal usb_upres4, usb_upres5, usb_upres6                   : std_logic_vector(72 downto 0);
 	signal usb_upres_ack4, usb_upres_ack5, usb_upres_ack6       : std_logic;
-	signal uart_upres4, uart_upres5, uart_upres6                : std_logic_vector(50 downto 0);
+	signal uart_upres4, uart_upres5, uart_upres6                : std_logic_vector(72 downto 0);
 	signal uart_upres_ack4, uart_upres_ack5, uart_upres_ack6    : std_logic;
 
 begin
@@ -458,7 +458,7 @@ begin
 				end if;
 			elsif stage = 2 then
 				if snp1_ack2 = '1' then
-					snp1_2 <= "000" & nilreq;
+					snp1_2 <= (others => '0');
 					stage  := 0;
 				end if;
 			end if;
@@ -486,7 +486,7 @@ begin
 				end if;
 			elsif stage = 2 then
 				if snp1_ack3 = '1' then
-					snp1_3 <= "000" & nilreq;
+					snp1_3 <= (others => '0');
 					stage  := 0;
 				end if;
 			end if;
@@ -514,7 +514,7 @@ begin
 				end if;
 			elsif stage = 2 then
 				if snp1_ack4 = '1' then
-					snp1_4 <= "000" & nilreq;
+					snp1_4 <= (others => '0');
 					stage  := 0;
 				end if;
 			end if;
@@ -542,7 +542,7 @@ begin
 				end if;
 			elsif stage = 2 then
 				if snp1_ack5 = '1' then
-					snp1_5 <= "000" & nilreq;
+					snp1_5 <= (others => '0');
 					stage  := 0;
 				end if;
 			end if;
@@ -573,9 +573,10 @@ begin
 
 	tomem_channel : process(reset, Clock)
 		variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
+		variable sdata		: std_logic_vector(31 downto 0):=(others => '0');
 		variable state   : integer                        := 0;
 		variable lp      : integer                        := 0;
-		variable tep_mem : std_logic_vector(73 downto 0);
+		variable tep_mem : std_logic_vector(75 downto 0);
 		variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
 	begin
 		if reset = '1' then
@@ -598,7 +599,11 @@ begin
 					mem_ack <= '0';
 					rvalid  <= '1';
 					raddr   <= tomem_p(63 downto 32);
-					rlen    <= "00001" & "00000";
+					if (tomem_p(75 downto 73)="000" or tomem_p(75 downto 73)="101") then
+						rlen    <= "00001" & "00000";
+					else
+						rlen <= "00000"&"00001";
+					end if;
 					rsize   <= "00001" & "00000";
 					state   := 1;
 				end if;
@@ -608,14 +613,21 @@ begin
 				state   := 2;
 			elsif state = 2 then
 				if rdvalid = '1' and rres = "00" then
-					rdready                            <= '0';
-					tdata(lp * 32 + 31 downto lp * 32) := rdata;
-					lp                                 := lp + 1;
-					if rlast = '1' then
-						state := 3;
-						lp    := 0;
+					if tep_mem(75 downto 73)="000" or tep_mem(75 downto 73)="101" then
+						rdready                            <= '0';
+						tdata(lp * 32 + 31 downto lp * 32) := rdata;
+						lp                                 := lp + 1;
+						if rlast = '1' then
+							state := 3;
+							lp    := 0;
+						end if;
+						rdready <= '1';
+					else
+						rdready <='1';
+						sdata := rdata;
+						rdready <='1';
 					end if;
-					rdready <= '1';
+						
 				end if;
 			elsif state = 3 then
 				--mem_ack <= '1';
@@ -626,16 +638,16 @@ begin
 					bus_res2_1 <= tep_mem(72 downto 32) & tdata;
 					state := 4;
 				elsif tep_mem(75 downto 73)="001" then
-					gfx_upres1 <= tep_mem(72 downto 32) & tdata;
+					gfx_upres1 <= tep_mem(72 downto 32) & sdata;
 					state := 5;
 				elsif tep_mem(75 downto 73)="010" then
-					uart_upres1 <= tep_mem(72 downto 32) & tdata;
+					uart_upres1 <= tep_mem(72 downto 32) & sdata;
 					state := 6;
 				elsif tep_mem(75 downto 73)="011" then
-					usb_upres1<= tep_mem(72 downto 32) & tdata;
+					usb_upres1<= tep_mem(72 downto 32) & sdata;
 					state := 7;
 				elsif tep_mem(75 downto 73)="100" then
-					audio_upres1 <= tep_mem(72 downto 32) & tdata;
+					audio_upres1 <= tep_mem(72 downto 32) & sdata;
 					state := 8;
 				end if;
 				
