@@ -249,12 +249,17 @@ architecture Behavioral of AXI is
 	signal emp8, emp9, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
 
 	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6    : std_logic_vector(552 downto 0);
+	
 	signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1                         : std_logic;
+	signal gfx_ack3,gfx_ack4,gfx_ack5,gfx_ack6:std_logic;
+	signal uart_ack3,uart_ack4,uart_ack5,uart_ack6:std_logic;
+	signal usb_ack3,usb_ack4,usb_ack5,usb_ack6:std_logic;
+	signal audio_ack3,audio_ack4,audio_ack5,audio_ack6:std_logic;
 	signal uart_ack2, brs1_ack3, brs2_ack3, brs1_ack4, brs1_ack5, brs1_ack6, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
-	signal togfx1, togfx2                                                                                    : std_logic_vector(75 downto 0) := (others => '0');
-	signal toaudio1, toaudio2                                                                                : std_logic_vector(75 downto 0) := (others => '0');
-	signal tousb1, tousb2                                                                                    : std_logic_vector(75 downto 0) := (others => '0');
-	signal touart1, touart2                                                                                  : std_logic_vector(75 downto 0) := (others => '0');
+	signal togfx1, togfx2,togfx3,togfx4,togfx5,togfx6                                                                                   : std_logic_vector(75 downto 0) := (others => '0');
+	signal toaudio1, toaudio2,toaudio3,toaudio4,toaudio5,toaudio6                                                                                : std_logic_vector(75 downto 0) := (others => '0');
+	signal tousb1, tousb2    ,tousb3,tousb4,tousb5,tousb6                                                                                : std_logic_vector(75 downto 0) := (others => '0');
+	signal touart1, touart2   ,touart3,touart4,touart5,touart6                                                                               : std_logic_vector(75 downto 0) := (others => '0');
 
 	signal gfx_wb_ack1, gfx_wb_ack2, audio_wb_ack1, audio_wb_ack2, usb_wb_ack1, usb_wb_ack2, uart_wb_ack1, uart_wb_ack2 : std_logic;
 	signal gfx_wb1, gfx_wb2, audio_wb1, audio_wb2, usb_wb1, usb_wb2, uart_wb1, uart_wb2                                 : std_logic_vector(552 downto 0) := (others => '0');
@@ -304,22 +309,7 @@ begin
 		);
 
 	
-	snp_res_fif2 : entity work.STD_FIFO(Behavioral)
-		generic map(
-			DATA_WIDTH => 55,
-			FIFO_DEPTH => 256
-		)
-		port map(
-			CLK     => Clock,
-			RST     => reset,
-			DataIn  => in5,
-			WriteEn => we5,
-			ReadEn  => re5,
-			DataOut => out5,
-			Full    => full_srs2,
-			Empty   => emp5
-		);
-
+	
 	wb_fif1 : entity work.STD_FIFO(Behavioral) port map(
 			CLK     => Clock,
 			RST     => reset,
@@ -682,7 +672,7 @@ begin
 	end process;
 
 
-	togfx_arbitor : entity work.arbiter2(Behavioral) 
+	togfx_arbitor : entity work.arbiter6(Behavioral) 
 	generic map(
 		DATA_WIDTH=>76
 	)
@@ -693,6 +683,14 @@ begin
 			ack1  => gfx_ack1,
 			din2  => togfx2,
 			ack2  => gfx_ack2,
+			din3  => togfx3,
+			ack3  => gfx_ack3,
+			din4  => togfx4,
+			ack4  => gfx_ack4,
+			din5  => togfx5,
+			ack5  => gfx_ack5,
+			din6  => togfx6,
+			ack6  => gfx_ack6,
 			dout  => togfx_p
 		);
 	togfx_channel : process(reset, Clock)
@@ -1204,26 +1202,7 @@ begin
 			ack6  => snp1_ack6,
 			dout  => snoop_req1
 		);
-	snp2_arbitor : entity work.arbiter6(Behavioral) generic map(
-			DATA_WIDTH => 54
-		)
-		port map(
-			clock => Clock,
-			reset => reset,
-			din1  => snp2_1,
-			ack1  => snp2_ack1,
-			din2  => snp2_2,
-			ack2  => snp2_ack2,
-			din3  => snp2_3,
-			ack3  => snp2_ack3,
-			din4  => snp2_4,
-			ack4  => snp2_ack4,
-			din5  => snp2_5,
-			ack5  => snp2_ack5,
-			din6  => snp2_6,
-			ack6  => snp2_ack6,
-			dout  => snoop_req2
-		);
+	
 	pwr_arbitor : entity work.arbiter61(Behavioral)
 		generic map(
 			DATA_WIDTH => 5
@@ -1540,23 +1519,7 @@ begin
 
 		end if;
 	end process;
-	snp_res2_fifo : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we5 <= '0';
-		elsif rising_edge(Clock) then
-			if snoop_res2(50 downto 50) = "1" then
-				if snp_hit2 = '0' then
-					in5 <= '0' & snoop_res2;
-				else
-					in5 <= '1' & snoop_res2;
-				end if;
-				we5 <= '1';
-			else
-				we5 <= '0';
-			end if;
-		end if;
-	end process;
+	
 
 	wb_req1_fifo : process(reset, Clock)
 	begin
@@ -2029,42 +1992,77 @@ begin
 		variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
 		variable state  : integer                       := 0;
 		variable count  : integer                       := 0;
+		variable nildata: std_logic_vector(511 downto 0):=(others=>'0');
 	begin
 		if reset = '1' then
-			snoop_req2 <= nilreq;
+			--snoop_req2 <= nilreq;
 		elsif rising_edge(Clock) then
 			if state = 0 then
-				if cache_req1(72 downto 72) = "1" and cache_req1(63 downto 32) = adr_1 then
-					state   := 1;
-					tmp_sp2 <= cache_req1;
-				elsif cache_req1(72 downto 72) = "1" and cache_req1(71 downto 64) = "11111111" then
+				if cache_req1(72 downto 72) = "1" and cache_req1(71 downto 64) = "11111111" then
 					---let's not consider power now, too complicated
-					---pwr_req1 <= cache_req1(72 downto 46);
+					pwr_req1 <= cache_req1(72 downto 46);
 					state := 4;
-				elsif cache_req1(72 downto 72) = "1" and full_srq2 /= '1' then
-					snoop_req2 <= cache_req1;
+				elsif cache_req1(72 downto 72) = "1" and cache_req1(63 downto 32) = adr_1 then
+					state   := 3;
+					----should return to cache, let it perform snoop again!!!
+					-----
+					----don't forget to fill this up
+					-----
+					bus_res1_5 <= '1'&"11111111"&nildata;
+				elsif cache_req1(72 downto 72) = "1"  then
+					---snoop_req2 <= cache_req1;
 					adr_0      <= cache_req1(63 downto 32);
-					state      := 0;
+					state      := 1;
 				else
-					snoop_req2 <= nilreq;
+					---snoop_req2 <= nilreq;
 					state      := 0;
 				end if;
-			elsif state = 1 then
-				state := 2;
-			elsif state = 2 then
-				count := count + 1;
-				if count > 20 then
-					state := 3;
-					count := 0;
+			elsif state =2 then
+				if cache_req1(63 downto 63)="1" then
+					---this belongs to the memory
+					tomem1 <= cache_req1;
+					state := 5;
+				elsif cache_req1(62 downto 61)="00" then
+					togfx1 <= cache_req1;
+					state :=6;
+				elsif cache_req1(62 downto 61)="01" then
+					touart1 <= cache_req1;
+					state :=7;
+				elsif cache_req1(62 downto 61)="10" then
+					tousb1 <= cache_req1;
+					state :=8;
+				elsif cache_req1(62 downto 61)="11" then
+					toaudio1 <= cache_req1;
+					state :=9;
+				end if;	
+			elsif state =3 then
+				if brs1_ack5='1' then
+					bus_res1_5<=(others => '0');
 				end if;
-			elsif state = 3 then
-				snoop_req2 <= tmp_sp2;
-				adr_0      <= tmp_sp2(63 downto 32);
-				state      := 0;
 			elsif state = 4 then
 				if pwr_ack1 = '1' then
 					---pwr_req1<= "00000";
 					state := 0;
+				end if;
+			elsif state =5 then
+				if mem_ack1='1' then
+					state :=0;
+					tomem1 <=(others=>'0');
+				end if;
+			elsif state =6 then
+				if gfx_ack1='1' then
+					state :=0;
+					togfx1 <=(others=>'0');
+				end if;
+			elsif state =7 then
+				if usb_ack1='1' then
+					state :=0;
+					tousb1 <=(others=>'0');
+				end if;
+			elsif state =8 then
+				if audio_ack1='1' then
+					state :=0;
+					toaudio1 <=(others=>'0');
 				end if;
 			end if;
 		end if;
@@ -2075,130 +2073,166 @@ begin
 		variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
 		variable state  : integer                       := 0;
 		variable count  : integer                       := 0;
+		variable nildata: std_logic_vector(511 downto 0):=(others=>'0');
 	begin
 		if reset = '1' then
-			snoop_req1 <= nilreq;
+			--snoop_req2 <= nilreq;
 		elsif rising_edge(Clock) then
 			if state = 0 then
-				if cache_req2(72 downto 72) = "1" and cache_req2(63 downto 32) = adr_0 then
-					state   := 1;
-					tmp_sp1 <= cache_req2;
-				elsif cache_req1(72 downto 72) = "1" and cache_req1(71 downto 64) = "11111111" then
-					---pwr_req2 <= cache_req2(72 downto 46);
+				if cache_req2(72 downto 72) = "1" and cache_req2(71 downto 64) = "11111111" then
+					---let's not consider power now, too complicated
+					pwr_req2 <= cache_req2(72 downto 46);
 					state := 4;
-				elsif cache_req2(72 downto 72) = "1" and full_srq2 /= '1' then
-					snoop_req1 <= cache_req2;
-					adr_1      <= cache_req2(63 downto 32);
-					state      := 0;
+				elsif cache_req2(72 downto 72) = "1" and cache_req2(63 downto 32) = adr_1 then
+					state   := 3;
+					----should return to cache, let it perform snoop again!!!
+					-----
+					----don't forget to fill this up
+					-----
+					bus_res1_6 <= '1'&"11111111"&nildata;
+				elsif cache_req2(72 downto 72) = "1"  then
+					---snoop_req2 <= cache_req2;
+					adr_0      <= cache_req2(63 downto 32);
+					state      := 1;
 				else
-					snoop_req1 <= nilreq;
+					---snoop_req2 <= nilreq;
 					state      := 0;
 				end if;
-			elsif state = 1 then
-				state := 2;
-			elsif state = 2 then
-				count := count + 1;
-				if count > 20 then
-					count := 0;
-					state := 3;
+			elsif state =2 then
+				if cache_req2(63 downto 63)="1" then
+					---this belongs to the memory
+					tomem2 <= cache_req2;
+					state := 5;
+				elsif cache_req2(62 downto 61)="00" then
+					togfx2 <= cache_req2;
+					state :=6;
+				elsif cache_req2(62 downto 61)="01" then
+					touart2 <= cache_req2;
+					state :=7;
+				elsif cache_req2(62 downto 61)="10" then
+					tousb2 <= cache_req2;
+					state :=8;
+				elsif cache_req2(62 downto 61)="11" then
+					toaudio2 <= cache_req2;
+					state :=9;
+				end if;	
+			elsif state =3 then
+				if brs1_ack6='1' then
+					bus_res1_6<=(others => '0');
 				end if;
-			elsif state = 3 then
-				snoop_req1 <= tmp_sp1;
-				adr_1      <= tmp_sp1(63 downto 32);
-				state      := 0;
 			elsif state = 4 then
 				if pwr_ack2 = '1' then
 					---pwr_req2<= "00000";
 					state := 0;
 				end if;
-			end if;
-		end if;
-	end process;
-	snp_res1_p : process(reset, Clock)
-		variable nilreq : std_logic_vector(552 downto 0) := (others => '0');
-		variable state  : integer                        := 0;
-	begin
-		if reset = '1' then
-			re2        <= '0';
-			bus_res2_1 <= (others => '0');
-			tomem1     <= nilreq(75 downto 0);
-		---tmp_brs2_1 <= nilreq;
-		---tmp_mem1 <=nilreq;
-		elsif rising_edge(Clock) then
-			if state = 0 then
-				if re2 = '0' and emp2 = '0' then
-					re2   <= '1';
-					state := 1;
+			elsif state =5 then
+				if mem_ack2='1' then
+					state :=0;
+					tomem2 <=(others=>'0');
 				end if;
-
-			elsif state = 1 then
-				re2 <= '0';
-				if out2(552 downto 552) = "1" then
-					if out2(553 downto 553) = "1" then --it;s a hit
-						state      := 2;
-						bus_res2_1 <= out2(552 downto 0);
-					else                ---it's a miss
-						state  := 3;
-						tomem1 <= "101"&out2(552 downto 480);
-					end if;
+			elsif state =6 then
+				if gfx_ack2='1' then
+					state :=0;
+					togfx2 <=(others=>'0');
 				end if;
-			elsif state = 2 then
-				if brs2_ack1 = '1' then
-					bus_res2_1 <= nilreq;
-					state      := 0;
+			elsif state =7 then
+				if usb_ack2='1' then
+					state :=0;
+					tousb2 <=(others=>'0');
 				end if;
-
-			elsif state = 3 then
-				if mem_ack1 = '1' then
-					tomem1 <= nilreq(75 downto 0);
-					state  := 0;
-				end if;
-
-			end if;
-
-		end if;
-	end process;
-	snp_res2_p : process(reset, Clock)
-		variable nilreq : std_logic_vector(552 downto 0) := (others => '0');
-		variable state  : integer                        := 0;
-	begin
-		if reset = '1' then
-			re5        <= '0';
-			bus_res1_2 <= nilreq;
-			tomem2     <= nilreq(75 downto 0);
-			--tmp_brs1_2 <= nilreq;
-			--tmp_mem2 <=nilreq;
-			state      := 0;
-		elsif rising_edge(Clock) then
-			if state = 0 then
-				if re5 = '0' and emp5 = '0' then
-					re5   <= '1';
-					state := 1;
-				end if;
-			elsif state = 1 then
-				re5 <= '0';
-				if out5(552 downto 552) = "1" then
-					if out5(553 downto 553) = "1" then --it;s a hit
-						state      := 2;
-						bus_res1_2 <= out5(552 downto 0);
-					else                ---it's a miss
-						tomem2 <= "000"&out5(552 downto 480);
-						state  := 3;
-					end if;
-				end if;
-
-			elsif state = 2 then
-				if brs1_ack2 = '1' then
-					bus_res1_2 <= nilreq;
-					state      := 0;
-				end if;
-
-			elsif state = 3 then
-				if mem_ack2 = '1' then
-					tomem2 <= nilreq(75 downto 0);
-					state  := 0;
+			elsif state =8 then
+				if audio_ack2='1' then
+					state :=0;
+					toaudio2 <=(others=>'0');
 				end if;
 			end if;
 		end if;
 	end process;
+--	snp_res1_p : process(reset, Clock)
+--		variable nilreq : std_logic_vector(552 downto 0) := (others => '0');
+--		variable state  : integer                        := 0;
+--	begin
+--		if reset = '1' then
+--			re2        <= '0';
+--			bus_res2_1 <= (others => '0');
+--			tomem1     <= nilreq(75 downto 0);
+--		---tmp_brs2_1 <= nilreq;
+--		---tmp_mem1 <=nilreq;
+--		elsif rising_edge(Clock) then
+--			if state = 0 then
+--				if re2 = '0' and emp2 = '0' then
+--					re2   <= '1';
+--					state := 1;
+--				end if;
+--
+--			elsif state = 1 then
+--				re2 <= '0';
+--				if out2(552 downto 552) = "1" then
+--					if out2(553 downto 553) = "1" then --it;s a hit
+--						state      := 2;
+--						bus_res2_1 <= out2(552 downto 0);
+--					else                ---it's a miss
+--						state  := 3;
+--						tomem1 <= "101"&out2(552 downto 480);
+--					end if;
+--				end if;
+--			elsif state = 2 then
+--				if brs2_ack1 = '1' then
+--					bus_res2_1 <= nilreq;
+--					state      := 0;
+--				end if;
+--
+--			elsif state = 3 then
+--				if mem_ack1 = '1' then
+--					tomem1 <= nilreq(75 downto 0);
+--					state  := 0;
+--				end if;
+--
+--			end if;
+--
+--		end if;
+--	end process;
+--	snp_res2_p : process(reset, Clock)
+--		variable nilreq : std_logic_vector(552 downto 0) := (others => '0');
+--		variable state  : integer                        := 0;
+--	begin
+--		if reset = '1' then
+--			re5        <= '0';
+--			bus_res1_2 <= nilreq;
+--			tomem2     <= nilreq(75 downto 0);
+--			--tmp_brs1_2 <= nilreq;
+--			--tmp_mem2 <=nilreq;
+--			state      := 0;
+--		elsif rising_edge(Clock) then
+--			if state = 0 then
+--				if re5 = '0' and emp5 = '0' then
+--					re5   <= '1';
+--					state := 1;
+--				end if;
+--			elsif state = 1 then
+--				re5 <= '0';
+--				if out5(552 downto 552) = "1" then
+--					if out5(553 downto 553) = "1" then --it;s a hit
+--						state      := 2;
+--						bus_res1_2 <= out5(552 downto 0);
+--					else                ---it's a miss
+--						tomem2 <= "000"&out5(552 downto 480);
+--						state  := 3;
+--					end if;
+--				end if;
+--
+--			elsif state = 2 then
+--				if brs1_ack2 = '1' then
+--					bus_res1_2 <= nilreq;
+--					state      := 0;
+--				end if;
+--
+--			elsif state = 3 then
+--				if mem_ack2 = '1' then
+--					tomem2 <= nilreq(75 downto 0);
+--					state  := 0;
+--				end if;
+--			end if;
+--		end if;
+--	end process;
 end Behavioral;
