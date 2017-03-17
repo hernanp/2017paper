@@ -48,14 +48,14 @@ entity UART is
 		 pwrres     : out std_logic_vector(2 downto 0);
 		 
 		 
-		 upreq      : out std_logic_vector(50 downto 0);
-		 upres      : in  std_logic_vector(50 downto 0);
+		 upreq      : out std_logic_vector(72 downto 0);
+		 upres      : in  std_logic_vector(72 downto 0);
 		 upreq_full : in  std_logic
 	);
 end UART;
 
 architecture Behavioral of UART is
-	type ram_type is array (0 to (2 ** 29 - 1) - 1) of std_logic_vector(wdata'range);
+	type ram_type is array (0 to (2 ** 10 - 1) - 1) of std_logic_vector(wdata'range);
 	signal ROM_array : ram_type  := (others => (others => '0'));
 	signal tmp_int   : integer   := 0;
 	signal poweron   : std_logic := '1';
@@ -94,7 +94,7 @@ begin
 
 		--end loop;
 
-		wait;
+--		wait;
 
 	end process;
 

@@ -23,16 +23,22 @@ architecture Behavioral of top is
 	-- Clock frequency and signal
 	signal Clock                                                                                                      : std_logic;
 	signal full_c1_u, full_c2_u, full_b_m                                                                   : std_logic;
-	signal bus_res1, bus_res2, cpu_res1, cpu_res2, cpu_req1, cpu_req2, wb_req1, wb_req2                               : std_logic_vector(72 downto 0);
+	signal  cpu_res1, cpu_res2, cpu_req1, cpu_req2                              : std_logic_vector(72 downto 0);
+	signal bus_res1, bus_res2 :std_logic_vector(552 downto 0);
 	signal snoop_hit1, snoop_hit2                                                                                     : std_logic;
-	signal snoop_res1, snoop_res2, snoop_req1, snoop_req2                                                             : std_logic_vector(75 downto 0);
+	signal  snoop_req1, snoop_req2                                                             : std_logic_vector(72 downto 0);
+	signal snoop_res1, snoop_res2 :std_logic_vector(552 downto 0);
+	signal snoop_req:std_logic_vector(75 downto 0);
+	---this should be 72
+	signal snoop_res:std_logic_vector(552 downto 0);
+	signal snoop_hit:std_logic;
 	signal bus_req1, bus_req2                                                                                         : std_logic_vector(72 downto 0);
 	signal memres, tomem                                                                                              : std_logic_vector(75 downto 0);
 	signal full_crq1, full_srq1, full_brs1, full_wb1, full_srs1, full_crq2, full_brs2, full_wb2, full_srs2 : std_logic;
 	signal reset                                                                                                      : std_logic := '1';
 	---signal full_mrs: std_logic;
-	signal done1, done2                                                                                               : std_logic;
-	signal mem_wb                                                                                                     : std_logic_vector(72 downto 0);
+	signal done1, done2                                                                                          : std_logic;
+	signal mem_wb  , wb_req1, wb_req2                                                                                                    : std_logic_vector(552 downto 0);
 	signal wb_ack                                                                                                     : std_logic;
 	signal pwrreq, pwrres                                                                                             : std_logic_vector(4 downto 0);
 	signal pwrreq_full                                                                                                : std_logic;
@@ -53,7 +59,11 @@ architecture Behavioral of top is
 	signal usb_b, tousb                 : std_logic_vector(75 downto 0);
 	signal usb_upreq, usb_upres, usb_wb : std_logic_vector(72 downto 0);
 	signal usb_upreq_full, usb_wb_ack   : std_logic;
-
+ 
+ 
+   signal zero : std_logic :='0';
+	signal zero72 : std_logic_vector(72 downto 0) := (others => '0');
+	signal zero75 : std_logic_vector(75 downto 0) := (others => '0');
 	signal uart_b, touart                  : std_logic_vector(75 downto 0);
 	signal uart_upreq, uart_upres, uart_wb : std_logic_vector(72 downto 0);
 	signal uart_upreq_full, uart_wb_ack    : std_logic;
@@ -218,9 +228,9 @@ begin
 		--reset <= '0';
 		--wait for 10 ps;
 		reset <= '1';
-		wait for 50 ps;
+--		wait for 50 ps;
 		reset <= '0';
-		wait;
+--		wait;
 	end process;
 
 	clk_gen : process
@@ -232,11 +242,11 @@ begin
 		variable coma        : string(2 downto 1)  := "  ";
 	begin
 		-- Generate a clock cycle
-		loop
+		if rising_edge(Clock) then
 			Clock <= '0';
-			wait for 2 ps;
+--			wait for 2 ps;
 			Clock <= '1';
-			wait for 2 ps;
+--			wait for 2 ps;
 			--- 1
 			if cpu_req1(50 downto 50) = "1" then
 				write(line_output, cpu_req1);
@@ -606,10 +616,10 @@ begin
 
 			writeline(trace_file, line_output);
 			if done1 = '1' and done2 = '1' then
-				wait;
+--				wait;
 			end if;
-		end loop;
-		wait;
+		end if;
+--		wait;
 	end process;
 
 	cpu1 : entity work.CPU(Behavioral) port map(
@@ -651,7 +661,7 @@ begin
 			up_snoop_res => up_snoop_res,
 			up_snoop_hit => up_snoop_hit,
 			
-			full_srq    => open,
+			--full_srq    => zero,
 			full_brs    => full_brs1,
 			full_crq    => full_crq1,
 			full_wb     => full_wb1,
@@ -675,11 +685,11 @@ begin
 			full_cprq   => full_c2_u,
 			
 			
-			up_snoop => open,
-			up_snoop_res => open,
-			up_snoop_hit => open,
+			up_snoop => zero75,
+			up_snoop_res => zero75,
+			--up_snoop_hit => zero,
 			
-			full_srq    => open,
+			--full_srq    => zero,
 			full_brs    => full_brs2,
 			full_crq    => full_crq2,
 			full_wb     => full_wb2,
@@ -854,9 +864,9 @@ begin
 			wb_req2          => wb_req2,
 			bus_res1         => bus_res1,
 			bus_res2         => bus_res2,
-			snoop_req1       => snoop_req1,
-			snoop_res1       => snoop_res1,
-			snp_hit1         => snoop_hit1,
+			snoop_req1       => snoop_req,
+			snoop_res1       => snoop_res,
+			snp_hit1         => snoop_hit,
 			full_srq1        => full_srq1,
 			full_wb1         => full_wb1,
 			full_srs1        => full_srs1,

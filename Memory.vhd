@@ -42,8 +42,8 @@ end Memory;
 
 architecture Behavioral of Memory is
      --type rom_type is array (2**32-1 downto 0) of std_logic_vector (31 downto 0);
-    type ram_type is array (0 to (2**16-1)-1) of std_logic_vector(wdata'range);
-	 type ram_type1 is array (0 to (2**15-1)-1) of ram_type;
+    type ram_type is array (0 to (2**10-1)-1) of std_logic_vector(wdata'range);
+	 type ram_type1 is array (0 to (2**10-1)-1) of ram_type;
     signal ROM_array : ram_type1:=(others => (others => (others =>'0')));
 	  
 	 signal tmp_int: integer:=0;

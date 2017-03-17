@@ -36,8 +36,9 @@ architecture Behavioral of CPU is
    			req <= "101000000" & adx & "00000000000000000000000000000000";
 ---   			wait for 3 ps;
    			req <= (others => '0');
-   			wait until cpu_res(50 downto 50)= "1";
+   			if cpu_res(50 downto 50)= "1" then 
    			data := cpu_res(31 downto 0);	
+				end if;
    			---wait for 10 ps;
  end  read;
  
@@ -48,7 +49,8 @@ architecture Behavioral of CPU is
    			req <= "110000000" & adx & data;
 ---   			wait for 3 ps;
    			req <= (others => '0');
-   			wait until cpu_res(50 downto 50)= "1";
+   			if cpu_res(50 downto 50)= "1" then
+				end if;
    			---wait for 10 ps;	
  end  write;
  
@@ -104,7 +106,7 @@ begin
     		read(turn, tmp_req, turn_v);
     		
     	end if;
-  wait;
+--  wait;
 
   end process; 
  

@@ -19,7 +19,7 @@ entity AXI is
 		wb_req1, wb_req2                                   : in  std_logic_vector(552 downto 0);
 		bus_res1                                           : out STD_LOGIC_VECTOR(552 downto 0);
 		bus_res2                                           : out STD_LOGIC_VECTOR(552 downto 0);
-		snoop_req1                                         : out STD_LOGIC_VECTOR(72 downto 0);
+		snoop_req1                                         : out STD_LOGIC_VECTOR(75 downto 0);
 		snoop_res1                            : in  STD_LOGIC_VECTOR(552 downto 0);
 		snp_hit1                                           : in  std_logic;
 		full_srq1                              : in  std_logic;
@@ -248,14 +248,14 @@ architecture Behavioral of AXI is
 	signal we8, re8, re9, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
 	signal emp8, emp9, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
 
-	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6    : std_logic_vector(552 downto 0);
+	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5,bus_res1_7, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6    : std_logic_vector(552 downto 0);
 	
 	signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1                         : std_logic;
 	signal gfx_ack3,gfx_ack4,gfx_ack5,gfx_ack6:std_logic;
 	signal uart_ack3,uart_ack4,uart_ack5,uart_ack6:std_logic;
 	signal usb_ack3,usb_ack4,usb_ack5,usb_ack6:std_logic;
 	signal audio_ack3,audio_ack4,audio_ack5,audio_ack6:std_logic;
-	signal uart_ack2, brs1_ack3, brs2_ack3, brs1_ack4, brs1_ack5, brs1_ack6, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
+	signal uart_ack2, brs1_ack3, brs2_ack3, brs1_ack4, brs1_ack5, brs1_ack6,brs1_ack7, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
 	signal togfx1, togfx2,togfx3,togfx4,togfx5,togfx6                                                                                   : std_logic_vector(75 downto 0) := (others => '0');
 	signal toaudio1, toaudio2,toaudio3,toaudio4,toaudio5,toaudio6                                                                                : std_logic_vector(75 downto 0) := (others => '0');
 	signal tousb1, tousb2    ,tousb3,tousb4,tousb5,tousb6                                                                                : std_logic_vector(75 downto 0) := (others => '0');
@@ -292,25 +292,14 @@ architecture Behavioral of AXI is
 	signal uart_upres_ack4, uart_upres_ack5, uart_upres_ack6    : std_logic;
 
 begin
-	snp_res_fif1 : entity work.STD_FIFO
-		generic map(
-			DATA_WIDTH => 55,
-			FIFO_DEPTH => 256
+	
+	
+	
+	wb_fif1 : entity work.STD_FIFO(Behavioral) 
+	generic map(
+			DATA_WIDTH => 553
 		)
-		port map(
-			CLK     => Clock,
-			RST     => reset,
-			DataIn  => in2,
-			WriteEn => we2,
-			ReadEn  => re2,
-			DataOut => out2,
-			Full    => full_srs1,
-			Empty   => emp2
-		);
-
-	
-	
-	wb_fif1 : entity work.STD_FIFO(Behavioral) port map(
+	port map(
 			CLK     => Clock,
 			RST     => reset,
 			DataIn  => in6,
@@ -320,7 +309,11 @@ begin
 			Full    => full_wb1,
 			Empty   => emp6
 		);
-	wb_fif2 : entity work.STD_FIFO(Behavioral) port map(
+	wb_fif2 : entity work.STD_FIFO(Behavioral) 
+	generic map(
+			DATA_WIDTH => 553
+		)
+	port map(
 			CLK     => Clock,
 			RST     => reset,
 			DataIn  => in7,
@@ -431,7 +424,7 @@ begin
 	begin
 		if reset = '1' then
 			---snoop_req1 <= "000"&nilreq;
-			pwr_req1 <= "00000";
+			---pwr_req1 <= "00000";
 		elsif rising_edge(Clock) then
 			if stage = 0 then
 				if re9 = '0' and emp9 = '0' then
@@ -1164,7 +1157,11 @@ begin
 		end if;
 	end process;
 
-	brs2_arbitor : entity work.arbiter6(Behavioral) port map(
+	brs2_arbitor : entity work.arbiter6(Behavioral)
+   generic map(
+			DATA_WIDTH => 553
+		)
+	port map(
 			clock => Clock,
 			reset => reset,
 			din1  => bus_res2_1,
@@ -1183,7 +1180,7 @@ begin
 		);
 	snp1_arbitor : entity work.arbiter6(Behavioral)
 		generic map(
-			DATA_WIDTH => 54
+			DATA_WIDTH => 76
 		)
 		port map(
 			clock => Clock,
@@ -1225,7 +1222,11 @@ begin
 			dout  => pwrreq
 		);
 
-	brs1_arbitor : entity work.arbiter6(Behavioral) port map(
+	brs1_arbitor : entity work.arbiter7(Behavioral) 
+	generic map(
+		DATA_WIDTH=>553
+	)
+	port map(
 			clock => Clock,
 			reset => reset,
 			din1  => bus_res1_1,
@@ -1240,9 +1241,14 @@ begin
 			ack5  => brs1_ack5,
 			din6  => bus_res1_6,
 			ack6  => brs1_ack6,
+			din7  => bus_res1_7,
+			ack7  => brs1_ack7,
 			dout  => bus_res1
 		);
-	gfx_upres_arbitor : entity work.arbiter6(Behavioral) port map(
+	gfx_upres_arbitor : entity work.arbiter6(Behavioral) 
+generic map(
+		DATA_WIDTH=>73
+	)	port map(
 			clock => Clock,
 			reset => reset,
 			din1  => gfx_upres1,
@@ -1259,7 +1265,11 @@ begin
 			ack6  => gfx_upres_ack6,
 			dout  => gfx_upres
 		);
-	audio_upres_arbitor : entity work.arbiter6(Behavioral) port map(
+	audio_upres_arbitor : entity work.arbiter6(Behavioral) 
+	generic map(
+		DATA_WIDTH=>73
+	)
+	port map(
 			clock => Clock,
 			reset => reset,
 			din1  => audio_upres1,
@@ -1311,7 +1321,11 @@ begin
 			dout  => uart_upres
 		);
 
-	wb_arbitor : entity work.arbiter2(Behavioral) port map(
+	wb_arbitor : entity work.arbiter2(Behavioral)
+	generic map(
+		DATA_WIDTH=>553
+	)
+	port map(
 			clock => Clock,
 			reset => reset,
 			din1  => mem_wb1,
@@ -1320,7 +1334,10 @@ begin
 			ack2  => wb_ack2,
 			dout  => mem_wb
 		);
-	gfx_wb_arbitor : entity work.arbiter2(Behavioral) port map(
+	gfx_wb_arbitor : entity work.arbiter2(Behavioral)
+generic map(
+		DATA_WIDTH=>553
+	)	port map(
 			clock => Clock,
 			reset => reset,
 			din1  => gfx_wb1,
@@ -1329,7 +1346,9 @@ begin
 			ack2  => gfx_wb_ack2,
 			dout  => gfx_wb
 		);
-	audio_wb_arbitor : entity work.arbiter2(Behavioral) port map(
+	audio_wb_arbitor : entity work.arbiter2(Behavioral)generic map(
+		DATA_WIDTH=>553
+	) port map(
 			clock => Clock,
 			reset => reset,
 			din1  => audio_wb1,
@@ -1482,7 +1501,9 @@ begin
 		end if;
 	end process;
 
-	usb_wb_arbitor : entity work.arbiter2(Behavioral) port map(
+	usb_wb_arbitor : entity work.arbiter2(Behavioral)generic map(
+		DATA_WIDTH=>553
+	) port map(
 			clock => Clock,
 			reset => reset,
 			din1  => usb_wb1,
@@ -1491,7 +1512,9 @@ begin
 			ack2  => usb_wb_ack2,
 			dout  => usb_wb
 		);
-	uart_wb_arbitor : entity work.arbiter2(Behavioral) port map(
+	uart_wb_arbitor : entity work.arbiter2(Behavioral)generic map(
+		DATA_WIDTH=>553
+	) port map(
 			clock => Clock,
 			reset => reset,
 			din1  => uart_wb1,
@@ -1992,7 +2015,7 @@ begin
 		variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
 		variable state  : integer                       := 0;
 		variable count  : integer                       := 0;
-		variable nildata: std_logic_vector(511 downto 0):=(others=>'0');
+		variable nildata: std_logic_vector(543 downto 0):=(others=>'0');
 	begin
 		if reset = '1' then
 			--snoop_req2 <= nilreq;
@@ -2000,7 +2023,7 @@ begin
 			if state = 0 then
 				if cache_req1(72 downto 72) = "1" and cache_req1(71 downto 64) = "11111111" then
 					---let's not consider power now, too complicated
-					pwr_req1 <= cache_req1(72 downto 46);
+					pwr_req1 <= '1'&cache_req1(64 downto 61);
 					state := 4;
 				elsif cache_req1(72 downto 72) = "1" and cache_req1(63 downto 32) = adr_1 then
 					state   := 3;
@@ -2008,7 +2031,7 @@ begin
 					-----
 					----don't forget to fill this up
 					-----
-					bus_res1_5 <= '1'&"11111111"&nildata;
+					bus_res1_7 <= '1'&"11111111"&nildata;
 				elsif cache_req1(72 downto 72) = "1"  then
 					---snoop_req2 <= cache_req1;
 					adr_0      <= cache_req1(63 downto 32);
@@ -2019,25 +2042,25 @@ begin
 				end if;
 			elsif state =2 then
 				if cache_req1(63 downto 63)="1" then
-					---this belongs to the memory
-					tomem1 <= cache_req1;
+					---this belongs to the memory					
+					tomem1 <= "000"&cache_req1;
 					state := 5;
 				elsif cache_req1(62 downto 61)="00" then
-					togfx1 <= cache_req1;
+					togfx1 <= "000"&cache_req1;
 					state :=6;
 				elsif cache_req1(62 downto 61)="01" then
-					touart1 <= cache_req1;
+					touart1 <= "000"&cache_req1;
 					state :=7;
 				elsif cache_req1(62 downto 61)="10" then
-					tousb1 <= cache_req1;
+					tousb1 <= "000"&cache_req1;
 					state :=8;
 				elsif cache_req1(62 downto 61)="11" then
-					toaudio1 <= cache_req1;
+					toaudio1 <= "000"&cache_req1;
 					state :=9;
 				end if;	
 			elsif state =3 then
 				if brs1_ack5='1' then
-					bus_res1_5<=(others => '0');
+					bus_res1_7<=(others => '0');
 				end if;
 			elsif state = 4 then
 				if pwr_ack1 = '1' then
@@ -2073,7 +2096,7 @@ begin
 		variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
 		variable state  : integer                       := 0;
 		variable count  : integer                       := 0;
-		variable nildata: std_logic_vector(511 downto 0):=(others=>'0');
+		variable nildata: std_logic_vector(543 downto 0):=(others=>'0');
 	begin
 		if reset = '1' then
 			--snoop_req2 <= nilreq;
@@ -2081,7 +2104,7 @@ begin
 			if state = 0 then
 				if cache_req2(72 downto 72) = "1" and cache_req2(71 downto 64) = "11111111" then
 					---let's not consider power now, too complicated
-					pwr_req2 <= cache_req2(72 downto 46);
+					pwr_req2 <= '1'&cache_req2(64 downto 61);
 					state := 4;
 				elsif cache_req2(72 downto 72) = "1" and cache_req2(63 downto 32) = adr_1 then
 					state   := 3;
@@ -2101,19 +2124,19 @@ begin
 			elsif state =2 then
 				if cache_req2(63 downto 63)="1" then
 					---this belongs to the memory
-					tomem2 <= cache_req2;
+					tomem2 <= "101"&cache_req2;
 					state := 5;
 				elsif cache_req2(62 downto 61)="00" then
-					togfx2 <= cache_req2;
+					togfx2 <= "101"&cache_req2;
 					state :=6;
 				elsif cache_req2(62 downto 61)="01" then
-					touart2 <= cache_req2;
+					touart2 <= "101"&cache_req2;
 					state :=7;
 				elsif cache_req2(62 downto 61)="10" then
-					tousb2 <= cache_req2;
+					tousb2 <= "101"&cache_req2;
 					state :=8;
 				elsif cache_req2(62 downto 61)="11" then
-					toaudio2 <= cache_req2;
+					toaudio2 <= "101"&cache_req2;
 					state :=9;
 				end if;	
 			elsif state =3 then
