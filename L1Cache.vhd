@@ -28,17 +28,17 @@ entity L1Cache is
            --10: write response
            --11: fifo full response
            snoop_hit : out std_logic;
-           snoop_res : out STD_LOGIC_VECTOR(552 downto 0):= (others => '0');
+           snoop_res : out STD_LOGIC_VECTOR(72 downto 0):= (others => '0');
            
            
            --goes to cache controller ask for data
            snoop_c_req: out std_logic_vector(72 downto 0);
-           snoop_c_res: in std_logic_vector(552 downto 0);
+           snoop_c_res: in std_logic_vector(72 downto 0);
            snoop_c_hit: in std_logic;
            
            up_snoop: in std_logic_vector(75 downto 0);
-			  up_snoop_res: out std_logic_vector(75 downto 0);
-			  up_snoop_hit: out std_logic;
+		   up_snoop_res: out std_logic_vector(75 downto 0);
+		   up_snoop_hit: out std_logic;
 			  
            wb_req: out std_logic_vector(552 downto 0);
             --01: read request
@@ -60,17 +60,20 @@ architecture Behavioral of L1Cache is
 --cache hold valid bit ,dirty bit, exclusive bit, 6 bits tag, 32 bits data, 41 bits in total
 	type rom_type is array (2**14-1 downto 0) of std_logic_vector (56 downto 0);     
 	signal ROM_array : rom_type:= (others => (others =>'0'));
-	signal we1,we2,we3,re1,re2,re3: std_logic:='0';
-	signal out1,out2,out3:std_logic_vector(72 downto 0);
-	signal emp1,emp2,emp3,ful1,ful2,ful3: std_logic:='0';	
+	signal we1,we2,we3,we4,re1,re2,re3,re4,re5,we5: std_logic:='0';
+	signal out1,out2,out3,out5:std_logic_vector(72 downto 0);
+	signal out4,in4: std_logic_vector(75 downto 0);
+	signal emp1,emp2,emp3,emp4,emp5,ful5,ful4,ful1,ful2,ful3: std_logic:='0';	
 	signal mem_req1,mem_req2,write_req: std_logic_vector(72 downto 0);
+	signal mem_req3, mem_res3: std_logic_vector(75 downto 0);
+	signal mem_ack3: std_logic;
 	signal mem_req2_1, mem_req2_2: std_logic_vector(72 downto 0);
 	signal mem_req2_ack1, mem_req2_ack2: std_logic;
 	signal upd_req,in3: std_logic_vector(552 downto 0);
 	signal mem_res1,wt_res,upd_res: std_logic_vector(71 downto 0);
-	signal mem_res2 : std_logic_vector(551 downto 0);
-	signal hit1,hit2,upd_ack,write_ack,mem_ack1,mem_ack2: std_logic;
-	signal in1,in2: std_logic_vector(72 downto 0);
+	signal mem_res2 : std_logic_vector(71 downto 0);
+	signal hit1,hit2,hit3,upd_ack,write_ack,mem_ack1,mem_ack2: std_logic;
+	signal in1,in2,in5: std_logic_vector(72 downto 0);
 	signal cpu_res1, cpu_res2: std_logic_vector(72 downto 0);
 	signal ack1, ack2: std_logic;
 	signal snp_c_req1,snp_c_req2: std_logic_vector(72 downto 0);
@@ -79,9 +82,13 @@ architecture Behavioral of L1Cache is
 	
 	signal prc:std_logic_vector(1 downto 0);
 	signal tmp_cpu_res1: std_logic_vector(72 downto 0):=(others => '0');
-	signal tmp_snp_res: std_logic_vector(552 downto 0);
+	signal tmp_snp_res: std_logic_vector(72 downto 0);
 	signal tmp_hit : std_logic;
 	signal tmp_mem: std_logic_vector(40 downto 0);
+	---this one is important!!!!
+	signal upreq:std_logic_vector(75 downto 0);
+	signal snpreq:std_logic_vector(73 downto 0);
+	
 begin
 	cpu_req_fif: entity work.STD_FIFO(Behavioral)
 	generic map(
@@ -98,7 +105,36 @@ begin
 		Full=>full_cprq,
 		Empty=>emp1
 		);
-	
+	snp_res_fif: entity work.STD_FIFO(Behavioral)
+	generic map(
+		DATA_WIDTH => 73,
+		FIFO_DEPTH => 256
+	)
+	 port map(
+		CLK=>Clock,
+		RST=>reset,
+		DataIn=>in5,
+		WriteEn=>we5,
+		ReadEn=>re5,
+		DataOut=> out5,
+		Full=>ful5,
+		Empty=>emp5
+		);
+	up_snp_req_fif: entity work.STD_FIFO(Behavioral)
+	generic map(
+		DATA_WIDTH => 76,
+		FIFO_DEPTH => 256
+	)
+	port map(
+		CLK=>Clock,
+		RST=>reset,
+		DataIn=>in4,
+		WriteEn=>we4,
+		ReadEn=>re4,
+		DataOut=>mem_req3,
+		Full=>full_srq,
+		Empty=>emp4
+		);
 	snp_req_fif: entity work.STD_FIFO(Behavioral) 
 	generic map(
 		DATA_WIDTH => 73,
@@ -225,6 +261,7 @@ begin
 		
 			if state =0 then
 				cache_req <= nilreq;
+				
 				if re1 = '0' and emp1 ='0' then
 					re1 <= '1';
 					state := 1;
@@ -244,6 +281,7 @@ begin
 						end if;
 					else
 						snp_c_req1 <= '1'&mem_res1;
+						snpreq <= '1'&mem_res1;
 						state :=5;
 					end if;
 				end if;
@@ -262,17 +300,68 @@ begin
 			elsif state = 5 then
 				if snp_c_ack1 ='1' then
 					snp_c_req1 <= (others => '0');
-					state := 0;
+					state := 6;
 				end if;
-			end if;
-		
-		
-		    
+			--now we wait for the snoop response
+			elsif state =6 then
+				if snoop_c_res(72 downto 72) = "1" then
+					--if we get a snoop response  and the address is the same  => 
+					if snoop_c_res(63 downto 32)=snpreq(63 downto 32) then
+						if snoop_c_hit ='1' then
+							state := 4;
+							cpu_res1 <= snoop_c_res;
+						else
+							cache_req<=snoop_c_res;
+							state := 0;
+						end if;
+					end if;
+				end if;
+			end if;  
 		end if;
 	end process;
         
 
-
+   ---deal with snoop request from bus,
+   --the difference is that when it's  uprequest snoop, once it fails, it will go to the other cache snoop
+   --also when found, the write will be operated here directly, and return nothing
+   --if it's read, then the data will be returned to request source
+   up_snp_req_p: process(reset,Clock)
+   		variable state:integer :=0;
+   begin
+   	if (reset ='1') then
+   		state := 0;
+   		up_snoop_res <= (others => '0');
+   		up_snoop_hit <= '1';
+   	elsif rising_edge(Clock) then
+   		if state =0 then
+   			up_snoop_res <= (others => '0');
+   			up_snoop_hit <= '0';
+   			if re4 ='0' and emp4='0' then
+   				re4 <= '1';
+   				state := 1;
+   			end if;
+   		elsif state =1 then
+   			re4 <= '0';
+   			if mem_ack3='1' then
+   				if hit3='1' then
+   					up_snoop_res<= mem_res3;
+   					up_snoop_hit<= '1';
+   					state := 0;
+   				else
+   					snp_c_req2<=mem_res3(72 downto 0);
+   					upreq<=mem_res3;
+   					state := 2;
+   				end if;
+   			end if;
+   		elsif state = 2 then
+   			if snp_c_ack2='1' then
+   				snp_c_req2<= (others=>'0');
+   				state :=0;
+   			end if;
+   		end if;
+   	end if;
+   		
+   end process;
 	--deal with snoop request
    snp_req_p:process (reset, Clock)
         	
@@ -355,12 +444,9 @@ begin
 
         --deal with cache memory
 	mem_control_unit:process(reset, Clock)
-        variable res:std_logic_vector(49 downto 0);
         variable indx:integer;
         variable memcont: std_logic_vector(56 downto 0);
-        variable nilmem: std_logic_vector(56 downto 0):=(others =>'0');
         variable nilreq:std_logic_vector(72 downto 0):=(others => '0');
-        variable nilreq1:std_logic_vector(73 downto 0):=(others => '0');
         variable nilreq2:std_logic_vector(552 downto 0):=(others => '0');
         variable shifter:boolean:=false;
 	begin
@@ -372,7 +458,7 @@ begin
 			upd_ack <= '0';
 		elsif rising_edge(Clock) then
 		    mem_res1 <= nilreq(71 downto 0);
-            mem_res2 <= nilreq2(551 downto 0);
+            mem_res2 <= nilreq(71 downto 0);
             write_ack <= '0';
             upd_ack <= '0';
             wb_req<=nilreq2;
@@ -380,7 +466,8 @@ begin
 				indx := to_integer(unsigned(mem_req1(45 downto 32)));
          		memcont:=ROM_array(indx);
          		--if we can't find it in memory
-         		if memcont(56 downto 56)="0" or mem_req1(71 downto 64)="10000000" or mem_req1(71 downto 64)="11000000"
+         		if memcont(56 downto 56)="0" or mem_req1(71 downto 64)="10000000" 
+         		or mem_req1(71 downto 64)="11000000"
                         or memcont(53 downto 32)/=mem_req1(63 downto 42) then
 					mem_ack1<='1';
 					hit1 <= '0';
@@ -407,7 +494,7 @@ begin
                         or memcont(53 downto 32)/=mem_req2(63 downto 42) then
 					mem_ack2<='1';
 					hit2<='0';
-					mem_res2 <= mem_req2(71 downto 0)&nilreq2(479 downto 0);
+					mem_res2 <= mem_req2(71 downto 0);
 				else
 					mem_ack2<='1';
 					hit2<='1';
@@ -416,49 +503,55 @@ begin
 						ROM_array(indx)(56) <= '0';
 						ROM_array(indx)(31 downto 0) <= mem_req2(31 downto 0);
 						mem_res2 <= mem_req2(71 downto 32)
-						& ROM_array(indx/16 * 16)(31 downto 0) 
-						& ROM_array(indx/16 * 16+1)(31 downto 0)
-						& ROM_array(indx/16 * 16+2)(31 downto 0)
-						&ROM_array(indx/16 * 16+3)(31 downto 0)
-						&ROM_array(indx/16 * 16+4)(31 downto 0)
-						&ROM_array(indx/16 * 16+5)(31 downto 0)
-						&ROM_array(indx/16 * 16+6)(31 downto 0)
-						&ROM_array(indx/16 * 16+7)(31 downto 0)
-						&ROM_array(indx/16 * 16+8)(31 downto 0)
-						&ROM_array(indx/16 * 16+9)(31 downto 0)
-						&ROM_array(indx/16 * 16+10)(31 downto 0)
-						&ROM_array(indx/16 * 16+11)(31 downto 0)
-						&ROM_array(indx/16 * 16+12)(31 downto 0)
-						&ROM_array(indx/16 * 16+13)(31 downto 0)
-						&ROM_array(indx/16 * 16+14)(31 downto 0)
-						&ROM_array(indx/16 * 16+15)(31 downto 0);
+						& ROM_array(indx)(31 downto 0);
 					else
 					--if it's read, mark the exclusive as 0
 						ROM_array(indx)(54) <= '0';
 						mem_res2 <= mem_req2(71 downto 32)
-						& ROM_array(indx/16 * 16)(31 downto 0) 
-						& ROM_array(indx/16 * 16+1)(31 downto 0)
-						& ROM_array(indx/16 * 16+2)(31 downto 0)
-						&ROM_array(indx/16 * 16+3)(31 downto 0)
-						&ROM_array(indx/16 * 16+4)(31 downto 0)
-						&ROM_array(indx/16 * 16+5)(31 downto 0)
-						&ROM_array(indx/16 * 16+6)(31 downto 0)
-						&ROM_array(indx/16 * 16+7)(31 downto 0)
-						&ROM_array(indx/16 * 16+8)(31 downto 0)
-						&ROM_array(indx/16 * 16+9)(31 downto 0)
-						&ROM_array(indx/16 * 16+10)(31 downto 0)
-						&ROM_array(indx/16 * 16+11)(31 downto 0)
-						&ROM_array(indx/16 * 16+12)(31 downto 0)
-						&ROM_array(indx/16 * 16+13)(31 downto 0)
-						&ROM_array(indx/16 * 16+14)(31 downto 0)
-						&ROM_array(indx/16 * 16+15)(31 downto 0);
+						& ROM_array(indx)(31 downto 0);
 					end if;
 					
 				end if;
 			else
 			     mem_ack2<='0';
 			end if;
-                
+             
+             
+            if mem_req3(72 downto 72)="1" then
+				indx:=to_integer(unsigned(mem_req3(45 downto 32)));
+				memcont:=ROM_array(indx);
+				-- if we can't find it in memory
+				if  memcont(56 downto 56)="0" 
+                        or memcont(53 downto 32)/=mem_req3(63 downto 42) then
+					mem_ack3<='1';
+					hit3<='0';
+					mem_res3 <= mem_req3;
+				else
+					mem_ack3<='1';
+					hit3<='1';
+					--if it's write, write it directly
+					-----this need to be changed
+					----
+					---
+					---
+					---
+					if mem_req3(71 downto 64) ="10000000" then
+						ROM_array(indx)(56) <= '0';
+						ROM_array(indx)(31 downto 0) <= mem_req3(31 downto 0);
+						mem_res3 <= mem_req3(75 downto 32)
+						& ROM_array(indx)(31 downto 0) ;
+					else
+					--if it's read, mark the exclusive as 0
+					---not for this situation, because it is shared by other ips
+						---ROM_array(indx)(54) <= '0';
+						mem_res3 <= mem_req3(75 downto 32)
+						& ROM_array(indx)(31 downto 0);
+					end if;
+					
+				end if;
+			else
+			     mem_ack3<='0';
+			end if;   
                 --first deal with write request from cpu_request
                 --the write is only sent here if the data exist in cahce memory
                 

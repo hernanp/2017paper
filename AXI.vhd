@@ -433,7 +433,7 @@ begin
 				end if;
 			elsif stage = 1 then
 				re9 <= '0';
-				if out9(50 downto 50) = "1" then
+				if out9(72 downto 72) = "1" then
 					snp1_2 <= "001" & out9;
 					stage  := 2;
 				end if;
@@ -447,21 +447,19 @@ begin
 	end process;
 
 	audio_upreq_p : process(reset, Clock)
-		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
 		variable stage  : integer                       := 0;
-	---variable count: integer:=0;
 	begin
 		if reset = '1' then
 		---snoop_req1 <= "000"&nilreq;
 		elsif rising_edge(Clock) then
 			if stage = 0 then
-				if re13 = '0' and emp9 = '0' then
+				if re13 = '0' and emp13 = '0' then
 					re13  <= '1';
 					stage := 1;
 				end if;
 			elsif stage = 1 then
 				re13 <= '0';
-				if out13(50 downto 50) = "1" then
+				if out13(72 downto 72) = "1" then
 					snp1_3 <= "100" & out13;
 					stage  := 2;
 				end if;
@@ -483,7 +481,7 @@ begin
 		---snoop_req1 <= "000"&nilreq;
 		elsif rising_edge(Clock) then
 			if stage = 0 then
-				if re14 = '0' and emp4 = '0' then
+				if re14 = '0' and emp14 = '0' then
 					re14  <= '1';
 					stage := 1;
 				end if;
@@ -511,14 +509,14 @@ begin
 		---snoop_req1 <= "000"&nilreq;
 		elsif rising_edge(Clock) then
 			if stage = 0 then
-				if re15 = '0' and emp4 = '0' then
+				if re15 = '0' and emp15 = '0' then
 					re15  <= '1';
 					stage := 1;
 				end if;
 			elsif stage = 1 then
 				re15 <= '0';
 				if out15(50 downto 50) = "1" then
-					snp1_5 <= "010" & out14;
+					snp1_5 <= "010" & out15;
 					stage  := 2;
 				end if;
 			elsif stage = 2 then
@@ -1730,287 +1728,7 @@ generic map(
     	end if;
     	
     end process;
---	gfx_res_p : process(reset, Clock)
---		variable stage : integer := 0;
---		variable cpu1  : std_logic;
---	begin
---		if reset = '1' then
---			bus_res1_3 <= (others => '0');
---			bus_res2_3 <= (others => '0');
---		elsif rising_edge(Clock) then
---			if stage = 0 then
---				if re8 = '0' and emp8 = '0' then
---					re8   <= '1';
---					stage := 1;
---				end if;
---			elsif stage = 1 then
---				re8 <= '0';
---				if out8(50 downto 50) = "1" then
---					---response for cpu1
---					if out8(53 downto 51) = "000" then
---						---reg_1 <= out8(50 downto 0);
---						bus_res1_3 <= out8(50 downto 0);
---						cpu1       := '1';
---						stage      := 2;
---					elsif out8(53 downto 51) = "001" then
---						gfx_upres3 <= out8(50 downto 0);
---						stage      := 3;
---					elsif out8(53 downto 51) = "010" then
---						uart_upres3 <= out8(50 downto 0);
---						stage       := 4;
---					elsif out8(53 downto 51) = "011" then
---						usb_upres3 <= out8(50 downto 0);
---						stage      := 5;
---					elsif out8(53 downto 51) = "100" then
---						audio_upres3 <= out8(50 downto 0);
---						stage        := 6;
---					---response for cpu2
---					elsif out8(53 downto 51) = "101" then
---						---reg_2 <= out3(50 downto 0);
---						bus_res2_3 <= out8(50 downto 0);
---						cpu1       := '0';
---						stage      := 2;
---					end if;
---				end if;
---			elsif stage = 2 then
---				if cpu1 = '1' and brs1_ack3 = '1' then
---					bus_res1_3 <= (others => '0');
---					stage      := 0;
---				elsif cpu1 = '0' and brs2_ack3 = '1' then
---					bus_res2_3 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 3 then
---				if gfx_upres_ack3 = '1' then
---					gfx_upres3 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 4 then
---				if uart_upres_ack3 = '1' then
---					uart_upres3 <= (others => '0');
---					stage       := 0;
---				end if;
---			elsif stage = 5 then
---				if usb_upres_ack3 = '1' then
---					usb_upres3 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 6 then
---				if audio_upres_ack3 = '1' then
---					usb_upres3 <= (others => '0');
---					stage      := 0;
---				end if;
---			end if;
---		end if;
---
---	end process;
---	audio_res_p : process(reset, Clock)
---		variable stage : integer := 0;
---		variable cpu1  : std_logic;
---	begin
---		if reset = '1' then
---			bus_res1_4 <= (others => '0');
---			bus_res2_4 <= (others => '0');
---		elsif rising_edge(Clock) then
---			if stage = 0 then
---				if re10 = '0' and emp10 = '0' then
---					re10  <= '1';
---					stage := 1;
---				end if;
---			elsif stage = 1 then
---				re10 <= '0';
---				if out10(50 downto 50) = "1" then
---
---					---response for cpu1
---					if out10(53 downto 51) = "000" then
---						---reg_1 <= out10(50 downto 0);
---						bus_res1_4 <= out10(50 downto 0);
---						cpu1       := '1';
---						stage      := 2;
---					elsif out10(53 downto 51) = "001" then
---						gfx_upres4 <= out10(50 downto 0);
---						stage      := 3;
---					elsif out10(53 downto 51) = "010" then
---						uart_upres4 <= out10(50 downto 0);
---						stage       := 4;
---					elsif out10(53 downto 51) = "011" then
---						usb_upres4 <= out10(50 downto 0);
---						stage      := 5;
---
---					---response for cpu2
---					elsif out10(53 downto 51) = "101" then
---						---reg_2 <= out3(50 downto 0);
---						bus_res2_4 <= out10(50 downto 0);
---						cpu1       := '0';
---						stage      := 2;
---					end if;
---				end if;
---			elsif stage = 2 then
---				if cpu1 = '1' and brs1_ack3 = '1' then
---					bus_res1_4 <= (others => '0');
---					stage      := 0;
---				elsif cpu1 = '0' and brs2_ack3 = '1' then
---					bus_res2_4 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 3 then
---				if gfx_upres_ack4 = '1' then
---					gfx_upres4 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 4 then
---				if uart_upres_ack4 = '1' then
---					uart_upres4 <= (others => '0');
---					stage       := 0;
---				end if;
---			elsif stage = 5 then
---				if usb_upres_ack4 = '1' then
---					usb_upres4 <= (others => '0');
---					stage      := 0;
---				end if;
---
---			end if;
---		end if;
---
---	end process;
---	usb_res_p : process(reset, Clock)
---		variable stage : integer := 0;
---		variable cpu1  : std_logic;
---	begin
---		if reset = '1' then
---			bus_res1_5 <= (others => '0');
---			bus_res2_5 <= (others => '0');
---		elsif rising_edge(Clock) then
---			if stage = 0 then
---				if re11 = '0' and emp11 = '0' then
---					re11  <= '1';
---					stage := 1;
---				end if;
---			elsif stage = 1 then
---				re11 <= '0';
---				if out11(50 downto 50) = "1" then
---
---					---response for cpu1
---					if out11(53 downto 51) = "000" then
---						---reg_1 <= out11(50 downto 0);
---						bus_res1_5 <= out11(50 downto 0);
---						cpu1       := '1';
---						stage      := 2;
---					elsif out11(53 downto 51) = "001" then
---						gfx_upres5 <= out11(50 downto 0);
---						stage      := 3;
---					elsif out11(53 downto 51) = "010" then
---						uart_upres5 <= out11(50 downto 0);
---						stage       := 4;
---					elsif out11(53 downto 51) = "100" then
---						audio_upres5 <= out11(50 downto 0);
---						stage        := 6;
---					---response for cpu2
---					elsif out11(53 downto 51) = "101" then
---						---reg_2 <= out3(50 downto 0);
---						bus_res2_5 <= out11(50 downto 0);
---						cpu1       := '0';
---						stage      := 2;
---					end if;
---				end if;
---			elsif stage = 2 then
---				if cpu1 = '1' and brs1_ack3 = '1' then
---					bus_res1_5 <= (others => '0');
---					stage      := 0;
---				elsif cpu1 = '0' and brs2_ack3 = '1' then
---					bus_res2_5 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 3 then
---				if gfx_upres_ack5 = '1' then
---					gfx_upres5 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 4 then
---				if uart_upres_ack5 = '1' then
---					uart_upres5 <= (others => '0');
---					stage       := 0;
---				end if;
---			elsif stage = 6 then
---				if audio_upres_ack5 = '1' then
---					usb_upres5 <= (others => '0');
---					stage      := 0;
---				end if;
---			end if;
---		end if;
---
---	end process;
---
---	uart_res_p : process(reset, Clock)
---		variable stage : integer := 0;
---		variable cpu1  : std_logic;
---	begin
---		if reset = '1' then
---			bus_res1_6 <= (others => '0');
---			bus_res2_6 <= (others => '0');
---		elsif rising_edge(Clock) then
---			if stage = 0 then
---				if re12 = '0' and emp12 = '0' then
---					re12  <= '1';
---					stage := 1;
---				end if;
---			elsif stage = 1 then
---				re12 <= '0';
---				if out12(50 downto 50) = "1" then
---
---					---response for cpu1
---					if out12(53 downto 51) = "000" then
---						---reg_1 <= out12(50 downto 0);
---						bus_res1_6 <= out12(50 downto 0);
---						cpu1       := '1';
---						stage      := 2;
---					elsif out12(53 downto 51) = "001" then
---						gfx_upres6 <= out12(50 downto 0);
---						stage      := 3;
---
---					elsif out12(53 downto 51) = "011" then
---						usb_upres6 <= out12(50 downto 0);
---						stage      := 5;
---					elsif out12(53 downto 51) = "100" then
---						audio_upres6 <= out12(50 downto 0);
---						stage        := 6;
---					---response for cpu2
---					elsif out12(53 downto 51) = "101" then
---						---reg_2 <= out3(50 downto 0);
---						bus_res2_6 <= out12(50 downto 0);
---						cpu1       := '0';
---						stage      := 2;
---					end if;
---				end if;
---			elsif stage = 2 then
---				if cpu1 = '1' and brs1_ack6 = '1' then
---					bus_res1_6 <= (others => '0');
---					stage      := 0;
---				elsif cpu1 = '0' and brs2_ack6 = '1' then
---					bus_res2_6 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 3 then
---				if gfx_upres_ack6 = '1' then
---					gfx_upres6 <= (others => '0');
---					stage      := 0;
---				end if;
---
---			elsif stage = 5 then
---				if usb_upres_ack6 = '1' then
---					usb_upres6 <= (others => '0');
---					stage      := 0;
---				end if;
---			elsif stage = 6 then
---				if audio_upres_ack6 = '1' then
---					usb_upres6 <= (others => '0');
---					stage      := 0;
---				end if;
---			end if;
---		end if;
---
---	end process;
---	---deal with cache request
+--	
 	cache_req1_p : process(reset, Clock)
 		variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
 		variable state  : integer                       := 0;
@@ -2033,11 +1751,9 @@ generic map(
 					-----
 					bus_res1_7 <= '1'&"11111111"&nildata;
 				elsif cache_req1(72 downto 72) = "1"  then
-					---snoop_req2 <= cache_req1;
 					adr_0      <= cache_req1(63 downto 32);
-					state      := 1;
+					state      := 2;
 				else
-					---snoop_req2 <= nilreq;
 					state      := 0;
 				end if;
 			elsif state =2 then
@@ -2116,7 +1832,7 @@ generic map(
 				elsif cache_req2(72 downto 72) = "1"  then
 					---snoop_req2 <= cache_req2;
 					adr_0      <= cache_req2(63 downto 32);
-					state      := 1;
+					state      := 2;
 				else
 					---snoop_req2 <= nilreq;
 					state      := 0;
@@ -2171,91 +1887,5 @@ generic map(
 			end if;
 		end if;
 	end process;
---	snp_res1_p : process(reset, Clock)
---		variable nilreq : std_logic_vector(552 downto 0) := (others => '0');
---		variable state  : integer                        := 0;
---	begin
---		if reset = '1' then
---			re2        <= '0';
---			bus_res2_1 <= (others => '0');
---			tomem1     <= nilreq(75 downto 0);
---		---tmp_brs2_1 <= nilreq;
---		---tmp_mem1 <=nilreq;
---		elsif rising_edge(Clock) then
---			if state = 0 then
---				if re2 = '0' and emp2 = '0' then
---					re2   <= '1';
---					state := 1;
---				end if;
---
---			elsif state = 1 then
---				re2 <= '0';
---				if out2(552 downto 552) = "1" then
---					if out2(553 downto 553) = "1" then --it;s a hit
---						state      := 2;
---						bus_res2_1 <= out2(552 downto 0);
---					else                ---it's a miss
---						state  := 3;
---						tomem1 <= "101"&out2(552 downto 480);
---					end if;
---				end if;
---			elsif state = 2 then
---				if brs2_ack1 = '1' then
---					bus_res2_1 <= nilreq;
---					state      := 0;
---				end if;
---
---			elsif state = 3 then
---				if mem_ack1 = '1' then
---					tomem1 <= nilreq(75 downto 0);
---					state  := 0;
---				end if;
---
---			end if;
---
---		end if;
---	end process;
---	snp_res2_p : process(reset, Clock)
---		variable nilreq : std_logic_vector(552 downto 0) := (others => '0');
---		variable state  : integer                        := 0;
---	begin
---		if reset = '1' then
---			re5        <= '0';
---			bus_res1_2 <= nilreq;
---			tomem2     <= nilreq(75 downto 0);
---			--tmp_brs1_2 <= nilreq;
---			--tmp_mem2 <=nilreq;
---			state      := 0;
---		elsif rising_edge(Clock) then
---			if state = 0 then
---				if re5 = '0' and emp5 = '0' then
---					re5   <= '1';
---					state := 1;
---				end if;
---			elsif state = 1 then
---				re5 <= '0';
---				if out5(552 downto 552) = "1" then
---					if out5(553 downto 553) = "1" then --it;s a hit
---						state      := 2;
---						bus_res1_2 <= out5(552 downto 0);
---					else                ---it's a miss
---						tomem2 <= "000"&out5(552 downto 480);
---						state  := 3;
---					end if;
---				end if;
---
---			elsif state = 2 then
---				if brs1_ack2 = '1' then
---					bus_res1_2 <= nilreq;
---					state      := 0;
---				end if;
---
---			elsif state = 3 then
---				if mem_ack2 = '1' then
---					tomem2 <= nilreq(75 downto 0);
---					state  := 0;
---				end if;
---			end if;
---		end if;
---	end process;
+
 end Behavioral;
