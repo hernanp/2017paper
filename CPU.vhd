@@ -41,11 +41,11 @@ architecture Behavioral of CPU is
 			        variable data : in  std_logic_vector(31 downto 0)) is
 	begin
 		req <= "110000000" & adx & data;
-		wait for 3 ps;
+------		wait for 3 ps;
 		req <= (others => '0');
 		if cpu_res(72 downto 72) = "1" then
 		end if;
-		wait for 10 ps;
+----		wait for 10 ps;
 	end write;
 
 	procedure power(variable cmd : in  std_logic_vector(1 downto 0);
@@ -85,7 +85,7 @@ begin
 		variable pwrcmd      : std_logic_vector(1 downto 0);
 		variable hwlc        : std_logic_vector(1 downto 0);
 	begin
-		wait for 80 ps;
+--wait for 80 ps;
 		pwrcmd := "00";
 		hwlc   := "00";
 		---power(pwrcmd, tmp_req, hwlc);
@@ -96,7 +96,7 @@ begin
 			read(turn, tmp_req, turn_v);
 
 		end if;
-		wait;
+	--	wait;
 
 	end process;
 

@@ -58,7 +58,7 @@ architecture Behavioral of L1Cache is
 	signal we1, we2, we3, we4, re1, re2, re3, re4, re5, we5           : std_logic := '0';
 	signal out1, out2, out3, out5                                     : std_logic_vector(72 downto 0);
 	signal out4, in4                                                  : std_logic_vector(75 downto 0);
-	signal emp1, emp2, emp3, emp4, emp5, ful5 : std_logic := '0';
+	signal emp1, emp2, emp3, emp4, emp5,ful4, ful5 : std_logic := '0';
 	signal mem_req1, mem_req2, write_req                              : std_logic_vector(72 downto 0);
 	signal mem_req3, mem_res3                                         : std_logic_vector(75 downto 0);
 	signal mem_ack3                                                   : std_logic;
@@ -126,7 +126,7 @@ begin
 			WriteEn => we4,
 			ReadEn  => re4,
 			DataOut => mem_req3,
-			Full    => full_srq,
+			Full    => ful4,
 			Empty   => emp4
 		);
 	snp_req_fif : entity work.STD_FIFO(Behavioral)
