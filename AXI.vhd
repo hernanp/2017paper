@@ -285,11 +285,11 @@ architecture Behavioral of AXI is
 	signal uart_upres4, uart_upres5, uart_upres6                : std_logic_vector(72 downto 0);
 	signal uart_upres_ack4, uart_upres_ack5, uart_upres_ack6    : std_logic;
 	
-	signal gfx_write1, usb_write1,uart_write1,audio_write1:std_logic_vector(75 downto 0);
-	signal gfx_write2,gfx_write3,usb_write2,usb_write3,uart_write2,uart_write3,audio_write2,audio_write3:std_logic_vector(552 downto 0);
-	signal gfx_write_ack1,usb_write_ack1,uart_write_ack1,audio_write_ack1: std_logic;
-	signal gfx_write_ack2,usb_write_ack2,uart_write_ack2,audio_write_ack2: std_logic;
-	signal gfx_write_ack3,usb_write_ack3,uart_write_ack3,audio_write_ack3: std_logic;
+	signal gfx_write1,mem_write1,usb_write1,uart_write1,audio_write1:std_logic_vector(75 downto 0);
+	signal mem_write2,mem_write3,gfx_write2,gfx_write3,usb_write2,usb_write3,uart_write2,uart_write3,audio_write2,audio_write3:std_logic_vector(552 downto 0);
+	signal mem_write_ack1,gfx_write_ack1,usb_write_ack1,uart_write_ack1,audio_write_ack1: std_logic;
+	signal mem_write_ack2,gfx_write_ack2,usb_write_ack2,uart_write_ack2,audio_write_ack2: std_logic;
+	signal mem_write_ack3,gfx_write_ack3,usb_write_ack3,uart_write_ack3,audio_write_ack3: std_logic;
 
 begin
 	wb_fif1 : entity work.STD_FIFO(Behavioral)
@@ -580,10 +580,19 @@ begin
 				uart_upres1  <= (others => '0');
 				audio_upres1 <= (others => '0');
 				usb_upres1   <= (others => '0');
-				if tomem_p(72 downto 72) = "1" then
+				if tomem_p(72 downto 72) = "1" and tomem_p(71 downto 64) = "10000000" then
 					tep_mem := tomem_p;
 					state   := 6;
+				elsif tomem_p(72 downto 72) = "1" and tomem_p(71 downto 64) = "01000000" then
+					if tomem_p(75 downto 73)="001" or tomem_p(75 downto 73)="011"  or tomem_p(75 downto 73)="010"  or tomem_p(75 downto 73)="100" then
+						mem_write1<=tomem_p;
+						state   := 9;
+					else
+						tep_mem := tomem_p;
+						state   := 6;
+					end if;
 				end if;
+				
 			elsif state = 6 then
 				if rready = '1' then
 					--mem_ack <= '0';
@@ -668,6 +677,11 @@ begin
 				if audio_upres_ack1 = '1' then
 					audio_upres1 <= (others => '0');
 					state        := 0;
+				end if;
+			elsif state = 9 then
+				if mem_write_ack1 ='1' then
+					mem_write1<=(others=>'0');
+					state := 0;
 				end if;
 			end if;
 		end if;
@@ -810,6 +824,104 @@ begin
 		end if;
 	end process;
 
+	mem_write:process(reset, Clock)
+		variable state:integer :=0;
+		variable tep_mem:std_logic_vector(75 downto 0);
+		variable tep_mem_l:std_logic_vector(552 downto 0);
+		variable flag:std_logic;
+		variable tdata :std_logic_vector(511 downto 0);
+		variable lp:integer :=0;
+		--if flag is 1, then return mem write 2
+	begin
+		if reset ='1' then
+			flag :='0';
+		elsif rising_edge(Clock)then
+			if state = 0 then
+				lp :=0;
+				mem_write_ack1<='0';
+				mem_write_ack2<='0';
+				mem_write_ack3<='0';
+				if mem_write1(72 downto 72)="1" then
+					state := 1;
+					tep_mem:=mem_write1;
+				elsif mem_write2(552 downto 552)="1" then
+					state := 4;
+					tep_mem_l :=mem_write2;
+					flag :='1';
+				elsif mem_write3(552 downto 552)="1" then
+					state := 4;
+					tep_mem_l :=mem_write3;
+					flag :='0';
+				end if;
+			elsif state =1 then
+				if wready = '0' then
+					wvalid <= '1';
+					waddr  <= tep_mem(63 downto 32);
+					wlen   <= "00000" & "10000";
+					wsize  <= "00001" & "00000";
+					--wdata_audio := tep_mem(31 downto 0);
+					state      := 2;
+				end if;
+			elsif state = 2 then
+				if wdataready = '1' then
+					wdvalid <= '1';
+					wtrb    <= "1111";
+					wdata  <= tep_mem(31 downto 0);
+					wlast   <= '1';
+					state       := 3;
+				end if;
+
+			elsif state = 3 then
+				wdvalid <= '0';
+				wrready <= '1';
+				if wrvalid = '1' then
+					if wrsp = "00" then
+						state := 0;
+						mem_write_ack1<='1';
+					---this is a successful write back, yayyy
+					end if;
+					wrready <= '0';
+				end if;
+			elsif state =4 then
+				if wready = '0' then
+						wvalid <= '1';
+						waddr  <= mem_wb(543 downto 512);
+						wlen   <= "00000" & "10000";
+						wsize  <= "00001" & "00000";
+						tdata      := tep_mem_l(511 downto 0);
+						state      := 5;
+				end if;
+			elsif state = 5 then
+					if wdataready = '1' then
+						wdvalid <= '1';
+						wtrb   <= "1111";
+						wdata   <= tdata(lp + 31 downto lp);
+						lp          := lp + 32;
+						if lp = 512 then
+							wlast <= '1';
+							state     := 6;
+							lp        := 0;
+						end if;
+					end if;
+			elsif state = 6 then
+					wdvalid <= '0';
+					wrready <= '1';
+					if wrvalid = '1' then
+						state := 0;
+						if wrsp = "00" then
+						---this is a successful write back, yayyy
+							if flag='1' then
+								mem_write_ack2<='1';
+							else
+								mem_write_ack3<='1';
+							end if;
+						end if;
+						wrready <= '0';
+					end if;
+			end if;
+		end if;
+	end process;
+	
 	gfx_write:process(reset, Clock)
 		variable state:integer :=0;
 		variable tep_gfx:std_logic_vector(75 downto 0);
@@ -1797,12 +1909,7 @@ begin
 				re6 <= '0';
 				if out6(552 downto 552) = "1" then
 					if out6(543 downto 543) = "1" then
-						wvalid <= '1';
-						waddr  <= out7(543 downto 512);
-						wlen   <= "00000" & "10000";
-						wsize  <= "00001" & "00000";
-						tdata  := out7(511 downto 0);
-						state  := 1;
+						mem_write2 <=out6;
 					elsif out6(542 downto 541) = "00" and wready_gfx = '0' then
 						gfx_write2 <= out6;
 						state      := 3;
@@ -1818,27 +1925,11 @@ begin
 					end if;
 				end if;
 			elsif state = 1 then
-				if wdataready = '1' then
-					wdvalid <= '1';
-					wtrb    <= "1111";
-					wdata   <= tdata(lp + 31 downto lp);
-					lp      := lp + 32;
-					if lp = 512 then
-						wlast <= '1';
-						state := 2;
-						lp    := 0;
-					end if;
+				if mem_write_ack2='1' then
+					mem_write2 <=(others => '0');
+					state :=0;
 				end if;
-			elsif state = 2 then
-				wdvalid <= '0';
-				wrready <= '1';
-				if wrvalid = '1' then
-					state := 0;
-					if wrsp = "00" then
-					---this is a successful write back, yayyy
-					end if;
-					wrready <= '0';
-				end if;
+		
 			
 	
 			elsif state = 3 then
@@ -1885,11 +1976,7 @@ begin
 				re7 <= '0';
 				if out7(552 downto 552) = "1" then
 					if out7(543 downto 543) = "1" then
-						wvalid <= '1';
-						waddr  <= out7(543 downto 512);
-						wlen   <= "00000" & "10000";
-						wsize  <= "00001" & "00000";
-						tdata  := out7(511 downto 0);
+						mem_write3 <=out7;
 						state  := 1;
 					elsif out7(542 downto 541) = "00" and wready_gfx = '0' then
 						gfx_write3 <= out7;
@@ -1906,28 +1993,10 @@ begin
 					end if;
 				end if;
 			elsif state = 1 then
-				if wdataready = '1' then
-					wdvalid <= '1';
-					wtrb    <= "1111";
-					wdata   <= tdata(lp + 31 downto lp);
-					lp      := lp + 32;
-					if lp = 512 then
-						wlast <= '1';
-						state := 2;
-						lp    := 0;
-					end if;
+				if mem_write_ack3='1' then
+					mem_write3<=(others=>'0');
+					state:=0;
 				end if;
-			elsif state = 2 then
-				wdvalid <= '0';
-				wrready <= '1';
-				if wrvalid = '1' then
-					state := 0;
-					if wrsp = "00" then
-					---this is a successful write back, yayyy
-					end if;
-					wrready <= '0';
-				end if;
-			
 	
 			elsif state = 3 then
 				if gfx_write_ack3='1' then
