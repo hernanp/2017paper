@@ -20,7 +20,7 @@ entity AXI is
 		bus_res1                                           : out STD_LOGIC_VECTOR(552 downto 0);
 		bus_res2                                           : out STD_LOGIC_VECTOR(552 downto 0);
 		snoop_req1                                         : out STD_LOGIC_VECTOR(75 downto 0);
-		snoop_res1                            : in  STD_LOGIC_VECTOR(552 downto 0);
+		snoop_res1                            					: in  STD_LOGIC_VECTOR(75 downto 0);
 		snp_hit1                                           : in  std_logic;
 		full_srq1                              : in  std_logic;
 		full_wb1, full_srs1, full_wb2,  full_mrs : out std_logic;
@@ -215,7 +215,7 @@ architecture Behavioral of AXI is
 
 	signal in6, in7, out6, out7 : std_logic_vector(552 downto 0);
 
-	signal in2, out2                                                               : std_logic_vector(553 downto 0);
+	signal in2, out2                                                               : std_logic_vector(72 downto 0);
 	signal  we2,  we6, we7, re7, re2,  re6               : std_logic := '0';
 	signal emp2,  emp6, emp7,  ful2: std_logic := '0';
 
@@ -328,7 +328,11 @@ begin
 			Full    => gfx_upreq_full,
 			Empty   => emp9
 		);
-	snp_res_fifo : entity work.STD_FIFO(Behavioral) port map(
+	snp_res_fifo : entity work.STD_FIFO(Behavioral)
+	generic map(
+			DATA_WIDTH => 73
+		)
+	port map(
 			CLK     => Clock,
 			RST     => reset,
 			DataIn  => in2,

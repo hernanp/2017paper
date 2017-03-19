@@ -37,8 +37,8 @@ entity L1Cache is
            snoop_c_hit: in std_logic;
            
            up_snoop: in std_logic_vector(75 downto 0);
-		   up_snoop_res: out std_logic_vector(75 downto 0);
-		   up_snoop_hit: out std_logic;
+				up_snoop_res: out std_logic_vector(75 downto 0);
+				up_snoop_hit: out std_logic;
 			  
            wb_req: out std_logic_vector(552 downto 0);
             --01: read request
@@ -379,11 +379,11 @@ begin
 	begin
 		if (reset = '1') then
 			-- reset signals
-			snoop_res <= nilreq1;
+			snoop_res <= (others => '0');
 			snoop_hit <='0';
 		elsif rising_edge(Clock) then
 			if state =0 then
-			     snoop_res <= nilreq1;
+			     snoop_res <=(others => '0');
 			     if re2='0' and emp2 ='0' then
 			         re2 <= '1';
 			         state := 1;

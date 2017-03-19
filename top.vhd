@@ -27,10 +27,10 @@ architecture Behavioral of top is
 	signal bus_res1, bus_res2 :std_logic_vector(552 downto 0);
 	signal snoop_hit1, snoop_hit2                                                                                     : std_logic;
 	signal  snoop_req1, snoop_req2                                                             : std_logic_vector(72 downto 0);
-	signal snoop_res1, snoop_res2 :std_logic_vector(552 downto 0);
+	signal snoop_res1, snoop_res2 :std_logic_vector(72 downto 0);
 	signal snoop_req:std_logic_vector(75 downto 0);
 	---this should be 72
-	signal snoop_res:std_logic_vector(552 downto 0);
+	signal snoop_res:std_logic_vector(75 downto 0);
 	signal snoop_hit:std_logic;
 	signal bus_req1, bus_req2                                                                                         : std_logic_vector(72 downto 0);
 	signal memres, tomem                                                                                              : std_logic_vector(75 downto 0);
