@@ -1565,19 +1565,19 @@ generic map(
 					---now we look at which components it want to go
 					if out2(63 downto 63)="1" then
 						---this belongs to the memory					
-						tomem3 <= out2;
+						tomem3 <= out2(75 downto 0);
 						state := 5;
 					elsif out2(62 downto 61)="00" then
-						togfx3 <= out2;
+						togfx3 <= out2(75 downto 0);
 						state :=6;
 					elsif out2(62 downto 61)="01" then
-						touart3 <= out2;
+						touart3 <= out2(75 downto 0);
 						state :=7;
 					elsif out2(62 downto 61)="10" then
-						tousb3 <= out2;
+						tousb3 <= out2(75 downto 0);
 						state :=8;
 					elsif out2(62 downto 61)="11" then
-						toaudio3 <= out2;
+						toaudio3 <=out2(75 downto 0);
 						state :=13;
 					end if;	
 				--it's a hit, return to the source ip
