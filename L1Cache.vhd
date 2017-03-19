@@ -268,7 +268,7 @@ begin
 						end if;
 					else
 						snp_c_req1 <= '1' & mem_res1;
-						snpreq     <= '1' & mem_res1;
+						--snpreq     <= '1' & mem_res1;
 						state      := 5;
 					end if;
 				end if;
