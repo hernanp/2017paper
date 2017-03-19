@@ -356,8 +356,16 @@ begin
    		elsif state = 2 then
    			if snp_c_ack2='1' then
    				snp_c_req2<= (others=>'0');
-   				state :=0;
+   				state :=3;
    			end if;
+   		elsif state =3 then
+				if snoop_c_res(72 downto 72) = "1" then
+					--if we get a snoop response  and the address is the same  => 
+					if snoop_c_res(63 downto 32)=upreq(63 downto 32) then
+						up_snoop_res <= upreq(75 downto 73)&snoop_c_res;
+						up_snoop_hit <= snoop_c_hit;
+					end if;
+				end if;
    		end if;
    	end if;
    		
@@ -466,7 +474,7 @@ begin
 				indx := to_integer(unsigned(mem_req1(45 downto 32)));
          		memcont:=ROM_array(indx);
          		--if we can't find it in memory
-         		if memcont(56 downto 56)="0" or mem_req1(71 downto 64)="10000000" 
+         		if memcont(56 downto 56)="0" or (mem_req1(71 downto 64)="10000000" and memcont(54 downto 54)="0")
          		or mem_req1(71 downto 64)="11000000"
                         or memcont(53 downto 32)/=mem_req1(63 downto 42) then
 					mem_ack1<='1';
@@ -521,7 +529,9 @@ begin
 				indx:=to_integer(unsigned(mem_req3(45 downto 32)));
 				memcont:=ROM_array(indx);
 				-- if we can't find it in memory
-				if  memcont(56 downto 56)="0" 
+				--invalide  ---or tag different
+				--or its write, but not exclusive
+				if  memcont(56 downto 56)="0" or (mem_req1(71 downto 64)="10000000" and memcont(54 downto 54)="0")
                         or memcont(53 downto 32)/=mem_req3(63 downto 42) then
 					mem_ack3<='1';
 					hit3<='0';
@@ -531,10 +541,6 @@ begin
 					hit3<='1';
 					--if it's write, write it directly
 					-----this need to be changed
-					----
-					---
-					---
-					---
 					if mem_req3(71 downto 64) ="10000000" then
 						ROM_array(indx)(56) <= '0';
 						ROM_array(indx)(31 downto 0) <= mem_req3(31 downto 0);

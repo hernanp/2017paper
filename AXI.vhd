@@ -209,21 +209,15 @@ end AXI;
 
 architecture Behavioral of AXI is
 	--fifo has 53 bits
-	--3 bits for indicating its source
+	--3 bits for indicating its source¡
 	--50 bits for packet
 
 
-	type memory_type is array (31 downto 0) of std_logic_vector(53 downto 0);
-	signal memory            : memory_type           := (others => (others => '0')); --memory for queue.
-	signal readptr, writeptr : integer range 0 to 31 := 0; --read and write pointers.begin
-
-	signal in1, in4             : std_logic_vector(72 downto 0);
 	signal in6, in7, out6, out7 : std_logic_vector(552 downto 0);
 
-	signal in3, out3                                                                          : std_logic_vector(73 downto 0);
-	signal in2, out2, in5, out5                                                               : std_logic_vector(553 downto 0);
-	signal we1, we2, we3, we4, we5, we6, we7, re7, re1, re2, re3, re4, re5, re6               : std_logic := '0';
-	signal emp1, emp2, emp3, emp4, emp5, emp6, emp7, ful7, ful1, ful2, ful3, ful4, ful5, ful6 : std_logic := '0';
+	signal in2, out2                                                               : std_logic_vector(553 downto 0);
+	signal  we2,  we6, we7, re7, re2,  re6               : std_logic := '0';
+	signal emp2,  emp6, emp7,  ful2: std_logic := '0';
 
 	signal bus_res1_1, bus_res1_2, bus_res2_1, bus_res2_2                 : std_logic_vector(552 downto 0);
 	signal mem_ack1, mem_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2 : std_logic;
@@ -333,6 +327,16 @@ begin
 			DataOut => out9,
 			Full    => gfx_upreq_full,
 			Empty   => emp9
+		);
+	snp_res_fifo : entity work.STD_FIFO(Behavioral) port map(
+			CLK     => Clock,
+			RST     => reset,
+			DataIn  => in2,
+			WriteEn => we2,
+			ReadEn  => re2,
+			DataOut => out2,
+			Full    => ful2,
+			Empty   => emp2
 		);
 	gfx_fifo : process(reset, Clock)
 	begin
@@ -1541,6 +1545,64 @@ generic map(
 		end if;
 	end process;
 	
+	snp_res1_p: process(reset, Clock)
+		variable state : integer:=0;
+	begin
+		if reset ='1' then
+		elsif rising_edge(Clock) then
+			if state =0 then
+				if re2 ='0' and emp2='0' then
+					re2<='1';
+					state :=1;
+				end if;
+			elsif state =1 then
+				re2<='0';
+				if out2(72 downto 72)="1" then
+					---now we look at which components it want to go
+					if out2(63 downto 63)="1" then
+						---this belongs to the memory					
+						tomem3 <= out2;
+						state := 5;
+					elsif out2(62 downto 61)="00" then
+						togfx3 <= out2;
+						state :=6;
+					elsif out2(62 downto 61)="01" then
+						touart3 <= out2;
+						state :=7;
+					elsif out2(62 downto 61)="10" then
+						tousb3 <= out2;
+						state :=8;
+					elsif out2(62 downto 61)="11" then
+						toaudio3 <= out2;
+						state :=9;
+					end if;	
+				end if;
+			elsif state =5 then
+				if mem_ack3='1' then
+					state :=0;
+					tomem3 <=(others=>'0');
+				end if;
+			elsif state =6 then
+				if gfx_ack3='1' then
+					state :=0;
+					togfx3 <=(others=>'0');
+				end if;
+			elsif state =7 then
+				if usb_ack3='1' then
+					state :=0;
+					tousb3 <=(others=>'0');
+				end if;
+			elsif state =8 then
+				if audio_ack3='1' then
+					state :=0;
+					toaudio3 <=(others=>'0');
+				end if;
+			
+			end if;
+			
+		end if;
+	end process;
+		
 
 	wb_req1_fifo : process(reset, Clock)
 	begin
@@ -1601,8 +1663,10 @@ generic map(
 	end process;
 
 	---write_back process
+	---this need to be edited, 
+	--1. axi protocl
+	---2. more than 2 ips
 	wb_1_p : process(reset, Clock)
-		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
 		variable state  : integer;
 	begin
 		if reset = '1' then
@@ -1683,6 +1747,7 @@ generic map(
 
 		end if;
 	end process;
+	---not sure if this need to be changed
 	wb_channel: process(reset, Clock)
     variable lp: integer := 0;
     variable state: integer := 0;
@@ -1693,13 +1758,43 @@ generic map(
     		wrready <= '0';
     	elsif rising_edge(Clock) then
     		if state =0 then
-    			if mem_wb(552 downto 552)="0" and wready = '0' then
-    				wvalid <= '1';
-    				waddr <= mem_wb(543 downto 512);
-    				wlen <= "00000"&"10000";
-    				wsize <= "00001"&"00000";
-    				tdata := mem_wb(511 downto 0);
-    				state := 1;
+    			if mem_wb(552 downto 552)="1" then
+    				if mem_wb(543 downto 543)="1" and wready = '0' then
+	    				wvalid <= '1';
+	    				waddr <= mem_wb(543 downto 512);
+	    				wlen <= "00000"&"10000";
+	    				wsize <= "00001"&"00000";
+	    				tdata := mem_wb(511 downto 0);
+	    				state := 1;
+	    			elsif mem_wb(542 downto 541)="00" and wready_gfx = '0' then
+	    				wvalid_gfx <= '1';
+	    				waddr_gfx <= mem_wb(543 downto 512);
+	    				wlen_gfx <= "00000"&"10000";
+	    				wsize_gfx <= "00001"&"00000";
+	    				tdata := mem_wb(511 downto 0);
+	    				state := 3;
+	    			elsif mem_wb(542 downto 541)="01" and wready_uart = '0' then
+	    				wvalid_uart <= '1';
+	    				waddr_uart <= mem_wb(543 downto 512);
+	    				wlen_uart <= "00000"&"10000";
+	    				wsize_uart <= "00001"&"00000";
+	    				tdata := mem_wb(511 downto 0);
+	    				state := 4;
+	    			elsif mem_wb(542 downto 541)="10" and wready_usb = '0' then
+	    				wvalid_usb <= '1';
+	    				waddr_usb <= mem_wb(543 downto 512);
+	    				wlen_usb <= "00000"&"10000";
+	    				wsize_usb <= "00001"&"00000";
+	    				tdata := mem_wb(511 downto 0);
+	    				state := 5;
+	    			elsif mem_wb(542 downto 541)="11" and wready_audio = '0' then
+	    				wvalid_audio <= '1';
+	    				waddr_audio <= mem_wb(543 downto 512);
+	    				wlen_audio <= "00000"&"10000";
+	    				wsize_audio <= "00001"&"00000";
+	    				tdata := mem_wb(511 downto 0);
+	    				state := 6;
+    				end if;
     			end if;
     		elsif state = 1 then
     			if wdataready = '1' then
@@ -1718,11 +1813,99 @@ generic map(
     		 	wdvalid <= '0';
     		 	wrready <= '1';
     		 	if wrvalid = '1' then
-    		 		state := 3;
+    		 		state := 0;
     		 		if wrsp="00" then
     		 			---this is a successful write back, yayyy
     		 		end if;
     		 		wrready <= '0';
+    		 	end if;
+    		 elsif state = 3 then
+    			if wdataready_gfx = '1' then
+    				wdvalid_gfx <= '1';
+    				wtrb_gfx <= "1111";
+    				wdata_gfx <= tdata(lp+31 downto lp);
+    				lp := lp + 32;
+    				if lp = 512 then
+    					wlast_gfx <= '1';
+    					state := 7;
+    					lp := 0;
+    				end if;
+    			end if;
+    		 elsif state = 4 then
+    			if wdataready_uart = '1' then
+    				wdvalid_uart <= '1';
+    				wtrb_uart <= "1111";
+    				wdata_uart <= tdata(lp+31 downto lp);
+    				lp := lp + 32;
+    				if lp = 512 then
+    					wlast_uart <= '1';
+    					state := 8;
+    					lp := 0;
+    				end if;
+    			end if;
+    		 elsif state = 5 then
+    			if wdataready_usb = '1' then
+    				wdvalid_usb <= '1';
+    				wtrb_usb <= "1111";
+    				wdata_usb <= tdata(lp+31 downto lp);
+    				lp := lp + 32;
+    				if lp = 512 then
+    					wlast_usb <= '1';
+    					state := 9;
+    					lp := 0;
+    				end if;
+    			end if;
+    		 elsif state = 6 then
+    			if wdataready_audio = '1' then
+    				wdvalid_audio <= '1';
+    				wtrb_audio <= "1111";
+    				wdata_audio <= tdata(lp+31 downto lp);
+    				lp := lp + 32;
+    				if lp = 512 then
+    					wlast_audio <= '1';
+    					state := 10;
+    					lp := 0;
+    				end if;
+    			end if;
+    		elsif state = 7 then
+    		 	wdvalid_gfx <= '0';
+    		 	wrready_gfx <= '1';
+    		 	if wrvalid_gfx = '1' then
+    		 		state := 0;
+    		 		if wrsp_gfx="00" then
+    		 			---this is a successful write back, yayyy
+    		 		end if;
+    		 		wrready_gfx <= '0';
+    		 	end if;
+    		 elsif state = 8 then
+    		 	wdvalid_uart <= '0';
+    		 	wrready_uart <= '1';
+    		 	if wrvalid_uart = '1' then
+    		 		state := 0;
+    		 		if wrsp_uart="00" then
+    		 			---this is a successful write back, yayyy
+    		 		end if;
+    		 		wrready_uart <= '0';
+    		 	end if;
+    		 elsif state = 9 then
+    		 	wdvalid_usb <= '0';
+    		 	wrready_usb <= '1';
+    		 	if wrvalid_usb = '1' then
+    		 		state := 0;
+    		 		if wrsp_usb="00" then
+    		 			---this is a successful write back, yayyy
+    		 		end if;
+    		 		wrready_usb <= '0';
+    		 	end if;
+    		 elsif state = 10 then
+    		 	wdvalid_audio <= '0';
+    		 	wrready_audio <= '1';
+    		 	if wrvalid_audio = '1' then
+    		 		state := 0;
+    		 		if wrsp_audio="00" then
+    		 			---this is a successful write back, yayyy
+    		 		end if;
+    		 		wrready_audio <= '0';
     		 	end if;
     		end if;
     	end if;
