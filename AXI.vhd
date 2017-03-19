@@ -215,7 +215,7 @@ architecture Behavioral of AXI is
 
 	signal in6, in7, out6, out7 : std_logic_vector(552 downto 0);
 
-	signal in2, out2                                                               : std_logic_vector(72 downto 0);
+	signal in2, out2                                                               : std_logic_vector(76 downto 0);
 	signal  we2,  we6, we7, re7, re2,  re6               : std_logic := '0';
 	signal emp2,  emp6, emp7,  ful2: std_logic := '0';
 
@@ -330,7 +330,7 @@ begin
 		);
 	snp_res_fifo : entity work.STD_FIFO(Behavioral)
 	generic map(
-			DATA_WIDTH => 73
+			DATA_WIDTH => 77
 		)
 	port map(
 			CLK     => Clock,
@@ -707,7 +707,7 @@ begin
 			if state = 0 then
 				bus_res1_2 <= nullreq;
 				bus_res2_2 <= nullreq;
-				gfx_upres2 <= (others => '0');
+				--gfx_upres2 <= (others => '0');
 				uart_upres2 <= (others => '0');
 				audio_upres2 <= (others => '0');
 				usb_upres2 <= (others => '0');
@@ -761,9 +761,9 @@ begin
 				elsif tep_gfx(75 downto 73)="101" then
 					bus_res2_2 <= tep_gfx(72 downto 32) & tdata;
 					state := 4;
-				elsif tep_gfx(75 downto 73)="001" then
-					gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
-					state := 5;
+				--elsif tep_gfx(75 downto 73)="001" then
+					--gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
+					--state := 5;
 				elsif tep_gfx(75 downto 73)="010" then
 					uart_upres2<= tep_gfx(72 downto 32) & sdata;
 					state := 6;
@@ -783,11 +783,11 @@ begin
 					bus_res1_2 <= nullreq;
 					state      := 0;
 				end if;
-			elsif state =5 then
-				if gfx_upres_ack2 ='1' then
-					gfx_upres2 <= (others => '0');
-					state :=0;
-				end if;
+			--elsif state =5 then
+--				if gfx_upres_ack2 ='1' then
+--					gfx_upres2 <= (others => '0');
+--					state :=0;
+--				end if;
 			elsif state =6 then
 				if uart_upres_ack2 ='1' then
 					uart_upres2 <= (others => '0');
@@ -880,7 +880,7 @@ begin
 				gfx_upres4 <= (others => '0');
 				uart_upres4 <= (others => '0');
 				audio_upres4 <= (others => '0');
-				usb_upres4 <= (others => '0');
+				--usb_upres4 <= (others => '0');
 				if tousb_p(72 downto 72) = "1" and tousb_p(71 downto 64)="10000000" then
 					tep_usb := tousb_p;
 					state :=6;
@@ -937,9 +937,9 @@ begin
 				elsif tep_usb(75 downto 73)="010" then
 					uart_upres4<= tep_usb(72 downto 32) & sdata;
 					state := 6;
-				elsif tep_usb(75 downto 73)="011" then
-					usb_upres4<= tep_usb(72 downto 32) & sdata;
-					state := 7;
+--				elsif tep_usb(75 downto 73)="011" then
+--					usb_upres4<= tep_usb(72 downto 32) & sdata;
+--					state := 7;
 				elsif tep_usb(75 downto 73)="100" then
 					audio_upres4 <= tep_usb(72 downto 32) & sdata;
 					state := 8;
@@ -963,11 +963,11 @@ begin
 					uart_upres4 <= (others => '0');
 					state :=0;
 				end if;	
-			elsif state =7 then
-				if usb_upres_ack4 ='1' then
-					usb_upres4 <= (others => '0');
-					state :=0;
-				end if;
+--			elsif state =7 then
+--				if usb_upres_ack4 ='1' then
+--					usb_upres4 <= (others => '0');
+--					state :=0;
+--				end if;
 			elsif state =8 then
 				if audio_upres_ack4 ='1' then
 					audio_upres4 <= (others => '0');
@@ -1035,7 +1035,7 @@ begin
 				bus_res1_3 <= nullreq;
 				bus_res2_3 <= nullreq;
 				gfx_upres3 <= (others => '0');
-				uart_upres3 <= (others => '0');
+				--uart_upres3 <= (others => '0');
 				audio_upres3 <= (others => '0');
 				usb_upres3 <= (others => '0');
 				if touart_p(72 downto 72) = "1" and touart_p(71 downto 64)="10000000" then
@@ -1091,9 +1091,9 @@ begin
 				elsif tep_uart(75 downto 73)="001" then
 					gfx_upres3 <= tep_uart(72 downto 32) & sdata;
 					state := 5;
-				elsif tep_uart(75 downto 73)="010" then
-					uart_upres3<= tep_uart(72 downto 32) & sdata;
-					state := 6;
+--				elsif tep_uart(75 downto 73)="010" then
+--					uart_upres3<= tep_uart(72 downto 32) & sdata;
+--					state := 6;
 				elsif tep_uart(75 downto 73)="011" then
 					usb_upres3<= tep_uart(72 downto 32) & sdata;
 					state := 7;
@@ -1115,11 +1115,11 @@ begin
 					gfx_upres3 <= (others => '0');
 					state :=0;
 				end if;
-			elsif state =6 then
-				if uart_upres_ack3 ='1' then
-					uart_upres3 <= (others => '0');
-					state :=0;
-				end if;	
+--			elsif state =6 then
+--				if uart_upres_ack3 ='1' then
+--					uart_upres3 <= (others => '0');
+--					state :=0;
+--				end if;	
 			elsif state =7 then
 				if usb_upres_ack3 ='1' then
 					usb_upres3 <= (others => '0');
@@ -1380,7 +1380,7 @@ generic map(
 				bus_res2_5 <= nullreq;
 				gfx_upres5 <= (others => '0');
 				uart_upres5 <= (others => '0');
-				audio_upres5 <= (others => '0');
+				--audio_upres5 <= (others => '0');
 				usb_upres5 <= (others => '0');
 				if toaudio_p(72 downto 72) = "1" and toaudio_p(71 downto 64)="10000000" then
 					tep_audio := toaudio_p;
@@ -1441,9 +1441,9 @@ generic map(
 				elsif tep_audio(75 downto 73)="011" then
 					usb_upres5<= tep_audio(72 downto 32) & sdata;
 					state := 7;
-				elsif tep_audio(75 downto 73)="100" then
-					audio_upres5 <= tep_audio(72 downto 32) & sdata;
-					state := 8;
+--				elsif tep_audio(75 downto 73)="100" then
+--					audio_upres5 <= tep_audio(72 downto 32) & sdata;
+--					state := 8;
 				end if;
 				
 			elsif state = 4 then
@@ -1469,11 +1469,11 @@ generic map(
 					usb_upres5 <= (others => '0');
 					state :=0;
 				end if;
-			elsif state =8 then
-				if audio_upres_ack5 ='1' then
-					audio_upres5 <= (others => '0');
-					state :=0;
-				end if;	
+--			elsif state =8 then
+--				if audio_upres_ack5 ='1' then
+--					audio_upres5 <= (others => '0');
+--					state :=0;
+--				end if;	
 			elsif state =9 then
         		if wready_audio = '0' then
          			wvalid_audio <= '1';
@@ -1535,7 +1535,7 @@ generic map(
 		if reset = '1' then
 			we2 <= '0';
 		elsif rising_edge(Clock) then
-			if snoop_res1(50 downto 50) = "1" then
+			if snoop_res1(72 downto 72) = "1" then
 				if snp_hit1 = '0' then
 					in2 <= '0' & snoop_res1;
 				else
@@ -1561,7 +1561,7 @@ generic map(
 				end if;
 			elsif state =1 then
 				re2<='0';
-				if out2(72 downto 72)="1" then
+				if out2(76 downto 76)="0" then
 					---now we look at which components it want to go
 					if out2(63 downto 63)="1" then
 						---this belongs to the memory					
@@ -1578,8 +1578,23 @@ generic map(
 						state :=8;
 					elsif out2(62 downto 61)="11" then
 						toaudio3 <= out2;
-						state :=9;
+						state :=13;
 					end if;	
+				--it's a hit, return to the source ip
+				else
+					if out2(75 downto 73)="001" then
+						gfx_upres2 <= out2(72 downto 0);
+						state :=9;
+					elsif out2(75 downto 73)="010" then
+						uart_upres3 <=out2(72 downto 0);
+						state :=10;
+					elsif out2(75 downto 73)="011" then
+						usb_upres4 <= out2(72 downto 0);
+						state :=11;
+					elsif out2(75 downto 73)="100" then
+						audio_upres5 <= out2(72 downto 0);
+						state :=12;
+					end if;
 				end if;
 			elsif state =5 then
 				if mem_ack3='1' then
@@ -1592,14 +1607,39 @@ generic map(
 					togfx3 <=(others=>'0');
 				end if;
 			elsif state =7 then
-				if usb_ack3='1' then
+				if uart_ack3='1' then
 					state :=0;
-					tousb3 <=(others=>'0');
+					touart3 <=(others=>'0');
 				end if;
 			elsif state =8 then
 				if audio_ack3='1' then
 					state :=0;
 					toaudio3 <=(others=>'0');
+				end if;
+			elsif state =12 then
+				if usb_ack3 ='1' then
+					state :=0;
+					tousb3 <=(others => '0');
+				end if;
+			elsif state =9 then
+				if gfx_upres_ack2='1' then
+					gfx_upres2<=(others => '0');
+					state :=0;
+				end if;
+			elsif state =10 then
+				if uart_upres_ack3='1' then
+					uart_upres3<=(others => '0');
+					state :=0;
+				end if;
+			elsif state =11 then
+				if usb_upres_ack4='1' then
+					usb_upres4<=(others => '0');
+					state :=0;
+				end if;
+			elsif state =12 then
+				if audio_upres_ack4='1' then
+					audio_upres5<=(others => '0');
+					state :=0;
 				end if;
 			
 			end if;
