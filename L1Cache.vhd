@@ -460,8 +460,8 @@ begin
 	begin
 		if (reset = '1') then
 		-- reset signals;
-			mem_res1 <= nilreq(71 downto 0);
-			mem_res2 <= nilreq2(551 downto 0);
+			mem_res1 <= (others => '0');
+			mem_res2 <= (others => '0');
 			write_ack <= '0';
 			upd_ack <= '0';
 		elsif rising_edge(Clock) then
