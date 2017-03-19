@@ -18,7 +18,7 @@ entity CPU is
 end CPU;
 
 architecture Behavioral of CPU is
- signal first_time : integer:=0;
+ signal first_time : std_logic:=0;
  signal data: std_logic_vector(31 downto 0);
  signal adx : std_logic_vector(31 downto 0);
  signal tmp_req: std_logic_vector(72 downto 0);
@@ -34,12 +34,12 @@ architecture Behavioral of CPU is
  				variable data: out std_logic_vector(31 downto 0)) is
    		begin
    			req <= "101000000" & adx & "00000000000000000000000000000000";
----   			wait for 3 ps;
+   			wait for 3 ps;
    			req <= (others => '0');
-   			if cpu_res(50 downto 50)= "1" then 
-   			data := cpu_res(31 downto 0);	
+   			if cpu_res(72 downto 72)= "1" then 
+					data := cpu_res(31 downto 0);	
 				end if;
-   			---wait for 10 ps;
+   			wait for 10 ps;
  end  read;
  
  procedure write( variable adx: in std_logic_vector(31 downto 0);
@@ -47,11 +47,11 @@ architecture Behavioral of CPU is
  				variable data: in std_logic_vector(31 downto 0)) is
    		begin
    			req <= "110000000" & adx & data;
----   			wait for 3 ps;
+   			wait for 3 ps;
    			req <= (others => '0');
-   			if cpu_res(50 downto 50)= "1" then
+   			if cpu_res(72 downto 72)= "1" then
 				end if;
-   			---wait for 10 ps;	
+   			wait for 10 ps;	
  end  write;
  
  procedure power( variable cmd: in std_logic_vector(1 downto 0);
@@ -59,10 +59,10 @@ architecture Behavioral of CPU is
  				variable hw: in std_logic_vector(1 downto 0)) is
    		begin
    			req <= "111000000" & cmd & hw & "00000000"&"00000000"&"00000000"&"00000000"&"00000000"&"00000000"&"00000000"&"0000" ;
----   			wait for 3 ps;
+   			wait for 3 ps;
    			req <= (others => '0');
-   			---wait until cpu_res(50 downto 50)= "1";
-   			---wait for 50 ps;	
+   			wait until cpu_res(72 downto 72)= "1";
+   			wait for 50 ps;	
  end  power;
  
  
@@ -72,10 +72,10 @@ begin
    	req1: process(reset, Clock)
    	begin
    		if reset ='1' then
-			cpu_req <= (others => '0');
-		elsif (rising_edge(Clock)) then
-			cpu_req <= tmp_req;
-		end if;
+				cpu_req <= (others => '0');
+			elsif (rising_edge(Clock)) then
+				cpu_req <= tmp_req;
+			end if;
    	end process;
 
 
@@ -95,7 +95,7 @@ begin
      variable pwrcmd: std_logic_vector(1 downto 0);
      variable hwlc: std_logic_vector(1 downto 0);
     begin
----    	wait for 80 ps;
+    	wait for 80 ps;
     	pwrcmd := "00";
     	hwlc := "00";
     	---power(pwrcmd, tmp_req, hwlc);
@@ -106,7 +106,7 @@ begin
     		read(turn, tmp_req, turn_v);
     		
     	end if;
---  wait;
+  wait;
 
   end process; 
  
