@@ -21,27 +21,27 @@ end top;
 architecture Behavioral of top is
 
 	-- Clock frequency and signal
-	signal Clock                                                                                                      : std_logic;
-	signal full_c1_u, full_c2_u, full_b_m                                                                   : std_logic;
-	signal  cpu_res1, cpu_res2, cpu_req1, cpu_req2                              : std_logic_vector(72 downto 0);
-	signal bus_res1, bus_res2 :std_logic_vector(552 downto 0);
-	signal snoop_hit1, snoop_hit2                                                                                     : std_logic;
-	signal  snoop_req1, snoop_req2                                                             : std_logic_vector(72 downto 0);
-	signal snoop_res1, snoop_res2 :std_logic_vector(72 downto 0);
-	signal snoop_req:std_logic_vector(75 downto 0);
+	signal Clock                                                                                           : std_logic;
+	signal full_c1_u, full_c2_u, full_b_m                                                                  : std_logic;
+	signal cpu_res1, cpu_res2, cpu_req1, cpu_req2                                                          : std_logic_vector(72 downto 0);
+	signal bus_res1, bus_res2                                                                              : std_logic_vector(552 downto 0);
+	signal snoop_hit1, snoop_hit2                                                                          : std_logic;
+	signal snoop_req1, snoop_req2                                                                          : std_logic_vector(72 downto 0);
+	signal snoop_res1, snoop_res2                                                                          : std_logic_vector(72 downto 0);
+	signal snoop_req                                                                                       : std_logic_vector(75 downto 0);
 	---this should be 72
-	signal snoop_res:std_logic_vector(75 downto 0);
-	signal snoop_hit:std_logic;
-	signal bus_req1, bus_req2                                                                                         : std_logic_vector(72 downto 0);
-	signal memres, tomem                                                                                              : std_logic_vector(75 downto 0);
+	signal snoop_res                                                                                       : std_logic_vector(75 downto 0);
+	signal snoop_hit                                                                                       : std_logic;
+	signal bus_req1, bus_req2                                                                              : std_logic_vector(72 downto 0);
+	signal memres, tomem                                                                                   : std_logic_vector(75 downto 0);
 	signal full_crq1, full_srq1, full_brs1, full_wb1, full_srs1, full_crq2, full_brs2, full_wb2, full_srs2 : std_logic;
-	signal reset                                                                                                      : std_logic := '1';
+	signal reset                                                                                           : std_logic := '1';
 	---signal full_mrs: std_logic;
-	signal done1, done2                                                                                          : std_logic;
-	signal mem_wb  , wb_req1, wb_req2                                                                                                    : std_logic_vector(552 downto 0);
-	signal wb_ack                                                                                                     : std_logic;
-	signal pwrreq, pwrres                                                                                             : std_logic_vector(4 downto 0);
-	signal pwrreq_full                                                                                                : std_logic;
+	signal done1, done2                                                                                    : std_logic;
+	signal mem_wb, wb_req1, wb_req2                                                                        : std_logic_vector(552 downto 0);
+	signal wb_ack                                                                                          : std_logic;
+	signal pwrreq, pwrres                                                                                  : std_logic_vector(4 downto 0);
+	signal pwrreq_full                                                                                     : std_logic;
 
 	file trace_file : TEXT open write_mode is "trace1.txt";
 	signal gfx_b, togfx                 : std_logic_vector(75 downto 0);
@@ -59,178 +59,176 @@ architecture Behavioral of top is
 	signal usb_b, tousb                 : std_logic_vector(75 downto 0);
 	signal usb_upreq, usb_upres, usb_wb : std_logic_vector(72 downto 0);
 	signal usb_upreq_full, usb_wb_ack   : std_logic;
- 
- 
-   signal zero : std_logic :='0';
-	signal zero72 : std_logic_vector(72 downto 0) := (others => '0');
-	signal zero75 : std_logic_vector(75 downto 0) := (others => '0');
+
+	signal zero                            : std_logic                     := '0';
+	signal zero72                          : std_logic_vector(72 downto 0) := (others => '0');
+	signal zero75                          : std_logic_vector(75 downto 0) := (others => '0');
 	signal uart_b, touart                  : std_logic_vector(75 downto 0);
 	signal uart_upreq, uart_upres, uart_wb : std_logic_vector(72 downto 0);
 	signal uart_upreq_full, uart_wb_ack    : std_logic;
-	
-	signal up_snoop, up_snoop_res :std_logic_vector(75 downto 0);
-	signal up_snoop_hit:std_logic;
-	
-		signal waddr                                         : std_logic_vector(31 downto 0);
-		signal wlen                                          : std_logic_vector(9 downto 0);
-		signal wsize                                         : std_logic_vector(9 downto 0);
-		signal wvalid                                         : std_logic;
-		signal wready                                         : std_logic;
-		-- -write data channel
-		signal wdata                                          : std_logic_vector(31 downto 0);
-		signal wtrb                                           : std_logic_vector(3 downto 0);
-		signal wlast                                          :std_logic;
-		signal wdvalid                                         : std_logic;
-		signal wdataready                                      : std_logic;
-		-- -write response channel
-		signal wrready                                         : std_logic;
-		signal wrvalid                                         : std_logic;
-		signal wrsp                                            : std_logic_vector(1 downto 0);
 
-		-- -read address channel
-		signal raddr                                           : std_logic_vector(31 downto 0);
-		signal rlen                                            : std_logic_vector(9 downto 0);
-		signal rsize                                           : std_logic_vector(9 downto 0);
-		signal rvalid                                          : std_logic;
-		signal rready                                          : std_logic;
-		-- -read data channel
-		signal rdata                                           : std_logic_vector(31 downto 0);
-		signal rstrb                                           : std_logic_vector(3 downto 0);
-		signal rlast                                           : std_logic;
-		signal rdvalid                                         : std_logic;
-		signal rdready                                         : std_logic;
-		signal rres                                            : std_logic_vector(1 downto 0);
-	
+	signal up_snoop, up_snoop_res : std_logic_vector(75 downto 0);
+	signal up_snoop_hit           : std_logic;
+
+	signal waddr      : std_logic_vector(31 downto 0);
+	signal wlen       : std_logic_vector(9 downto 0);
+	signal wsize      : std_logic_vector(9 downto 0);
+	signal wvalid     : std_logic;
+	signal wready     : std_logic;
+	-- -write data channel
+	signal wdata      : std_logic_vector(31 downto 0);
+	signal wtrb       : std_logic_vector(3 downto 0);
+	signal wlast      : std_logic;
+	signal wdvalid    : std_logic;
+	signal wdataready : std_logic;
+	-- -write response channel
+	signal wrready    : std_logic;
+	signal wrvalid    : std_logic;
+	signal wrsp       : std_logic_vector(1 downto 0);
+
+	-- -read address channel
+	signal raddr   : std_logic_vector(31 downto 0);
+	signal rlen    : std_logic_vector(9 downto 0);
+	signal rsize   : std_logic_vector(9 downto 0);
+	signal rvalid  : std_logic;
+	signal rready  : std_logic;
+	-- -read data channel
+	signal rdata   : std_logic_vector(31 downto 0);
+	signal rstrb   : std_logic_vector(3 downto 0);
+	signal rlast   : std_logic;
+	signal rdvalid : std_logic;
+	signal rdready : std_logic;
+	signal rres    : std_logic_vector(1 downto 0);
+
 	---gfx write address channel
-		signal waddr_gfx                                          : std_logic_vector(31 downto 0);
-		signal wlen_gfx                                           : std_logic_vector(9 downto 0);
-		signal wsize_gfx                                          : std_logic_vector(9 downto 0);
-		signal wvalid_gfx                                         : std_logic;
-		signal wready_gfx                                         : std_logic;
-		--_gfx-write data channel
-		signal wdata_gfx                                          : std_logic_vector(31 downto 0);
-		signal wtrb_gfx                                           : std_logic_vector(3 downto 0);
-		signal wlast_gfx                                          :std_logic;
-		signal wdvalid_gfx                                        : std_logic;
-		signal wdataready_gfx                                     : std_logic;
-		--_gfx-write response channel
-		signal wrready_gfx                                        : std_logic;
-		signal wrvalid_gfx                                        : std_logic;
-		signal wrsp_gfx                                           : std_logic_vector(1 downto 0);
+	signal waddr_gfx      : std_logic_vector(31 downto 0);
+	signal wlen_gfx       : std_logic_vector(9 downto 0);
+	signal wsize_gfx      : std_logic_vector(9 downto 0);
+	signal wvalid_gfx     : std_logic;
+	signal wready_gfx     : std_logic;
+	--_gfx-write data channel
+	signal wdata_gfx      : std_logic_vector(31 downto 0);
+	signal wtrb_gfx       : std_logic_vector(3 downto 0);
+	signal wlast_gfx      : std_logic;
+	signal wdvalid_gfx    : std_logic;
+	signal wdataready_gfx : std_logic;
+	--_gfx-write response channel
+	signal wrready_gfx    : std_logic;
+	signal wrvalid_gfx    : std_logic;
+	signal wrsp_gfx       : std_logic_vector(1 downto 0);
 
-		--_gfx-read address channel
-		signal raddr_gfx                                          : std_logic_vector(31 downto 0);
-		signal rlen_gfx                                           : std_logic_vector(9 downto 0);
-		signal rsize_gfx                                          : std_logic_vector(9 downto 0);
-		signal rvalid_gfx                                         : std_logic;
-		signal rready_gfx                                         : std_logic;
-		--_gfx-read data channel
-		signal rdata_gfx                                          : std_logic_vector(31 downto 0);
-		signal rstrb_gfx                                          : std_logic_vector(3 downto 0);
-		signal rlast_gfx                                          : std_logic;
-		signal rdvalid_gfx                                        : std_logic;
-		signal rdready_gfx                                        : std_logic;
-		signal rres_gfx                                           : std_logic_vector(1 downto 0);
-		
-		
-		signal waddr_uart                                          : std_logic_vector(31 downto 0);
-		signal wlen_uart                                           : std_logic_vector(9 downto 0);
-		signal wsize_uart                                          : std_logic_vector(9 downto 0);
-		signal wvalid_uart                                         : std_logic;
-		signal wready_uart                                         : std_logic;
-		--_uart-write data channel
-		signal wdata_uart                                          : std_logic_vector(31 downto 0);
-		signal wtrb_uart                                           : std_logic_vector(3 downto 0);
-		signal wlast_uart                                          :std_logic;
-		signal wdvalid_uart                                        : std_logic;
-		signal wdataready_uart                                     : std_logic;
-		--_uart-write response channel
-		signal wrready_uart                                        : std_logic;
-		signal wrvalid_uart                                        : std_logic;
-		signal wrsp_uart                                           : std_logic_vector(1 downto 0);
+	--_gfx-read address channel
+	signal raddr_gfx   : std_logic_vector(31 downto 0);
+	signal rlen_gfx    : std_logic_vector(9 downto 0);
+	signal rsize_gfx   : std_logic_vector(9 downto 0);
+	signal rvalid_gfx  : std_logic;
+	signal rready_gfx  : std_logic;
+	--_gfx-read data channel
+	signal rdata_gfx   : std_logic_vector(31 downto 0);
+	signal rstrb_gfx   : std_logic_vector(3 downto 0);
+	signal rlast_gfx   : std_logic;
+	signal rdvalid_gfx : std_logic;
+	signal rdready_gfx : std_logic;
+	signal rres_gfx    : std_logic_vector(1 downto 0);
 
-		--_uart-read address channel
-		signal raddr_uart                                          : std_logic_vector(31 downto 0);
-		signal rlen_uart                                           : std_logic_vector(9 downto 0);
-		signal rsize_uart                                          : std_logic_vector(9 downto 0);
-		signal rvalid_uart                                         : std_logic;
-		signal rready_uart                                         : std_logic;
-		--_uart-read data channel
-		signal rdata_uart                                          : std_logic_vector(31 downto 0);
-		signal rstrb_uart                                          : std_logic_vector(3 downto 0);
-		signal rlast_uart                                          : std_logic;
-		signal rdvalid_uart                                        : std_logic;
-		signal rdready_uart                                        : std_logic;
-		signal rres_uart                                           : std_logic_vector(1 downto 0);
-		
-		signal waddr_usb                                          : std_logic_vector(31 downto 0);
-		signal wlen_usb                                           : std_logic_vector(9 downto 0);
-		signal wsize_usb                                          : std_logic_vector(9 downto 0);
-		signal wvalid_usb                                         : std_logic;
-		signal wready_usb                                         : std_logic;
-		--_usb-write data channel
-		signal wdata_usb                                          : std_logic_vector(31 downto 0);
-		signal wtrb_usb                                           : std_logic_vector(3 downto 0);
-		signal wlast_usb                                          :std_logic;
-		signal wdvalid_usb                                        : std_logic;
-		signal wdataready_usb                                     : std_logic;
-		--_usb-write response channel
-		signal wrready_usb                                        : std_logic;
-		signal wrvalid_usb                                        : std_logic;
-		signal wrsp_usb                                           : std_logic_vector(1 downto 0);
+	signal waddr_uart      : std_logic_vector(31 downto 0);
+	signal wlen_uart       : std_logic_vector(9 downto 0);
+	signal wsize_uart      : std_logic_vector(9 downto 0);
+	signal wvalid_uart     : std_logic;
+	signal wready_uart     : std_logic;
+	--_uart-write data channel
+	signal wdata_uart      : std_logic_vector(31 downto 0);
+	signal wtrb_uart       : std_logic_vector(3 downto 0);
+	signal wlast_uart      : std_logic;
+	signal wdvalid_uart    : std_logic;
+	signal wdataready_uart : std_logic;
+	--_uart-write response channel
+	signal wrready_uart    : std_logic;
+	signal wrvalid_uart    : std_logic;
+	signal wrsp_uart       : std_logic_vector(1 downto 0);
 
-		--_usb-read address channel
-		signal raddr_usb                                          : std_logic_vector(31 downto 0);
-		signal rlen_usb                                           : std_logic_vector(9 downto 0);
-		signal rsize_usb                                          : std_logic_vector(9 downto 0);
-		signal rvalid_usb                                         : std_logic;
-		signal rready_usb                                         : std_logic;
-		--_usb-read data channel
-		signal rdata_usb                                          : std_logic_vector(31 downto 0);
-		signal rstrb_usb                                          : std_logic_vector(3 downto 0);
-		signal rlast_usb                                          : std_logic;
-		signal rdvalid_usb                                        : std_logic;
-		signal rdready_usb                                        : std_logic;
-		signal rres_usb                                           : std_logic_vector(1 downto 0);
-		
-		signal waddr_audio                                          : std_logic_vector(31 downto 0);
-		signal wlen_audio                                           : std_logic_vector(9 downto 0);
-		signal wsize_audio                                          : std_logic_vector(9 downto 0);
-		signal wvalid_audio                                         : std_logic;
-		signal wready_audio                                         : std_logic;
-		--_audio-write data channel
-		signal wdata_audio                                          : std_logic_vector(31 downto 0);
-		signal wtrb_audio                                           : std_logic_vector(3 downto 0);
-		signal wlast_audio                                          :std_logic;
-		signal wdvalid_audio                                        : std_logic;
-		signal wdataready_audio                                     : std_logic;
-		--_audio-write response channel
-		signal wrready_audio                                        : std_logic;
-		signal wrvalid_audio                                        : std_logic;
-		signal wrsp_audio                                           : std_logic_vector(1 downto 0);
+	--_uart-read address channel
+	signal raddr_uart   : std_logic_vector(31 downto 0);
+	signal rlen_uart    : std_logic_vector(9 downto 0);
+	signal rsize_uart   : std_logic_vector(9 downto 0);
+	signal rvalid_uart  : std_logic;
+	signal rready_uart  : std_logic;
+	--_uart-read data channel
+	signal rdata_uart   : std_logic_vector(31 downto 0);
+	signal rstrb_uart   : std_logic_vector(3 downto 0);
+	signal rlast_uart   : std_logic;
+	signal rdvalid_uart : std_logic;
+	signal rdready_uart : std_logic;
+	signal rres_uart    : std_logic_vector(1 downto 0);
 
-		--_audio-read address channel
-		signal raddr_audio                                          : std_logic_vector(31 downto 0);
-		signal rlen_audio                                           : std_logic_vector(9 downto 0);
-		signal rsize_audio                                          : std_logic_vector(9 downto 0);
-		signal rvalid_audio                                         : std_logic;
-		signal rready_audio                                         : std_logic;
-		--_audio-read data channel
-		signal rdata_audio                                          : std_logic_vector(31 downto 0);
-		signal rstrb_audio                                          : std_logic_vector(3 downto 0);
-		signal rlast_audio                                          : std_logic;
-		signal rdvalid_audio                                        : std_logic;
-		signal rdready_audio                                        : std_logic;
-		signal rres_audio                                           : std_logic_vector(1 downto 0);
+	signal waddr_usb      : std_logic_vector(31 downto 0);
+	signal wlen_usb       : std_logic_vector(9 downto 0);
+	signal wsize_usb      : std_logic_vector(9 downto 0);
+	signal wvalid_usb     : std_logic;
+	signal wready_usb     : std_logic;
+	--_usb-write data channel
+	signal wdata_usb      : std_logic_vector(31 downto 0);
+	signal wtrb_usb       : std_logic_vector(3 downto 0);
+	signal wlast_usb      : std_logic;
+	signal wdvalid_usb    : std_logic;
+	signal wdataready_usb : std_logic;
+	--_usb-write response channel
+	signal wrready_usb    : std_logic;
+	signal wrvalid_usb    : std_logic;
+	signal wrsp_usb       : std_logic_vector(1 downto 0);
+
+	--_usb-read address channel
+	signal raddr_usb   : std_logic_vector(31 downto 0);
+	signal rlen_usb    : std_logic_vector(9 downto 0);
+	signal rsize_usb   : std_logic_vector(9 downto 0);
+	signal rvalid_usb  : std_logic;
+	signal rready_usb  : std_logic;
+	--_usb-read data channel
+	signal rdata_usb   : std_logic_vector(31 downto 0);
+	signal rstrb_usb   : std_logic_vector(3 downto 0);
+	signal rlast_usb   : std_logic;
+	signal rdvalid_usb : std_logic;
+	signal rdready_usb : std_logic;
+	signal rres_usb    : std_logic_vector(1 downto 0);
+
+	signal waddr_audio      : std_logic_vector(31 downto 0);
+	signal wlen_audio       : std_logic_vector(9 downto 0);
+	signal wsize_audio      : std_logic_vector(9 downto 0);
+	signal wvalid_audio     : std_logic;
+	signal wready_audio     : std_logic;
+	--_audio-write data channel
+	signal wdata_audio      : std_logic_vector(31 downto 0);
+	signal wtrb_audio       : std_logic_vector(3 downto 0);
+	signal wlast_audio      : std_logic;
+	signal wdvalid_audio    : std_logic;
+	signal wdataready_audio : std_logic;
+	--_audio-write response channel
+	signal wrready_audio    : std_logic;
+	signal wrvalid_audio    : std_logic;
+	signal wrsp_audio       : std_logic_vector(1 downto 0);
+
+	--_audio-read address channel
+	signal raddr_audio   : std_logic_vector(31 downto 0);
+	signal rlen_audio    : std_logic_vector(9 downto 0);
+	signal rsize_audio   : std_logic_vector(9 downto 0);
+	signal rvalid_audio  : std_logic;
+	signal rready_audio  : std_logic;
+	--_audio-read data channel
+	signal rdata_audio   : std_logic_vector(31 downto 0);
+	signal rstrb_audio   : std_logic_vector(3 downto 0);
+	signal rlast_audio   : std_logic;
+	signal rdvalid_audio : std_logic;
+	signal rdready_audio : std_logic;
+	signal rres_audio    : std_logic_vector(1 downto 0);
 begin
 	reset_proc : process
 	begin
 		--reset <= '0';
 		--wait for 10 ps;
 		reset <= '1';
---		wait for 50 ps;
+		--		wait for 50 ps;
 		reset <= '0';
---		wait;
+	--		wait;
 	end process;
 
 	clk_gen : process
@@ -244,9 +242,9 @@ begin
 		-- Generate a clock cycle
 		if rising_edge(Clock) then
 			Clock <= '0';
---			wait for 2 ps;
+			--			wait for 2 ps;
 			Clock <= '1';
---			wait for 2 ps;
+			--			wait for 2 ps;
 			--- 1
 			if cpu_req1(50 downto 50) = "1" then
 				write(line_output, cpu_req1);
@@ -616,10 +614,10 @@ begin
 
 			writeline(trace_file, line_output);
 			if done1 = '1' and done2 = '1' then
---				wait;
+			--				wait;
 			end if;
 		end if;
---		wait;
+	--		wait;
 	end process;
 
 	cpu1 : entity work.CPU(Behavioral) port map(
@@ -629,7 +627,7 @@ begin
 			cpu_res => cpu_res1,
 			cpu_req => cpu_req1,
 			full_c  => full_c1_u
-			--done    => done1
+		--done    => done1
 		);
 	cpu2 : entity work.CPU(Behavioral) port map(
 			reset   => reset,
@@ -638,63 +636,57 @@ begin
 			cpu_res => cpu_res2,
 			cpu_req => cpu_req2,
 			full_c  => full_c2_u
-			--done    => done2
+		--done    => done2
 		);
 	cache1 : entity work.L1Cache(Behavioral) port map(
-			Clock       => Clock,
-			reset       => reset,
-			cpu_req     => cpu_req1,
-			snoop_c_req => snoop_req2,
-			snoop_c_res => snoop_res2,
-			snoop_c_hit => snoop_hit2,
-			snoop_req   => snoop_req1,
-			snoop_hit   => snoop_hit1,
-			snoop_res   => snoop_res1,
-			
-			cache_req   => bus_req1,
-			bus_res     => bus_res1,
-			cpu_res     => cpu_res1,
-			full_cprq   => full_c1_u,
-			
-			
-			up_snoop => up_snoop,
+			Clock        => Clock,
+			reset        => reset,
+			cpu_req      => cpu_req1,
+			snoop_c_req  => snoop_req2,
+			snoop_c_res  => snoop_res2,
+			snoop_c_hit  => snoop_hit2,
+			snoop_req    => snoop_req1,
+			snoop_hit    => snoop_hit1,
+			snoop_res    => snoop_res1,
+			cache_req    => bus_req1,
+			bus_res      => bus_res1,
+			cpu_res      => cpu_res1,
+			full_cprq    => full_c1_u,
+			up_snoop     => up_snoop,
 			up_snoop_res => up_snoop_res,
 			up_snoop_hit => up_snoop_hit,
-			
+
 			--full_srq    => zero,
-			full_brs    => full_brs1,
-			full_crq    => full_crq1,
-			full_wb     => full_wb1,
-			full_srs    => full_srs1,
-			wb_req      => wb_req1
+			full_brs     => full_brs1,
+			full_crq     => full_crq1,
+			full_wb      => full_wb1,
+			full_srs     => full_srs1,
+			wb_req       => wb_req1
 		);
 	cache2 : entity work.L1Cache(Behavioral) port map(
-			Clock       => Clock,
-			reset       => reset,
-			cpu_req     => cpu_req2,
-			snoop_c_req => snoop_req1,
-			snoop_c_res => snoop_res1,
-			snoop_c_hit => snoop_hit1,
-			snoop_req   => snoop_req2,
-			snoop_hit   => snoop_hit2,
-			snoop_res   => snoop_res2,
-			
-			cache_req   => bus_req2,
-			bus_res     => bus_res2,
-			cpu_res     => cpu_res2,
-			full_cprq   => full_c2_u,
-			
-			
-			up_snoop => zero75,
+			Clock        => Clock,
+			reset        => reset,
+			cpu_req      => cpu_req2,
+			snoop_c_req  => snoop_req1,
+			snoop_c_res  => snoop_res1,
+			snoop_c_hit  => snoop_hit1,
+			snoop_req    => snoop_req2,
+			snoop_hit    => snoop_hit2,
+			snoop_res    => snoop_res2,
+			cache_req    => bus_req2,
+			bus_res      => bus_res2,
+			cpu_res      => cpu_res2,
+			full_cprq    => full_c2_u,
+			up_snoop     => zero75,
 			up_snoop_res => zero75,
 			--up_snoop_hit => zero,
-			
+
 			--full_srq    => zero,
-			full_brs    => full_brs2,
-			full_crq    => full_crq2,
-			full_wb     => full_wb2,
-			full_srs    => full_srs2,
-			wb_req      => wb_req2
+			full_brs     => full_brs2,
+			full_crq     => full_crq2,
+			full_wb      => full_wb2,
+			full_srs     => full_srs2,
+			wb_req       => wb_req2
 		);
 	power : entity work.PWR(Behavioral) port map(
 			audioreq  => pwr_audioreq,
@@ -716,146 +708,135 @@ begin
 			gfx_upreq        => gfx_upreq,
 			gfx_upres        => gfx_upres,
 			gfx_upreq_full   => gfx_upreq_full,
-			
 			audio_upreq      => audio_upreq,
 			audio_upres      => audio_upres,
 			audio_upreq_full => audio_upreq_full,
-			
 			usb_upreq        => usb_upreq,
 			usb_upres        => usb_upres,
 			usb_upreq_full   => usb_upreq_full,
-			
 			uart_upreq       => uart_upreq,
 			uart_upres       => uart_upres,
 			uart_upreq_full  => uart_upreq_full,
-			
-			waddr => waddr,
-			wlen =>wlen,
-			wsize =>wsize,
-			wvalid=>wvalid,
-			wready=>wready,
-			wdata=>wdata,
-			wtrb=>wtrb,
-			wlast=>wlast,
-			wdvalid=>wdvalid,
-			wdataready=>wdataready,
-			wrready=>wrready,
-			wrvalid=>wrvalid,
-			wrsp=>wrsp,
-			raddr=>raddr,
-			rlen=>rlen,
-			rsize=>rsize,
-			rvalid=>rvalid,
-			rready=>rready,
-			rdata=>rdata,
-			rstrb=>rstrb,
-			rlast=>rlast,
-			rdvalid=>rdvalid,
-			rdready=>rdready,
-			rres=>rres,
-			
-			waddr_gfx => waddr_gfx,
-			wlen_gfx =>wlen_gfx,
-			wsize_gfx =>wsize_gfx,
-			wvalid_gfx=>wvalid_gfx,
-			wready_gfx=>wready,
-			wdata_gfx=>wdata_gfx,
-			wtrb_gfx=>wtrb_gfx,
-			wlast_gfx=>wlast_gfx,
-			wdvalid_gfx=>wdvalid_gfx,
-			wdataready_gfx=>wdataready_gfx,
-			wrready_gfx=>wrready_gfx,
-			wrvalid_gfx=>wrvalid_gfx,
-			wrsp_gfx=>wrsp_gfx,
-			raddr_gfx=>raddr_gfx,
-			rlen_gfx=>rlen_gfx,
-			rsize_gfx=>rsize_gfx,
-			rvalid_gfx=>rvalid_gfx,
-			rready_gfx=>rready_gfx,
-			rdata_gfx=>rdata_gfx,
-			rstrb_gfx=>rstrb_gfx,
-			rlast_gfx=>rlast_gfx,
-			rdvalid_gfx=>rdvalid_gfx,
-			rdready_gfx=>rdready_gfx,
-			rres_gfx=>rres_gfx,
-			
-			waddr_uart => waddr_uart,
-			wlen_uart =>wlen_uart,
-			wsize_uart =>wsize_uart,
-			wvalid_uart=>wvalid_uart,
-			wready_uart=>wready_uart,
-			wdata_uart=>wdata_uart,
-			wtrb_uart=>wtrb_uart,
-			wlast_uart=>wlast_uart,
-			wdvalid_uart=>wdvalid_uart,
-			wdataready_uart=>wdataready_uart,
-			wrready_uart=>wrready_uart,
-			wrvalid_uart=>wrvalid_uart,
-			wrsp_uart=>wrsp_uart,
-			raddr_uart=>raddr_uart,
-			rlen_uart=>rlen_uart,
-			rsize_uart=>rsize_uart,
-			rvalid_uart=>rvalid_uart,
-			rready_uart=>rready_uart,
-			rdata_uart=>rdata_uart,
-			rstrb_uart=>rstrb_uart,
-			rlast_uart=>rlast_uart,
-			rdvalid_uart=>rdvalid_uart,
-			rdready_uart=>rdready_uart,
-			rres_uart=>rres_uart,
-			
-			
-			
-			waddr_usb => waddr_usb,
-			wlen_usb =>wlen_usb,
-			wsize_usb =>wsize_usb,
-			wvalid_usb=>wvalid_usb,
-			wready_usb=>wready_usb,
-			wdata_usb=>wdata_usb,
-			wtrb_usb=>wtrb_usb,
-			wlast_usb=>wlast_usb,
-			wdvalid_usb=>wdvalid_usb,
-			wdataready_usb=>wdataready_usb,
-			wrready_usb=>wrready_usb,
-			wrvalid_usb=>wrvalid_usb,
-			wrsp_usb=>wrsp_usb,
-			raddr_usb=>raddr_usb,
-			rlen_usb=>rlen_usb,
-			rsize_usb=>rsize_usb,
-			rvalid_usb=>rvalid_usb,
-			rready_usb=>rready_usb,
-			rdata_usb=>rdata_usb,
-			rstrb_usb=>rstrb_usb,
-			rlast_usb=>rlast_usb,
-			rdvalid_usb=>rdvalid_usb,
-			rdready_usb=>rdready_usb,
-			rres_usb=>rres_usb,
-			
-			
-			waddr_audio => waddr_audio,
-			wlen_audio =>wlen_audio,
-			wsize_audio =>wsize_audio,
-			wvalid_audio=>wvalid_audio,
-			wready_audio=>wready_audio,
-			wdata_audio=>wdata_audio,
-			wtrb_audio=>wtrb_audio,
-			wlast_audio=>wlast_audio,
-			wdvalid_audio=>wdvalid_audio,
-			wdataready_audio=>wdataready_audio,
-			wrready_audio=>wrready_audio,
-			wrvalid_audio=>wrvalid_audio,
-			wrsp_audio=>wrsp_audio,
-			raddr_audio=>raddr_audio,
-			rlen_audio=>rlen_audio,
-			rsize_audio=>rsize_audio,
-			rvalid_audio=>rvalid_audio,
-			rready_audio=>rready_audio,
-			rdata_audio=>rdata_audio,
-			rstrb_audio=>rstrb_audio,
-			rlast_audio=>rlast_audio,
-			rdvalid_audio=>rdvalid_audio,
-			rdready_audio=>rdready_audio,
-			rres_audio=>rres_audio,
+			waddr            => waddr,
+			wlen             => wlen,
+			wsize            => wsize,
+			wvalid           => wvalid,
+			wready           => wready,
+			wdata            => wdata,
+			wtrb             => wtrb,
+			wlast            => wlast,
+			wdvalid          => wdvalid,
+			wdataready       => wdataready,
+			wrready          => wrready,
+			wrvalid          => wrvalid,
+			wrsp             => wrsp,
+			raddr            => raddr,
+			rlen             => rlen,
+			rsize            => rsize,
+			rvalid           => rvalid,
+			rready           => rready,
+			rdata            => rdata,
+			rstrb            => rstrb,
+			rlast            => rlast,
+			rdvalid          => rdvalid,
+			rdready          => rdready,
+			rres             => rres,
+			waddr_gfx        => waddr_gfx,
+			wlen_gfx         => wlen_gfx,
+			wsize_gfx        => wsize_gfx,
+			wvalid_gfx       => wvalid_gfx,
+			wready_gfx       => wready,
+			wdata_gfx        => wdata_gfx,
+			wtrb_gfx         => wtrb_gfx,
+			wlast_gfx        => wlast_gfx,
+			wdvalid_gfx      => wdvalid_gfx,
+			wdataready_gfx   => wdataready_gfx,
+			wrready_gfx      => wrready_gfx,
+			wrvalid_gfx      => wrvalid_gfx,
+			wrsp_gfx         => wrsp_gfx,
+			raddr_gfx        => raddr_gfx,
+			rlen_gfx         => rlen_gfx,
+			rsize_gfx        => rsize_gfx,
+			rvalid_gfx       => rvalid_gfx,
+			rready_gfx       => rready_gfx,
+			rdata_gfx        => rdata_gfx,
+			rstrb_gfx        => rstrb_gfx,
+			rlast_gfx        => rlast_gfx,
+			rdvalid_gfx      => rdvalid_gfx,
+			rdready_gfx      => rdready_gfx,
+			rres_gfx         => rres_gfx,
+			waddr_uart       => waddr_uart,
+			wlen_uart        => wlen_uart,
+			wsize_uart       => wsize_uart,
+			wvalid_uart      => wvalid_uart,
+			wready_uart      => wready_uart,
+			wdata_uart       => wdata_uart,
+			wtrb_uart        => wtrb_uart,
+			wlast_uart       => wlast_uart,
+			wdvalid_uart     => wdvalid_uart,
+			wdataready_uart  => wdataready_uart,
+			wrready_uart     => wrready_uart,
+			wrvalid_uart     => wrvalid_uart,
+			wrsp_uart        => wrsp_uart,
+			raddr_uart       => raddr_uart,
+			rlen_uart        => rlen_uart,
+			rsize_uart       => rsize_uart,
+			rvalid_uart      => rvalid_uart,
+			rready_uart      => rready_uart,
+			rdata_uart       => rdata_uart,
+			rstrb_uart       => rstrb_uart,
+			rlast_uart       => rlast_uart,
+			rdvalid_uart     => rdvalid_uart,
+			rdready_uart     => rdready_uart,
+			rres_uart        => rres_uart,
+			waddr_usb        => waddr_usb,
+			wlen_usb         => wlen_usb,
+			wsize_usb        => wsize_usb,
+			wvalid_usb       => wvalid_usb,
+			wready_usb       => wready_usb,
+			wdata_usb        => wdata_usb,
+			wtrb_usb         => wtrb_usb,
+			wlast_usb        => wlast_usb,
+			wdvalid_usb      => wdvalid_usb,
+			wdataready_usb   => wdataready_usb,
+			wrready_usb      => wrready_usb,
+			wrvalid_usb      => wrvalid_usb,
+			wrsp_usb         => wrsp_usb,
+			raddr_usb        => raddr_usb,
+			rlen_usb         => rlen_usb,
+			rsize_usb        => rsize_usb,
+			rvalid_usb       => rvalid_usb,
+			rready_usb       => rready_usb,
+			rdata_usb        => rdata_usb,
+			rstrb_usb        => rstrb_usb,
+			rlast_usb        => rlast_usb,
+			rdvalid_usb      => rdvalid_usb,
+			rdready_usb      => rdready_usb,
+			rres_usb         => rres_usb,
+			waddr_audio      => waddr_audio,
+			wlen_audio       => wlen_audio,
+			wsize_audio      => wsize_audio,
+			wvalid_audio     => wvalid_audio,
+			wready_audio     => wready_audio,
+			wdata_audio      => wdata_audio,
+			wtrb_audio       => wtrb_audio,
+			wlast_audio      => wlast_audio,
+			wdvalid_audio    => wdvalid_audio,
+			wdataready_audio => wdataready_audio,
+			wrready_audio    => wrready_audio,
+			wrvalid_audio    => wrvalid_audio,
+			wrsp_audio       => wrsp_audio,
+			raddr_audio      => raddr_audio,
+			rlen_audio       => rlen_audio,
+			rsize_audio      => rsize_audio,
+			rvalid_audio     => rvalid_audio,
+			rready_audio     => rready_audio,
+			rdata_audio      => rdata_audio,
+			rstrb_audio      => rstrb_audio,
+			rlast_audio      => rlast_audio,
+			rdvalid_audio    => rdvalid_audio,
+			rdready_audio    => rdready_audio,
+			rres_audio       => rres_audio,
 			Clock            => Clock,
 			reset            => reset,
 			cache_req1       => bus_req1,
@@ -876,32 +857,31 @@ begin
 			pwrreq_full      => pwrreq_full
 		);
 	gfx : entity work.gfx(Behavioral) port map(
-		wrvalid => wrvalid_gfx,
-		wrsp => wrsp_gfx,
-		raddr=>raddr_gfx,
-		rlen=> rlen_gfx ,
-		rsize=> rsize_gfx,
-		rvalid=>rvalid_gfx ,                                       
-		rready=>rready_gfx   ,                                    
-		--_gfx-read data channel
-		rdata=> rdata_gfx ,                                       
-		rstrb=> rstrb_gfx  ,                                        
-		rlast=> rlast_gfx  ,                                       
-		rdvalid=> rdvalid_gfx ,                                       
-		rdready=> rdready_gfx  ,        
-		rres=> rres_gfx ,
-			waddr => waddr_gfx,
-			wlen => wlen_gfx,
-			wsize => wsize_gfx,
-			wvalid => wvalid_gfx,
-			wdata => wdata_gfx,
-			wready => wready_gfx,
-			wtrb => wtrb_gfx,
-			wlast => wlast_gfx,
-			wdataready=> wdataready_gfx,
-			wdvalid => wdvalid_gfx,
-			wrready => wrready_gfx,
-			
+			wrvalid    => wrvalid_gfx,
+			wrsp       => wrsp_gfx,
+			raddr      => raddr_gfx,
+			rlen       => rlen_gfx,
+			rsize      => rsize_gfx,
+			rvalid     => rvalid_gfx,
+			rready     => rready_gfx,
+			--_gfx-read data channel
+			rdata      => rdata_gfx,
+			rstrb      => rstrb_gfx,
+			rlast      => rlast_gfx,
+			rdvalid    => rdvalid_gfx,
+			rdready    => rdready_gfx,
+			rres       => rres_gfx,
+			waddr      => waddr_gfx,
+			wlen       => wlen_gfx,
+			wsize      => wsize_gfx,
+			wvalid     => wvalid_gfx,
+			wdata      => wdata_gfx,
+			wready     => wready_gfx,
+			wtrb       => wtrb_gfx,
+			wlast      => wlast_gfx,
+			wdataready => wdataready_gfx,
+			wdvalid    => wdvalid_gfx,
+			wrready    => wrready_gfx,
 			upres      => gfx_upres,
 			upreq      => gfx_upreq,
 			upreq_full => gfx_upreq_full,
@@ -913,32 +893,31 @@ begin
 			pwrres     => pwr_gfxres
 		);
 	Audio : entity work.Audio(Behavioral) port map(
-			wrvalid => wrvalid_audio,
-		wrsp => wrsp_audio,
-		raddr=>raddr_audio,
-		rlen=> rlen_audio ,
-		rsize=> rsize_audio,
-		rvalid=>rvalid_audio ,                                       
-		rready=>rready_audio   ,                                    
-		--_audio-read data channel
-		rdata=> rdata_audio ,                                       
-		rstrb=> rstrb_audio  ,                                        
-		rlast=> rlast_audio  ,                                       
-		rdvalid=> rdvalid_audio ,                                       
-		rdready=> rdready_audio  ,        
-		rres=> rres_audio ,
-			waddr => waddr_audio,
-			wlen => wlen_audio,
-			wsize => wsize_audio,
-			wvalid => wvalid_audio,
-			wdata => wdata_audio,
-			wready => wready_audio,
-			wtrb => wtrb_audio,
-			wlast => wlast_audio,
-			wdataready=> wdataready_audio,
-			wdvalid => wdvalid_audio,
-			wrready => wrready_audio,
-			
+			wrvalid    => wrvalid_audio,
+			wrsp       => wrsp_audio,
+			raddr      => raddr_audio,
+			rlen       => rlen_audio,
+			rsize      => rsize_audio,
+			rvalid     => rvalid_audio,
+			rready     => rready_audio,
+			--_audio-read data channel
+			rdata      => rdata_audio,
+			rstrb      => rstrb_audio,
+			rlast      => rlast_audio,
+			rdvalid    => rdvalid_audio,
+			rdready    => rdready_audio,
+			rres       => rres_audio,
+			waddr      => waddr_audio,
+			wlen       => wlen_audio,
+			wsize      => wsize_audio,
+			wvalid     => wvalid_audio,
+			wdata      => wdata_audio,
+			wready     => wready_audio,
+			wtrb       => wtrb_audio,
+			wlast      => wlast_audio,
+			wdataready => wdataready_audio,
+			wdvalid    => wdvalid_audio,
+			wrready    => wrready_audio,
 			upres      => audio_upres,
 			upreq      => audio_upreq,
 			upreq_full => audio_upreq_full,
@@ -950,32 +929,31 @@ begin
 			pwrres     => pwr_audiores
 		);
 	USB : entity work.USB(Behavioral) port map(
-			wrvalid => wrvalid_usb,
-		wrsp => wrsp_usb,
-		raddr=>raddr_usb,
-		rlen=> rlen_usb ,
-		rsize=> rsize_usb,
-		rvalid=>rvalid_usb ,                                       
-		rready=>rready_usb   ,                                    
-		--_usb-read data channel
-		rdata=> rdata_usb ,                                       
-		rstrb=> rstrb_usb  ,                                        
-		rlast=> rlast_usb  ,                                       
-		rdvalid=> rdvalid_usb ,                                       
-		rdready=> rdready_usb  ,        
-		rres=> rres_usb ,
-			waddr => waddr_usb,
-			wlen => wlen_usb,
-			wsize => wsize_usb,
-			wvalid => wvalid_usb,
-			wdata => wdata_usb,
-			wready => wready_usb,
-			wtrb => wtrb_usb,
-			wlast => wlast_usb,
-			wdataready=> wdataready_usb,
-			wdvalid => wdvalid_usb,
-			wrready => wrready_usb,
-			
+			wrvalid    => wrvalid_usb,
+			wrsp       => wrsp_usb,
+			raddr      => raddr_usb,
+			rlen       => rlen_usb,
+			rsize      => rsize_usb,
+			rvalid     => rvalid_usb,
+			rready     => rready_usb,
+			--_usb-read data channel
+			rdata      => rdata_usb,
+			rstrb      => rstrb_usb,
+			rlast      => rlast_usb,
+			rdvalid    => rdvalid_usb,
+			rdready    => rdready_usb,
+			rres       => rres_usb,
+			waddr      => waddr_usb,
+			wlen       => wlen_usb,
+			wsize      => wsize_usb,
+			wvalid     => wvalid_usb,
+			wdata      => wdata_usb,
+			wready     => wready_usb,
+			wtrb       => wtrb_usb,
+			wlast      => wlast_usb,
+			wdataready => wdataready_usb,
+			wdvalid    => wdvalid_usb,
+			wrready    => wrready_usb,
 			upres      => usb_upres,
 			upreq      => usb_upreq,
 			upreq_full => usb_upreq_full,
@@ -987,32 +965,31 @@ begin
 			pwrres     => pwr_usbres
 		);
 	UART : entity work.UART(Behavioral) port map(
-			wrvalid => wrvalid_uart,
-		wrsp => wrsp_uart,
-		raddr=>raddr_uart,
-		rlen=> rlen_uart ,
-		rsize=> rsize_uart,
-		rvalid=>rvalid_uart ,                                       
-		rready=>rready_uart   ,                                    
-		--_uart-read data channel
-		rdata=> rdata_uart ,                                       
-		rstrb=> rstrb_uart  ,                                        
-		rlast=> rlast_uart  ,                                       
-		rdvalid=> rdvalid_uart ,                                       
-		rdready=> rdready_uart  ,        
-		rres=> rres_uart ,
-			waddr => waddr_uart,
-			wlen => wlen_uart,
-			wsize => wsize_uart,
-			wvalid => wvalid_uart,
-			wdata => wdata_uart,
-			wready => wready_uart,
-			wtrb => wtrb_uart,
-			wlast => wlast_uart,
-			wdataready=> wdataready_uart,
-			wdvalid => wdvalid_uart,
-			wrready => wrready_uart,
-			
+			wrvalid    => wrvalid_uart,
+			wrsp       => wrsp_uart,
+			raddr      => raddr_uart,
+			rlen       => rlen_uart,
+			rsize      => rsize_uart,
+			rvalid     => rvalid_uart,
+			rready     => rready_uart,
+			--_uart-read data channel
+			rdata      => rdata_uart,
+			rstrb      => rstrb_uart,
+			rlast      => rlast_uart,
+			rdvalid    => rdvalid_uart,
+			rdready    => rdready_uart,
+			rres       => rres_uart,
+			waddr      => waddr_uart,
+			wlen       => wlen_uart,
+			wsize      => wsize_uart,
+			wvalid     => wvalid_uart,
+			wdata      => wdata_uart,
+			wready     => wready_uart,
+			wtrb       => wtrb_uart,
+			wlast      => wlast_uart,
+			wdataready => wdataready_uart,
+			wdvalid    => wdvalid_uart,
+			wrready    => wrready_uart,
 			upres      => uart_upres,
 			upreq      => uart_upreq,
 			upreq_full => uart_upreq_full,
@@ -1024,31 +1001,31 @@ begin
 			pwrres     => pwr_uartres
 		);
 	mem : entity work.Memory(Behavioral) port map(
-			Clock => Clock,
-			reset => reset,
-			waddr => waddr,
-			wlen =>wlen,
-			wsize =>wsize,
-			wvalid=>wvalid,
-			wready=>wready,
-			wdata=>wdata,
-			wtrb=>wtrb,
-			wlast=>wlast,
-			wdvalid=>wdvalid,
-			wdataready=>wdataready,
-			wrready=>wrready,
-			wrvalid=>wrvalid,
-			wrsp=>wrsp,
-			raddr=>raddr,
-			rlen=>rlen,
-			rsize=>rsize,
-			rvalid=>rvalid,
-			rready=>rready,
-			rdata=>rdata,
-			rstrb=>rstrb,
-			rlast=>rlast,
-			rdvalid=>rdvalid,
-			rdready=>rdready,
-			rres=>rres
+			Clock      => Clock,
+			reset      => reset,
+			waddr      => waddr,
+			wlen       => wlen,
+			wsize      => wsize,
+			wvalid     => wvalid,
+			wready     => wready,
+			wdata      => wdata,
+			wtrb       => wtrb,
+			wlast      => wlast,
+			wdvalid    => wdvalid,
+			wdataready => wdataready,
+			wrready    => wrready,
+			wrvalid    => wrvalid,
+			wrsp       => wrsp,
+			raddr      => raddr,
+			rlen       => rlen,
+			rsize      => rsize,
+			rvalid     => rvalid,
+			rready     => rready,
+			rdata      => rdata,
+			rstrb      => rstrb,
+			rlast      => rlast,
+			rdvalid    => rdvalid,
+			rdready    => rdready,
+			rres       => rres
 		);
 end Behavioral;

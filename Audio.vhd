@@ -57,7 +57,6 @@ end Audio;
 architecture Behavioral of Audio is
 	type ram_type is array (0 to (2 ** 10 - 1) - 1) of std_logic_vector(wdata'range);
 	signal ROM_array : ram_type  := (others => (others => '0'));
-	signal tmp_int   : integer   := 0;
 	signal poweron   : std_logic := '1';
 
 	signal emp3, emp2 : std_logic := '0';
@@ -168,7 +167,6 @@ begin
 				if rvalid = '1' then
 					rready  <= '0';
 					address := to_integer(unsigned(raddr(31 downto 4)));
-					tmp_int <= address;
 					len     := to_integer(unsigned(rlen));
 					size    := rsize;
 					state   := 2;

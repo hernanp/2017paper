@@ -12,21 +12,21 @@ USE ieee.numeric_std.ALL;
 
 entity AXI is
 	Port(
-		Clock                                              : in  std_logic;
-		reset                                              : in  std_logic;
-		cache_req1                                         : in  STD_LOGIC_VECTOR(72 downto 0);
-		cache_req2                                         : in  STD_LOGIC_VECTOR(72 downto 0);
-		wb_req1, wb_req2                                   : in  std_logic_vector(552 downto 0);
-		bus_res1                                           : out STD_LOGIC_VECTOR(552 downto 0);
-		bus_res2                                           : out STD_LOGIC_VECTOR(552 downto 0);
-		snoop_req1                                         : out STD_LOGIC_VECTOR(75 downto 0);
-		snoop_res1                            					: in  STD_LOGIC_VECTOR(75 downto 0);
-		snp_hit1                                           : in  std_logic;
-		full_srq1                              : in  std_logic;
-		full_wb1, full_srs1, full_wb2,  full_mrs : out std_logic;
-		pwrreq                                             : out std_logic_vector(4 downto 0);
-		pwrreq_full                                        : in  std_logic;
-		pwrres                                             : in  std_logic_vector(4 downto 0);
+		Clock                                   : in  std_logic;
+		reset                                   : in  std_logic;
+		cache_req1                              : in  STD_LOGIC_VECTOR(72 downto 0);
+		cache_req2                              : in  STD_LOGIC_VECTOR(72 downto 0);
+		wb_req1, wb_req2                        : in  std_logic_vector(552 downto 0);
+		bus_res1                                : out STD_LOGIC_VECTOR(552 downto 0);
+		bus_res2                                : out STD_LOGIC_VECTOR(552 downto 0);
+		snoop_req1                              : out STD_LOGIC_VECTOR(75 downto 0);
+		snoop_res1                              : in  STD_LOGIC_VECTOR(75 downto 0);
+		snp_hit1                                : in  std_logic;
+		full_srq1                               : in  std_logic;
+		full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
+		pwrreq                                  : out std_logic_vector(4 downto 0);
+		pwrreq_full                             : in  std_logic;
+		pwrres                                  : in  std_logic_vector(4 downto 0);
 
 		--add 3 bits in snoop request to indicate the source
 		--000 cpu0
@@ -36,174 +36,174 @@ entity AXI is
 		--100 audio
 		--101 cpu1
 
-		
-		gfx_upreq                                          : in  std_logic_vector(72 downto 0);
-		gfx_upres                                          : out std_logic_vector(72 downto 0);
-		gfx_upreq_full                                     : out std_logic;
-		audio_upreq                                        : in  std_logic_vector(72 downto 0);
-		audio_upres                                        : out std_logic_vector(72 downto 0);
-		audio_upreq_full                                   : out std_logic;
-		usb_upreq                                          : in  std_logic_vector(72 downto 0);
-		usb_upres                                          : out std_logic_vector(72 downto 0);
-		usb_upreq_full                                     : out std_logic;
-		uart_upreq                                         : in  std_logic_vector(72 downto 0);
-		uart_upres                                         : out std_logic_vector(72 downto 0);
-		uart_upreq_full                                    : out std_logic;
+
+		gfx_upreq                               : in  std_logic_vector(72 downto 0);
+		gfx_upres                               : out std_logic_vector(72 downto 0);
+		gfx_upreq_full                          : out std_logic;
+		audio_upreq                             : in  std_logic_vector(72 downto 0);
+		audio_upres                             : out std_logic_vector(72 downto 0);
+		audio_upreq_full                        : out std_logic;
+		usb_upreq                               : in  std_logic_vector(72 downto 0);
+		usb_upres                               : out std_logic_vector(72 downto 0);
+		usb_upreq_full                          : out std_logic;
+		uart_upreq                              : in  std_logic_vector(72 downto 0);
+		uart_upres                              : out std_logic_vector(72 downto 0);
+		uart_upreq_full                         : out std_logic;
 
 		---write address channel
-		waddr                                              : out std_logic_vector(31 downto 0);
-		wlen                                               : out std_logic_vector(9 downto 0);
-		wsize                                              : out std_logic_vector(9 downto 0);
-		wvalid                                             : out std_logic;
-		wready                                             : in  std_logic;
+		waddr                                   : out std_logic_vector(31 downto 0);
+		wlen                                    : out std_logic_vector(9 downto 0);
+		wsize                                   : out std_logic_vector(9 downto 0);
+		wvalid                                  : out std_logic;
+		wready                                  : in  std_logic;
 		---write data channel
-		wdata                                              : out std_logic_vector(31 downto 0);
-		wtrb                                               : out std_logic_vector(3 downto 0);
-		wlast                                              : out std_logic;
-		wdvalid                                            : out std_logic;
-		wdataready                                         : in  std_logic;
+		wdata                                   : out std_logic_vector(31 downto 0);
+		wtrb                                    : out std_logic_vector(3 downto 0);
+		wlast                                   : out std_logic;
+		wdvalid                                 : out std_logic;
+		wdataready                              : in  std_logic;
 		---write response channel
-		wrready                                            : out std_logic;
-		wrvalid                                            : in  std_logic;
-		wrsp                                               : in  std_logic_vector(1 downto 0);
+		wrready                                 : out std_logic;
+		wrvalid                                 : in  std_logic;
+		wrsp                                    : in  std_logic_vector(1 downto 0);
 
 		---read address channel
-		raddr                                              : out std_logic_vector(31 downto 0);
-		rlen                                               : out std_logic_vector(9 downto 0);
-		rsize                                              : out std_logic_vector(9 downto 0);
-		rvalid                                             : out std_logic;
-		rready                                             : in  std_logic;
+		raddr                                   : out std_logic_vector(31 downto 0);
+		rlen                                    : out std_logic_vector(9 downto 0);
+		rsize                                   : out std_logic_vector(9 downto 0);
+		rvalid                                  : out std_logic;
+		rready                                  : in  std_logic;
 		---read data channel
-		rdata                                              : in  std_logic_vector(31 downto 0);
-		rstrb                                              : in  std_logic_vector(3 downto 0);
-		rlast                                              : in  std_logic;
-		rdvalid                                            : in  std_logic;
-		rdready                                            : out std_logic;
-		rres                                               : in  std_logic_vector(1 downto 0);
+		rdata                                   : in  std_logic_vector(31 downto 0);
+		rstrb                                   : in  std_logic_vector(3 downto 0);
+		rlast                                   : in  std_logic;
+		rdvalid                                 : in  std_logic;
+		rdready                                 : out std_logic;
+		rres                                    : in  std_logic_vector(1 downto 0);
 
 		---usb write address channel
-		waddr_usb                                          : out std_logic_vector(31 downto 0);
-		wlen_usb                                           : out std_logic_vector(9 downto 0);
-		wsize_usb                                          : out std_logic_vector(9 downto 0);
-		wvalid_usb                                         : out std_logic;
-		wready_usb                                         : in  std_logic;
+		waddr_usb                               : out std_logic_vector(31 downto 0);
+		wlen_usb                                : out std_logic_vector(9 downto 0);
+		wsize_usb                               : out std_logic_vector(9 downto 0);
+		wvalid_usb                              : out std_logic;
+		wready_usb                              : in  std_logic;
 		--_usb-write data channel
-		wdata_usb                                          : out std_logic_vector(31 downto 0);
-		wtrb_usb                                           : out std_logic_vector(3 downto 0);
-		wlast_usb                                          : out std_logic;
-		wdvalid_usb                                        : out std_logic;
-		wdataready_usb                                     : in  std_logic;
+		wdata_usb                               : out std_logic_vector(31 downto 0);
+		wtrb_usb                                : out std_logic_vector(3 downto 0);
+		wlast_usb                               : out std_logic;
+		wdvalid_usb                             : out std_logic;
+		wdataready_usb                          : in  std_logic;
 		--_usb-write response channel
-		wrready_usb                                        : out std_logic;
-		wrvalid_usb                                        : in  std_logic;
-		wrsp_usb                                           : in  std_logic_vector(1 downto 0);
+		wrready_usb                             : out std_logic;
+		wrvalid_usb                             : in  std_logic;
+		wrsp_usb                                : in  std_logic_vector(1 downto 0);
 
 		--_usb-read address channel
-		raddr_usb                                          : out std_logic_vector(31 downto 0);
-		rlen_usb                                           : out std_logic_vector(9 downto 0);
-		rsize_usb                                          : out std_logic_vector(9 downto 0);
-		rvalid_usb                                         : out std_logic;
-		rready_usb                                         : in  std_logic;
+		raddr_usb                               : out std_logic_vector(31 downto 0);
+		rlen_usb                                : out std_logic_vector(9 downto 0);
+		rsize_usb                               : out std_logic_vector(9 downto 0);
+		rvalid_usb                              : out std_logic;
+		rready_usb                              : in  std_logic;
 		--_usb-read data channel
-		rdata_usb                                          : in  std_logic_vector(31 downto 0);
-		rstrb_usb                                          : in  std_logic_vector(3 downto 0);
-		rlast_usb                                          : in  std_logic;
-		rdvalid_usb                                        : in  std_logic;
-		rdready_usb                                        : out std_logic;
-		rres_usb                                           : in  std_logic_vector(1 downto 0);
+		rdata_usb                               : in  std_logic_vector(31 downto 0);
+		rstrb_usb                               : in  std_logic_vector(3 downto 0);
+		rlast_usb                               : in  std_logic;
+		rdvalid_usb                             : in  std_logic;
+		rdready_usb                             : out std_logic;
+		rres_usb                                : in  std_logic_vector(1 downto 0);
 
 		---gfx write address channel
-		waddr_gfx                                          : out std_logic_vector(31 downto 0);
-		wlen_gfx                                           : out std_logic_vector(9 downto 0);
-		wsize_gfx                                          : out std_logic_vector(9 downto 0);
-		wvalid_gfx                                         : out std_logic;
-		wready_gfx                                         : in  std_logic;
+		waddr_gfx                               : out std_logic_vector(31 downto 0);
+		wlen_gfx                                : out std_logic_vector(9 downto 0);
+		wsize_gfx                               : out std_logic_vector(9 downto 0);
+		wvalid_gfx                              : out std_logic;
+		wready_gfx                              : in  std_logic;
 		--_gfx-write data channel
-		wdata_gfx                                          : out std_logic_vector(31 downto 0);
-		wtrb_gfx                                           : out std_logic_vector(3 downto 0);
-		wlast_gfx                                          : out std_logic;
-		wdvalid_gfx                                        : out std_logic;
-		wdataready_gfx                                     : in  std_logic;
+		wdata_gfx                               : out std_logic_vector(31 downto 0);
+		wtrb_gfx                                : out std_logic_vector(3 downto 0);
+		wlast_gfx                               : out std_logic;
+		wdvalid_gfx                             : out std_logic;
+		wdataready_gfx                          : in  std_logic;
 		--_gfx-write response channel
-		wrready_gfx                                        : out std_logic;
-		wrvalid_gfx                                        : in  std_logic;
-		wrsp_gfx                                           : in  std_logic_vector(1 downto 0);
+		wrready_gfx                             : out std_logic;
+		wrvalid_gfx                             : in  std_logic;
+		wrsp_gfx                                : in  std_logic_vector(1 downto 0);
 
 		--_gfx-read address channel
-		raddr_gfx                                          : out std_logic_vector(31 downto 0);
-		rlen_gfx                                           : out std_logic_vector(9 downto 0);
-		rsize_gfx                                          : out std_logic_vector(9 downto 0);
-		rvalid_gfx                                         : out std_logic;
-		rready_gfx                                         : in  std_logic;
+		raddr_gfx                               : out std_logic_vector(31 downto 0);
+		rlen_gfx                                : out std_logic_vector(9 downto 0);
+		rsize_gfx                               : out std_logic_vector(9 downto 0);
+		rvalid_gfx                              : out std_logic;
+		rready_gfx                              : in  std_logic;
 		--_gfx-read data channel
-		rdata_gfx                                          : in  std_logic_vector(31 downto 0);
-		rstrb_gfx                                          : in  std_logic_vector(3 downto 0);
-		rlast_gfx                                          : in  std_logic;
-		rdvalid_gfx                                        : in  std_logic;
-		rdready_gfx                                        : out std_logic;
-		rres_gfx                                           : in  std_logic_vector(1 downto 0);
+		rdata_gfx                               : in  std_logic_vector(31 downto 0);
+		rstrb_gfx                               : in  std_logic_vector(3 downto 0);
+		rlast_gfx                               : in  std_logic;
+		rdvalid_gfx                             : in  std_logic;
+		rdready_gfx                             : out std_logic;
+		rres_gfx                                : in  std_logic_vector(1 downto 0);
 
 		---uart write address channel
-		waddr_uart                                         : out std_logic_vector(31 downto 0);
-		wlen_uart                                          : out std_logic_vector(9 downto 0);
-		wsize_uart                                         : out std_logic_vector(9 downto 0);
-		wvalid_uart                                        : out std_logic;
-		wready_uart                                        : in  std_logic;
+		waddr_uart                              : out std_logic_vector(31 downto 0);
+		wlen_uart                               : out std_logic_vector(9 downto 0);
+		wsize_uart                              : out std_logic_vector(9 downto 0);
+		wvalid_uart                             : out std_logic;
+		wready_uart                             : in  std_logic;
 		--_uart-write data channel
-		wdata_uart                                         : out std_logic_vector(31 downto 0);
-		wtrb_uart                                          : out std_logic_vector(3 downto 0);
-		wlast_uart                                         : out std_logic;
-		wdvalid_uart                                       : out std_logic;
-		wdataready_uart                                    : in  std_logic;
+		wdata_uart                              : out std_logic_vector(31 downto 0);
+		wtrb_uart                               : out std_logic_vector(3 downto 0);
+		wlast_uart                              : out std_logic;
+		wdvalid_uart                            : out std_logic;
+		wdataready_uart                         : in  std_logic;
 		--_uart-write response channel
-		wrready_uart                                       : out std_logic;
-		wrvalid_uart                                       : in  std_logic;
-		wrsp_uart                                          : in  std_logic_vector(1 downto 0);
+		wrready_uart                            : out std_logic;
+		wrvalid_uart                            : in  std_logic;
+		wrsp_uart                               : in  std_logic_vector(1 downto 0);
 
 		--_uart-read address channel
-		raddr_uart                                         : out std_logic_vector(31 downto 0);
-		rlen_uart                                          : out std_logic_vector(9 downto 0);
-		rsize_uart                                         : out std_logic_vector(9 downto 0);
-		rvalid_uart                                        : out std_logic;
-		rready_uart                                        : in  std_logic;
+		raddr_uart                              : out std_logic_vector(31 downto 0);
+		rlen_uart                               : out std_logic_vector(9 downto 0);
+		rsize_uart                              : out std_logic_vector(9 downto 0);
+		rvalid_uart                             : out std_logic;
+		rready_uart                             : in  std_logic;
 		--_uart-read data channel
-		rdata_uart                                         : in  std_logic_vector(31 downto 0);
-		rstrb_uart                                         : in  std_logic_vector(3 downto 0);
-		rlast_uart                                         : in  std_logic;
-		rdvalid_uart                                       : in  std_logic;
-		rdready_uart                                       : out std_logic;
-		rres_uart                                          : in  std_logic_vector(1 downto 0);
+		rdata_uart                              : in  std_logic_vector(31 downto 0);
+		rstrb_uart                              : in  std_logic_vector(3 downto 0);
+		rlast_uart                              : in  std_logic;
+		rdvalid_uart                            : in  std_logic;
+		rdready_uart                            : out std_logic;
+		rres_uart                               : in  std_logic_vector(1 downto 0);
 
 		---audio write address channel
-		waddr_audio                                        : out std_logic_vector(31 downto 0);
-		wlen_audio                                         : out std_logic_vector(9 downto 0);
-		wsize_audio                                        : out std_logic_vector(9 downto 0);
-		wvalid_audio                                       : out std_logic;
-		wready_audio                                       : in  std_logic;
+		waddr_audio                             : out std_logic_vector(31 downto 0);
+		wlen_audio                              : out std_logic_vector(9 downto 0);
+		wsize_audio                             : out std_logic_vector(9 downto 0);
+		wvalid_audio                            : out std_logic;
+		wready_audio                            : in  std_logic;
 		--_audio-write data channel
-		wdata_audio                                        : out std_logic_vector(31 downto 0);
-		wtrb_audio                                         : out std_logic_vector(3 downto 0);
-		wlast_audio                                        : out std_logic;
-		wdvalid_audio                                      : out std_logic;
-		wdataready_audio                                   : in  std_logic;
+		wdata_audio                             : out std_logic_vector(31 downto 0);
+		wtrb_audio                              : out std_logic_vector(3 downto 0);
+		wlast_audio                             : out std_logic;
+		wdvalid_audio                           : out std_logic;
+		wdataready_audio                        : in  std_logic;
 		--_audio-write response channel
-		wrready_audio                                      : out std_logic;
-		wrvalid_audio                                      : in  std_logic;
-		wrsp_audio                                         : in  std_logic_vector(1 downto 0);
+		wrready_audio                           : out std_logic;
+		wrvalid_audio                           : in  std_logic;
+		wrsp_audio                              : in  std_logic_vector(1 downto 0);
 
 		--_audio-read address channel
-		raddr_audio                                        : out std_logic_vector(31 downto 0);
-		rlen_audio                                         : out std_logic_vector(9 downto 0);
-		rsize_audio                                        : out std_logic_vector(9 downto 0);
-		rvalid_audio                                       : out std_logic;
-		rready_audio                                       : in  std_logic;
+		raddr_audio                             : out std_logic_vector(31 downto 0);
+		rlen_audio                              : out std_logic_vector(9 downto 0);
+		rsize_audio                             : out std_logic_vector(9 downto 0);
+		rvalid_audio                            : out std_logic;
+		rready_audio                            : in  std_logic;
 		--_audio-read data channel
-		rdata_audio                                        : in  std_logic_vector(31 downto 0);
-		rstrb_audio                                        : in  std_logic_vector(3 downto 0);
-		rlast_audio                                        : in  std_logic;
-		rdvalid_audio                                      : in  std_logic;
-		rdready_audio                                      : out std_logic;
-		rres_audio                                         : in  std_logic_vector(1 downto 0)
+		rdata_audio                             : in  std_logic_vector(31 downto 0);
+		rstrb_audio                             : in  std_logic_vector(3 downto 0);
+		rlast_audio                             : in  std_logic;
+		rdvalid_audio                           : in  std_logic;
+		rdready_audio                           : out std_logic;
+		rres_audio                              : in  std_logic_vector(1 downto 0)
 	);
 end AXI;
 
@@ -215,15 +215,15 @@ architecture Behavioral of AXI is
 
 	signal in6, in7, out6, out7 : std_logic_vector(552 downto 0);
 
-	signal in2, out2                                                               : std_logic_vector(76 downto 0);
-	signal  we2,  we6, we7, re7, re2,  re6               : std_logic := '0';
-	signal emp2,  emp6, emp7,  ful2: std_logic := '0';
+	signal in2, out2                    : std_logic_vector(76 downto 0);
+	signal we2, we6, we7, re7, re2, re6 : std_logic := '0';
+	signal emp2, emp6, emp7, ful2       : std_logic := '0';
 
 	signal bus_res1_1, bus_res1_2, bus_res2_1, bus_res2_2                 : std_logic_vector(552 downto 0);
 	signal mem_ack1, mem_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2 : std_logic;
-	signal mem_ack,mem_ack3, mem_ack4,mem_ack5, mem_ack6                  : std_logic;
+	signal mem_ack, mem_ack3, mem_ack4, mem_ack5, mem_ack6                : std_logic;
 
-	signal tomem1, tomem2,tomem3, tomem4 ,tomem5, tomem6 : std_logic_vector(75 downto 0) := (others => '0');
+	signal tomem1, tomem2, tomem3, tomem4, tomem5, tomem6 : std_logic_vector(75 downto 0) := (others => '0');
 
 	signal wb_ack1, wb_ack2 : std_logic;
 	signal mem_wb1, mem_wb2 : std_logic_vector(552 downto 0) := (others => '0');
@@ -234,7 +234,7 @@ architecture Behavioral of AXI is
 	signal tmp_sp1, tmp_sp2                               : std_logic_vector(72 downto 0);
 	signal pwr_req1, pwr_req2                             : std_logic_vector(4 downto 0);
 	signal pwr_ack1, pwr_ack2                             : std_logic;
-	signal mem_wb,gfx_wb,audio_wb,usb_wb,uart_wb                                         : std_logic_vector(552 downto 0);
+	signal mem_wb, gfx_wb, audio_wb, usb_wb, uart_wb      : std_logic_vector(552 downto 0);
 	signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(75 downto 0);
 
 	signal in9, out9, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(72 downto 0);
@@ -242,18 +242,18 @@ architecture Behavioral of AXI is
 	signal we8, re8, re9, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
 	signal emp8, emp9, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
 
-	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5,bus_res1_7, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6    : std_logic_vector(552 downto 0);
-	
-	signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1                         : std_logic;
-	signal gfx_ack3,gfx_ack4,gfx_ack5,gfx_ack6:std_logic;
-	signal uart_ack3,uart_ack4,uart_ack5,uart_ack6:std_logic;
-	signal usb_ack3,usb_ack4,usb_ack5,usb_ack6:std_logic;
-	signal audio_ack3,audio_ack4,audio_ack5,audio_ack6:std_logic;
-	signal uart_ack2, brs1_ack3, brs2_ack3, brs1_ack4, brs1_ack5, brs1_ack6,brs1_ack7, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
-	signal togfx1, togfx2,togfx3,togfx4,togfx5,togfx6                                                                                   : std_logic_vector(75 downto 0) := (others => '0');
-	signal toaudio1, toaudio2,toaudio3,toaudio4,toaudio5,toaudio6                                                                                : std_logic_vector(75 downto 0) := (others => '0');
-	signal tousb1, tousb2    ,tousb3,tousb4,tousb5,tousb6                                                                                : std_logic_vector(75 downto 0) := (others => '0');
-	signal touart1, touart2   ,touart3,touart4,touart5,touart6                                                                               : std_logic_vector(75 downto 0) := (others => '0');
+	signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res1_7, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6 : std_logic_vector(552 downto 0);
+
+	signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1                                    : std_logic;
+	signal gfx_ack3, gfx_ack4, gfx_ack5, gfx_ack6                                                                       : std_logic;
+	signal uart_ack3, uart_ack4, uart_ack5, uart_ack6                                                                   : std_logic;
+	signal usb_ack3, usb_ack4, usb_ack5, usb_ack6                                                                       : std_logic;
+	signal audio_ack3, audio_ack4, audio_ack5, audio_ack6                                                               : std_logic;
+	signal uart_ack2, brs1_ack3, brs2_ack3, brs1_ack4, brs1_ack5, brs1_ack6, brs1_ack7, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
+	signal togfx1, togfx2, togfx3, togfx4, togfx5, togfx6                                                               : std_logic_vector(75 downto 0) := (others => '0');
+	signal toaudio1, toaudio2, toaudio3, toaudio4, toaudio5, toaudio6                                                   : std_logic_vector(75 downto 0) := (others => '0');
+	signal tousb1, tousb2, tousb3, tousb4, tousb5, tousb6                                                               : std_logic_vector(75 downto 0) := (others => '0');
+	signal touart1, touart2, touart3, touart4, touart5, touart6                                                         : std_logic_vector(75 downto 0) := (others => '0');
 
 	signal gfx_wb_ack1, gfx_wb_ack2, audio_wb_ack1, audio_wb_ack2, usb_wb_ack1, usb_wb_ack2, uart_wb_ack1, uart_wb_ack2 : std_logic;
 	signal gfx_wb1, gfx_wb2, audio_wb1, audio_wb2, usb_wb1, usb_wb2, uart_wb1, uart_wb2                                 : std_logic_vector(552 downto 0) := (others => '0');
@@ -286,14 +286,11 @@ architecture Behavioral of AXI is
 	signal uart_upres_ack4, uart_upres_ack5, uart_upres_ack6    : std_logic;
 
 begin
-	
-	
-	
-	wb_fif1 : entity work.STD_FIFO(Behavioral) 
-	generic map(
+	wb_fif1 : entity work.STD_FIFO(Behavioral)
+		generic map(
 			DATA_WIDTH => 553
 		)
-	port map(
+		port map(
 			CLK     => Clock,
 			RST     => reset,
 			DataIn  => in6,
@@ -303,11 +300,11 @@ begin
 			Full    => full_wb1,
 			Empty   => emp6
 		);
-	wb_fif2 : entity work.STD_FIFO(Behavioral) 
-	generic map(
+	wb_fif2 : entity work.STD_FIFO(Behavioral)
+		generic map(
 			DATA_WIDTH => 553
 		)
-	port map(
+		port map(
 			CLK     => Clock,
 			RST     => reset,
 			DataIn  => in7,
@@ -329,10 +326,10 @@ begin
 			Empty   => emp9
 		);
 	snp_res_fifo : entity work.STD_FIFO(Behavioral)
-	generic map(
+		generic map(
 			DATA_WIDTH => 77
 		)
-	port map(
+		port map(
 			CLK     => Clock,
 			RST     => reset,
 			DataIn  => in2,
@@ -431,8 +428,8 @@ begin
 	---variable count: integer:=0;
 	begin
 		if reset = '1' then
-			---snoop_req1 <= "000"&nilreq;
-			---pwr_req1 <= "00000";
+		---snoop_req1 <= "000"&nilreq;
+		---pwr_req1 <= "00000";
 		elsif rising_edge(Clock) then
 			if stage = 0 then
 				if re9 = '0' and emp9 = '0' then
@@ -455,7 +452,7 @@ begin
 	end process;
 
 	audio_upreq_p : process(reset, Clock)
-		variable stage  : integer                       := 0;
+		variable stage : integer := 0;
 	begin
 		if reset = '1' then
 		---snoop_req1 <= "000"&nilreq;
@@ -536,11 +533,11 @@ begin
 		end if;
 	end process;
 
-	tomem_arbitor : entity work.arbiter6(Behavioral) 
-	generic map(
-		DATA_WIDTH => 76
-	)
-	port map(
+	tomem_arbitor : entity work.arbiter6(Behavioral)
+		generic map(
+			DATA_WIDTH => 76
+		)
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => tomem1,
@@ -560,7 +557,7 @@ begin
 
 	tomem_channel : process(reset, Clock)
 		variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
-		variable sdata		: std_logic_vector(31 downto 0):=(others => '0');
+		variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
 		variable state   : integer                        := 0;
 		variable lp      : integer                        := 0;
 		variable tep_mem : std_logic_vector(75 downto 0);
@@ -571,28 +568,28 @@ begin
 			rdready <= '0';
 		elsif rising_edge(Clock) then
 			if state = 0 then
-				bus_res1_1 <= nullreq;
-				bus_res2_1 <= nullreq;
-				gfx_upres1 <= (others => '0');
-				uart_upres1 <= (others => '0');
+				bus_res1_1   <= nullreq;
+				bus_res2_1   <= nullreq;
+				gfx_upres1   <= (others => '0');
+				uart_upres1  <= (others => '0');
 				audio_upres1 <= (others => '0');
-				usb_upres1 <= (others => '0');
+				usb_upres1   <= (others => '0');
 				if tomem_p(72 downto 72) = "1" then
 					tep_mem := tomem_p;
-					state :=6;
+					state   := 6;
 				end if;
-			elsif state =6 then
+			elsif state = 6 then
 				if rready = '1' then
 					--mem_ack <= '0';
-					rvalid  <= '1';
-					raddr   <= tomem_p(63 downto 32);
-					if (tomem_p(75 downto 73)="000" or tomem_p(75 downto 73)="101") then
-						rlen    <= "00001" & "00000";
+					rvalid <= '1';
+					raddr  <= tomem_p(63 downto 32);
+					if (tomem_p(75 downto 73) = "000" or tomem_p(75 downto 73) = "101") then
+						rlen <= "00001" & "00000";
 					else
-						rlen <= "00000"&"00001";
+						rlen <= "00000" & "00001";
 					end if;
-					rsize   <= "00001" & "00000";
-					state   := 1;
+					rsize <= "00001" & "00000";
+					state := 1;
 				end if;
 			elsif state = 1 then
 				rvalid  <= '0';
@@ -600,7 +597,7 @@ begin
 				state   := 2;
 			elsif state = 2 then
 				if rdvalid = '1' and rres = "00" then
-					if tep_mem(75 downto 73)="000" or tep_mem(75 downto 73)="101" then
+					if tep_mem(75 downto 73) = "000" or tep_mem(75 downto 73) = "101" then
 						rdready                            <= '0';
 						tdata(lp * 32 + 31 downto lp * 32) := rdata;
 						lp                                 := lp + 1;
@@ -610,34 +607,34 @@ begin
 						end if;
 						rdready <= '1';
 					else
-						rdready <='1';
-						sdata := rdata;
-						rdready <='1';
+						rdready <= '1';
+						sdata   := rdata;
+						rdready <= '1';
 					end if;
-						
+
 				end if;
 			elsif state = 3 then
 				--mem_ack <= '1';
 				if tep_mem(75 downto 73) = "000" then
 					bus_res1_1 <= tep_mem(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_mem(75 downto 73)="101" then
+					state      := 4;
+				elsif tep_mem(75 downto 73) = "101" then
 					bus_res2_1 <= tep_mem(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_mem(75 downto 73)="001" then
+					state      := 4;
+				elsif tep_mem(75 downto 73) = "001" then
 					gfx_upres1 <= tep_mem(72 downto 32) & sdata;
-					state := 5;
-				elsif tep_mem(75 downto 73)="010" then
+					state      := 5;
+				elsif tep_mem(75 downto 73) = "010" then
 					uart_upres1 <= tep_mem(72 downto 32) & sdata;
-					state := 6;
-				elsif tep_mem(75 downto 73)="011" then
-					usb_upres1<= tep_mem(72 downto 32) & sdata;
-					state := 7;
-				elsif tep_mem(75 downto 73)="100" then
+					state       := 6;
+				elsif tep_mem(75 downto 73) = "011" then
+					usb_upres1 <= tep_mem(72 downto 32) & sdata;
+					state      := 7;
+				elsif tep_mem(75 downto 73) = "100" then
 					audio_upres1 <= tep_mem(72 downto 32) & sdata;
-					state := 8;
+					state        := 8;
 				end if;
-				
+
 			elsif state = 4 then
 				if brs2_ack1 = '1' then
 					bus_res2_1 <= nullreq;
@@ -646,36 +643,35 @@ begin
 					bus_res1_1 <= nullreq;
 					state      := 0;
 				end if;
-			elsif state =5 then
-				if gfx_upres_ack1 ='1' then
+			elsif state = 5 then
+				if gfx_upres_ack1 = '1' then
 					gfx_upres1 <= (others => '0');
-					state :=0;
+					state      := 0;
 				end if;
-			elsif state =6 then
-				if uart_upres_ack1 ='1' then
+			elsif state = 6 then
+				if uart_upres_ack1 = '1' then
 					uart_upres1 <= (others => '0');
-					state :=0;
-				end if;	
-			elsif state =7 then
-				if usb_upres_ack1 ='1' then
-					usb_upres1 <= (others => '0');
-					state :=0;
+					state       := 0;
 				end if;
-			elsif state =8 then
-				if audio_upres_ack1 ='1' then
+			elsif state = 7 then
+				if usb_upres_ack1 = '1' then
+					usb_upres1 <= (others => '0');
+					state      := 0;
+				end if;
+			elsif state = 8 then
+				if audio_upres_ack1 = '1' then
 					audio_upres1 <= (others => '0');
-					state :=0;
-				end if;	
+					state        := 0;
+				end if;
 			end if;
 		end if;
 	end process;
 
-
-	togfx_arbitor : entity work.arbiter6(Behavioral) 
-	generic map(
-		DATA_WIDTH=>76
-	)
-	port map(
+	togfx_arbitor : entity work.arbiter6(Behavioral)
+		generic map(
+			DATA_WIDTH => 76
+		)
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => togfx1,
@@ -694,7 +690,7 @@ begin
 		);
 	togfx_channel : process(reset, Clock)
 		variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
-		variable sdata		: std_logic_vector(31 downto 0):=(others => '0');
+		variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
 		variable state   : integer                        := 0;
 		variable lp      : integer                        := 0;
 		variable tep_gfx : std_logic_vector(75 downto 0);
@@ -705,40 +701,40 @@ begin
 			rdready_gfx <= '0';
 		elsif rising_edge(Clock) then
 			if state = 0 then
-				bus_res1_2 <= nullreq;
-				bus_res2_2 <= nullreq;
+				bus_res1_2   <= nullreq;
+				bus_res2_2   <= nullreq;
 				--gfx_upres2 <= (others => '0');
-				uart_upres2 <= (others => '0');
+				uart_upres2  <= (others => '0');
 				audio_upres2 <= (others => '0');
-				usb_upres2 <= (others => '0');
-				if togfx_p(72 downto 72) = "1" and togfx_p(71 downto 64)="10000000" then
+				usb_upres2   <= (others => '0');
+				if togfx_p(72 downto 72) = "1" and togfx_p(71 downto 64) = "10000000" then
 					tep_gfx := togfx_p;
-					state :=6;
-				elsif togfx_p(72 downto 72) = "1" and togfx_p(71 downto 64)="01000000" then
+					state   := 6;
+				elsif togfx_p(72 downto 72) = "1" and togfx_p(71 downto 64) = "01000000" then
 					tep_gfx := togfx_p;
-					state :=9;
+					state   := 9;
 				end if;
-			elsif state =6 then
+			elsif state = 6 then
 				if rready_gfx = '1' then
 					---gfx_ack <= '0';
-					rvalid_gfx  <= '1';
-					raddr_gfx   <= togfx_p(63 downto 32);
-					if (togfx_p(75 downto 73)="000" or togfx_p(75 downto 73)="101") then
-						rlen_gfx    <= "00001" & "00000";
+					rvalid_gfx <= '1';
+					raddr_gfx  <= togfx_p(63 downto 32);
+					if (togfx_p(75 downto 73) = "000" or togfx_p(75 downto 73) = "101") then
+						rlen_gfx <= "00001" & "00000";
 					else
-						rlen_gfx <= "00000"&"00001";
+						rlen_gfx <= "00000" & "00001";
 					end if;
-					rsize_gfx   <= "00001" & "00000";
-					state   := 1;
+					rsize_gfx <= "00001" & "00000";
+					state     := 1;
 				end if;
 			elsif state = 1 then
 				rvalid_gfx  <= '0';
 				rdready_gfx <= '1';
-				state   := 2;
+				state       := 2;
 			elsif state = 2 then
 				if rdvalid_gfx = '1' and rres_gfx = "00" then
-					if tep_gfx(75 downto 73)="000" or tep_gfx(75 downto 73)="101" then
-						rdready_gfx                            <= '0';
+					if tep_gfx(75 downto 73) = "000" or tep_gfx(75 downto 73) = "101" then
+						rdready_gfx                        <= '0';
 						tdata(lp * 32 + 31 downto lp * 32) := rdata;
 						lp                                 := lp + 1;
 						if rlast_gfx = '1' then
@@ -747,34 +743,34 @@ begin
 						end if;
 						rdready_gfx <= '1';
 					else
-						rdready_gfx <='1';
-						sdata := rdata;
-						rdready_gfx <='1';
+						rdready_gfx <= '1';
+						sdata       := rdata;
+						rdready_gfx <= '1';
 					end if;
-						
+
 				end if;
 			elsif state = 3 then
 				--gfx_ack <= '1';
 				if tep_gfx(75 downto 73) = "000" then
 					bus_res1_2 <= tep_gfx(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_gfx(75 downto 73)="101" then
+					state      := 4;
+				elsif tep_gfx(75 downto 73) = "101" then
 					bus_res2_2 <= tep_gfx(72 downto 32) & tdata;
-					state := 4;
+					state      := 4;
 				--elsif tep_gfx(75 downto 73)="001" then
-					--gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
-					--state := 5;
-				elsif tep_gfx(75 downto 73)="010" then
-					uart_upres2<= tep_gfx(72 downto 32) & sdata;
-					state := 6;
-				elsif tep_gfx(75 downto 73)="011" then
-					usb_upres2<= tep_gfx(72 downto 32) & sdata;
-					state := 7;
-				elsif tep_gfx(75 downto 73)="100" then
+				--gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
+				--state := 5;
+				elsif tep_gfx(75 downto 73) = "010" then
+					uart_upres2 <= tep_gfx(72 downto 32) & sdata;
+					state       := 6;
+				elsif tep_gfx(75 downto 73) = "011" then
+					usb_upres2 <= tep_gfx(72 downto 32) & sdata;
+					state      := 7;
+				elsif tep_gfx(75 downto 73) = "100" then
 					audio_upres2 <= tep_gfx(72 downto 32) & sdata;
-					state := 8;
+					state        := 8;
 				end if;
-				
+
 			elsif state = 4 then
 				if brs2_ack2 = '1' then
 					bus_res2_2 <= nullreq;
@@ -784,63 +780,63 @@ begin
 					state      := 0;
 				end if;
 			--elsif state =5 then
---				if gfx_upres_ack2 ='1' then
---					gfx_upres2 <= (others => '0');
---					state :=0;
---				end if;
-			elsif state =6 then
-				if uart_upres_ack2 ='1' then
+			--				if gfx_upres_ack2 ='1' then
+			--					gfx_upres2 <= (others => '0');
+			--					state :=0;
+			--				end if;
+			elsif state = 6 then
+				if uart_upres_ack2 = '1' then
 					uart_upres2 <= (others => '0');
-					state :=0;
-				end if;	
-			elsif state =7 then
-				if usb_upres_ack2 ='1' then
-					usb_upres2 <= (others => '0');
-					state :=0;
+					state       := 0;
 				end if;
-			elsif state =8 then
-				if audio_upres_ack2 ='1' then
+			elsif state = 7 then
+				if usb_upres_ack2 = '1' then
+					usb_upres2 <= (others => '0');
+					state      := 0;
+				end if;
+			elsif state = 8 then
+				if audio_upres_ack2 = '1' then
 					audio_upres2 <= (others => '0');
-					state :=0;
-				end if;	
-			elsif state =9 then
-        			if wready_gfx = '0' then
-         			wvalid_gfx <= '1';
-         			waddr_gfx <= tep_gfx(63 downto 32);
-         			wlen_gfx <= "00000"&"10000";
-         			wsize_gfx <= "00001"&"00000";
-         			--wdata_audio := tep_gfx(31 downto 0);
-         			state := 10;
-        			end if;
-       		elsif state = 10 then
-        			if wdataready_gfx = '1' then
-        			 	wdvalid_gfx <= '1';
-        			 	wtrb_gfx <= "1111";
-         			wdata_gfx <=tep_gfx(lp+31 downto lp);
-         			wlast_gfx <= '1';
-         			state := 11;
-        			end if;
-      
-       		elsif state = 11 then
-         		wdvalid_gfx <= '0';
-         		wrready_gfx <= '1';
-         		if wrvalid_gfx = '1' then
-          			if wrsp_gfx="00" then
-           				state := 0;
-          					 ---this is a successful write back, yayyy
-          			end if;
-          			wrready_gfx <= '0';
-        			end if;
-				
+					state        := 0;
+				end if;
+			elsif state = 9 then
+				if wready_gfx = '0' then
+					wvalid_gfx <= '1';
+					waddr_gfx  <= tep_gfx(63 downto 32);
+					wlen_gfx   <= "00000" & "10000";
+					wsize_gfx  <= "00001" & "00000";
+					--wdata_audio := tep_gfx(31 downto 0);
+					state      := 10;
+				end if;
+			elsif state = 10 then
+				if wdataready_gfx = '1' then
+					wdvalid_gfx <= '1';
+					wtrb_gfx    <= "1111";
+					wdata_gfx   <= tep_gfx(lp + 31 downto lp);
+					wlast_gfx   <= '1';
+					state       := 11;
+				end if;
+
+			elsif state = 11 then
+				wdvalid_gfx <= '0';
+				wrready_gfx <= '1';
+				if wrvalid_gfx = '1' then
+					if wrsp_gfx = "00" then
+						state := 0;
+					---this is a successful write back, yayyy
+					end if;
+					wrready_gfx <= '0';
+				end if;
+
 			end if;
 		end if;
 	end process;
 
-	toaudio_arbitor : entity work.arbiter2(Behavioral) 
-	generic map(
-		DATA_WIDTH=>76
-	)
-	port map(
+	toaudio_arbitor : entity work.arbiter2(Behavioral)
+		generic map(
+			DATA_WIDTH => 76
+		)
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => toaudio1,
@@ -849,11 +845,11 @@ begin
 			ack2  => audio_ack2,
 			dout  => toaudio_p
 		);
-	tousb_arbitor : entity work.arbiter2(Behavioral) 
-	generic map(
-		DATA_WIDTH=>76
-	)
-	port map(
+	tousb_arbitor : entity work.arbiter2(Behavioral)
+		generic map(
+			DATA_WIDTH => 76
+		)
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => tousb1,
@@ -864,7 +860,7 @@ begin
 		);
 	tousb_channel : process(reset, Clock)
 		variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
-		variable sdata		: std_logic_vector(31 downto 0):=(others => '0');
+		variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
 		variable state   : integer                        := 0;
 		variable lp      : integer                        := 0;
 		variable tep_usb : std_logic_vector(75 downto 0);
@@ -875,40 +871,40 @@ begin
 			rdready_usb <= '0';
 		elsif rising_edge(Clock) then
 			if state = 0 then
-				bus_res1_4 <= (others => '0');
-				bus_res2_4 <= (others => '0');
-				gfx_upres4 <= (others => '0');
-				uart_upres4 <= (others => '0');
+				bus_res1_4   <= (others => '0');
+				bus_res2_4   <= (others => '0');
+				gfx_upres4   <= (others => '0');
+				uart_upres4  <= (others => '0');
 				audio_upres4 <= (others => '0');
 				--usb_upres4 <= (others => '0');
-				if tousb_p(72 downto 72) = "1" and tousb_p(71 downto 64)="10000000" then
+				if tousb_p(72 downto 72) = "1" and tousb_p(71 downto 64) = "10000000" then
 					tep_usb := tousb_p;
-					state :=6;
-				elsif tousb_p(72 downto 72) = "1" and tousb_p(71 downto 64)="01000000" then
+					state   := 6;
+				elsif tousb_p(72 downto 72) = "1" and tousb_p(71 downto 64) = "01000000" then
 					tep_usb := tousb_p;
-					state :=9;
+					state   := 9;
 				end if;
-			elsif state =6 then
+			elsif state = 6 then
 				if rready_usb = '1' then
 					---usb_ack <= '0';
-					rvalid_usb  <= '1';
-					raddr_usb   <= tousb_p(63 downto 32);
-					if (tousb_p(75 downto 73)="000" or tousb_p(75 downto 73)="101") then
-						rlen_usb    <= "00001" & "00000";
+					rvalid_usb <= '1';
+					raddr_usb  <= tousb_p(63 downto 32);
+					if (tousb_p(75 downto 73) = "000" or tousb_p(75 downto 73) = "101") then
+						rlen_usb <= "00001" & "00000";
 					else
-						rlen_usb <= "00000"&"00001";
+						rlen_usb <= "00000" & "00001";
 					end if;
-					rsize_usb   <= "00001" & "00000";
-					state   := 1;
+					rsize_usb <= "00001" & "00000";
+					state     := 1;
 				end if;
 			elsif state = 1 then
 				rvalid_usb  <= '0';
 				rdready_usb <= '1';
-				state   := 2;
+				state       := 2;
 			elsif state = 2 then
 				if rdvalid_usb = '1' and rres_usb = "00" then
-					if tep_usb(75 downto 73)="000" or tep_usb(75 downto 73)="101" then
-						rdready_usb                            <= '0';
+					if tep_usb(75 downto 73) = "000" or tep_usb(75 downto 73) = "101" then
+						rdready_usb                        <= '0';
 						tdata(lp * 32 + 31 downto lp * 32) := rdata;
 						lp                                 := lp + 1;
 						if rlast_usb = '1' then
@@ -917,34 +913,34 @@ begin
 						end if;
 						rdready_usb <= '1';
 					else
-						rdready_usb <='1';
-						sdata := rdata;
-						rdready_usb <='1';
+						rdready_usb <= '1';
+						sdata       := rdata;
+						rdready_usb <= '1';
 					end if;
-						
+
 				end if;
 			elsif state = 3 then
 				--usb_ack <= '1';
 				if tep_usb(75 downto 73) = "000" then
 					bus_res1_4 <= tep_usb(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_usb(75 downto 73)="101" then
+					state      := 4;
+				elsif tep_usb(75 downto 73) = "101" then
 					bus_res2_4 <= tep_usb(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_usb(75 downto 73)="001" then
+					state      := 4;
+				elsif tep_usb(75 downto 73) = "001" then
 					gfx_upres4 <= tep_usb(72 downto 32) & sdata;
-					state := 5;
-				elsif tep_usb(75 downto 73)="010" then
-					uart_upres4<= tep_usb(72 downto 32) & sdata;
-					state := 6;
---				elsif tep_usb(75 downto 73)="011" then
---					usb_upres4<= tep_usb(72 downto 32) & sdata;
---					state := 7;
-				elsif tep_usb(75 downto 73)="100" then
+					state      := 5;
+				elsif tep_usb(75 downto 73) = "010" then
+					uart_upres4 <= tep_usb(72 downto 32) & sdata;
+					state       := 6;
+				--				elsif tep_usb(75 downto 73)="011" then
+				--					usb_upres4<= tep_usb(72 downto 32) & sdata;
+				--					state := 7;
+				elsif tep_usb(75 downto 73) = "100" then
 					audio_upres4 <= tep_usb(72 downto 32) & sdata;
-					state := 8;
+					state        := 8;
 				end if;
-				
+
 			elsif state = 4 then
 				if brs2_ack4 = '1' then
 					bus_res2_4 <= nullreq;
@@ -953,64 +949,64 @@ begin
 					bus_res1_4 <= nullreq;
 					state      := 0;
 				end if;
-			elsif state =5 then
-				if gfx_upres_ack4 ='1' then
+			elsif state = 5 then
+				if gfx_upres_ack4 = '1' then
 					gfx_upres4 <= (others => '0');
-					state :=0;
+					state      := 0;
 				end if;
-			elsif state =6 then
-				if uart_upres_ack4 ='1' then
+			elsif state = 6 then
+				if uart_upres_ack4 = '1' then
 					uart_upres4 <= (others => '0');
-					state :=0;
-				end if;	
---			elsif state =7 then
---				if usb_upres_ack4 ='1' then
---					usb_upres4 <= (others => '0');
---					state :=0;
---				end if;
-			elsif state =8 then
-				if audio_upres_ack4 ='1' then
+					state       := 0;
+				end if;
+			--			elsif state =7 then
+			--				if usb_upres_ack4 ='1' then
+			--					usb_upres4 <= (others => '0');
+			--					state :=0;
+			--				end if;
+			elsif state = 8 then
+				if audio_upres_ack4 = '1' then
 					audio_upres4 <= (others => '0');
-					state :=0;
-				end if;	
-			elsif state =9 then
-        		if wready_usb = '0' then
-         			wvalid_usb <= '1';
-         			waddr_usb <= tep_usb(63 downto 32);
-         			wlen_usb <= "00000"&"10000";
-         			wsize_usb <= "00001"&"00000";
-         			--wdata_audio := tep_usb(31 downto 0);
-         			state := 10;
-        		end if;
-       		elsif state = 10 then
-        		if wdataready_usb = '1' then
-        			 wdvalid_usb <= '1';
-        			 wtrb_usb <= "1111";
-         			wdata_usb <=tep_usb(lp+31 downto lp);
-         			wlast_usb <= '1';
-         			state := 11;
-        		end if;
-      
-       		elsif state = 11 then
-         		wdvalid_usb <= '0';
-         		wrready_usb <= '1';
-         		if wrvalid_usb = '1' then
-          			if wrsp_usb="00" then
-           				state := 0;
-          					 ---this is a successful write back, yayyy
-          			end if;
-          			wrready_usb <= '0';
-        		end if;
-				
+					state        := 0;
+				end if;
+			elsif state = 9 then
+				if wready_usb = '0' then
+					wvalid_usb <= '1';
+					waddr_usb  <= tep_usb(63 downto 32);
+					wlen_usb   <= "00000" & "10000";
+					wsize_usb  <= "00001" & "00000";
+					--wdata_audio := tep_usb(31 downto 0);
+					state      := 10;
+				end if;
+			elsif state = 10 then
+				if wdataready_usb = '1' then
+					wdvalid_usb <= '1';
+					wtrb_usb    <= "1111";
+					wdata_usb   <= tep_usb(lp + 31 downto lp);
+					wlast_usb   <= '1';
+					state       := 11;
+				end if;
+
+			elsif state = 11 then
+				wdvalid_usb <= '0';
+				wrready_usb <= '1';
+				if wrvalid_usb = '1' then
+					if wrsp_usb = "00" then
+						state := 0;
+					---this is a successful write back, yayyy
+					end if;
+					wrready_usb <= '0';
+				end if;
+
 			end if;
 		end if;
 	end process;
-	
-	touart_arbitor : entity work.arbiter2(Behavioral) 
-	generic map(
-		DATA_WIDTH=>76
-	)
-	port map(
+
+	touart_arbitor : entity work.arbiter2(Behavioral)
+		generic map(
+			DATA_WIDTH => 76
+		)
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => touart1,
@@ -1020,52 +1016,52 @@ begin
 			dout  => touart_p
 		);
 	touart_channel : process(reset, Clock)
-		variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
-		variable sdata		: std_logic_vector(31 downto 0):=(others => '0');
-		variable state   : integer                        := 0;
-		variable lp      : integer                        := 0;
+		variable tdata    : std_logic_vector(511 downto 0) := (others => '0');
+		variable sdata    : std_logic_vector(31 downto 0)  := (others => '0');
+		variable state    : integer                        := 0;
+		variable lp       : integer                        := 0;
 		variable tep_uart : std_logic_vector(75 downto 0);
-		variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+		variable nullreq  : std_logic_vector(552 downto 0) := (others => '0');
 	begin
 		if reset = '1' then
 			rvalid_uart  <= '0';
 			rdready_uart <= '0';
 		elsif rising_edge(Clock) then
 			if state = 0 then
-				bus_res1_3 <= nullreq;
-				bus_res2_3 <= nullreq;
-				gfx_upres3 <= (others => '0');
+				bus_res1_3   <= nullreq;
+				bus_res2_3   <= nullreq;
+				gfx_upres3   <= (others => '0');
 				--uart_upres3 <= (others => '0');
 				audio_upres3 <= (others => '0');
-				usb_upres3 <= (others => '0');
-				if touart_p(72 downto 72) = "1" and touart_p(71 downto 64)="10000000" then
+				usb_upres3   <= (others => '0');
+				if touart_p(72 downto 72) = "1" and touart_p(71 downto 64) = "10000000" then
 					tep_uart := touart_p;
-					state :=6;
-				elsif touart_p(72 downto 72) = "1" and touart_p(71 downto 64)="01000000" then
+					state    := 6;
+				elsif touart_p(72 downto 72) = "1" and touart_p(71 downto 64) = "01000000" then
 					tep_uart := touart_p;
-					state :=9;
+					state    := 9;
 				end if;
-			elsif state =6 then
+			elsif state = 6 then
 				if rready_uart = '1' then
 					---uart_ack <= '0';
-					rvalid_uart  <= '1';
-					raddr_uart   <= touart_p(63 downto 32);
-					if (touart_p(75 downto 73)="000" or touart_p(75 downto 73)="101") then
-						rlen_uart    <= "00001" & "00000";
+					rvalid_uart <= '1';
+					raddr_uart  <= touart_p(63 downto 32);
+					if (touart_p(75 downto 73) = "000" or touart_p(75 downto 73) = "101") then
+						rlen_uart <= "00001" & "00000";
 					else
-						rlen_uart <= "00000"&"00001";
+						rlen_uart <= "00000" & "00001";
 					end if;
-					rsize_uart   <= "00001" & "00000";
-					state   := 1;
+					rsize_uart <= "00001" & "00000";
+					state      := 1;
 				end if;
 			elsif state = 1 then
 				rvalid_uart  <= '0';
 				rdready_uart <= '1';
-				state   := 2;
+				state        := 2;
 			elsif state = 2 then
 				if rdvalid_uart = '1' and rres_uart = "00" then
-					if tep_uart(75 downto 73)="000" or tep_uart(75 downto 73)="101" then
-						rdready_uart                            <= '0';
+					if tep_uart(75 downto 73) = "000" or tep_uart(75 downto 73) = "101" then
+						rdready_uart                       <= '0';
 						tdata(lp * 32 + 31 downto lp * 32) := rdata;
 						lp                                 := lp + 1;
 						if rlast_uart = '1' then
@@ -1074,34 +1070,34 @@ begin
 						end if;
 						rdready_uart <= '1';
 					else
-						rdready_uart <='1';
-						sdata := rdata;
-						rdready_uart <='1';
+						rdready_uart <= '1';
+						sdata        := rdata;
+						rdready_uart <= '1';
 					end if;
-						
+
 				end if;
 			elsif state = 3 then
 				--uart_ack <= '1';
 				if tep_uart(75 downto 73) = "000" then
 					bus_res1_3 <= tep_uart(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_uart(75 downto 73)="101" then
+					state      := 4;
+				elsif tep_uart(75 downto 73) = "101" then
 					bus_res2_3 <= tep_uart(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_uart(75 downto 73)="001" then
+					state      := 4;
+				elsif tep_uart(75 downto 73) = "001" then
 					gfx_upres3 <= tep_uart(72 downto 32) & sdata;
-					state := 5;
---				elsif tep_uart(75 downto 73)="010" then
---					uart_upres3<= tep_uart(72 downto 32) & sdata;
---					state := 6;
-				elsif tep_uart(75 downto 73)="011" then
-					usb_upres3<= tep_uart(72 downto 32) & sdata;
-					state := 7;
-				elsif tep_uart(75 downto 73)="100" then
+					state      := 5;
+				--				elsif tep_uart(75 downto 73)="010" then
+				--					uart_upres3<= tep_uart(72 downto 32) & sdata;
+				--					state := 6;
+				elsif tep_uart(75 downto 73) = "011" then
+					usb_upres3 <= tep_uart(72 downto 32) & sdata;
+					state      := 7;
+				elsif tep_uart(75 downto 73) = "100" then
 					audio_upres3 <= tep_uart(72 downto 32) & sdata;
-					state := 8;
+					state        := 8;
 				end if;
-				
+
 			elsif state = 4 then
 				if brs2_ack3 = '1' then
 					bus_res2_3 <= nullreq;
@@ -1110,64 +1106,64 @@ begin
 					bus_res1_3 <= nullreq;
 					state      := 0;
 				end if;
-			elsif state =5 then
-				if gfx_upres_ack3 ='1' then
+			elsif state = 5 then
+				if gfx_upres_ack3 = '1' then
 					gfx_upres3 <= (others => '0');
-					state :=0;
+					state      := 0;
 				end if;
---			elsif state =6 then
---				if uart_upres_ack3 ='1' then
---					uart_upres3 <= (others => '0');
---					state :=0;
---				end if;	
-			elsif state =7 then
-				if usb_upres_ack3 ='1' then
+			--			elsif state =6 then
+			--				if uart_upres_ack3 ='1' then
+			--					uart_upres3 <= (others => '0');
+			--					state :=0;
+			--				end if;	
+			elsif state = 7 then
+				if usb_upres_ack3 = '1' then
 					usb_upres3 <= (others => '0');
-					state :=0;
+					state      := 0;
 				end if;
-			elsif state =8 then
-				if audio_upres_ack3 ='1' then
+			elsif state = 8 then
+				if audio_upres_ack3 = '1' then
 					audio_upres3 <= (others => '0');
-					state :=0;
-				end if;	
-			elsif state =9 then
-        		if wready_uart = '0' then
-         			wvalid_uart <= '1';
-         			waddr_uart <= tep_uart(63 downto 32);
-         			wlen_uart <= "00000"&"10000";
-         			wsize_uart <= "00001"&"00000";
-         			--wdata_audio := tep_uart(31 downto 0);
-         			state := 10;
-        		end if;
-       		elsif state = 10 then
-        		if wdataready_uart = '1' then
-        			 wdvalid_uart <= '1';
-        			 wtrb_uart <= "1111";
-         			wdata_uart <=tep_uart(lp+31 downto lp);
-         			wlast_uart <= '1';
-         			state := 11;
-        		end if;
-      
-       		elsif state = 11 then
-         		wdvalid_uart <= '0';
-         		wrready_uart <= '1';
-         		if wrvalid_uart = '1' then
-          			if wrsp_uart="00" then
-           				state := 0;
-          					 ---this is a successful write back, yayyy
-          			end if;
-          			wrready_uart <= '0';
-        			end if;
-				
+					state        := 0;
+				end if;
+			elsif state = 9 then
+				if wready_uart = '0' then
+					wvalid_uart <= '1';
+					waddr_uart  <= tep_uart(63 downto 32);
+					wlen_uart   <= "00000" & "10000";
+					wsize_uart  <= "00001" & "00000";
+					--wdata_audio := tep_uart(31 downto 0);
+					state       := 10;
+				end if;
+			elsif state = 10 then
+				if wdataready_uart = '1' then
+					wdvalid_uart <= '1';
+					wtrb_uart    <= "1111";
+					wdata_uart   <= tep_uart(lp + 31 downto lp);
+					wlast_uart   <= '1';
+					state        := 11;
+				end if;
+
+			elsif state = 11 then
+				wdvalid_uart <= '0';
+				wrready_uart <= '1';
+				if wrvalid_uart = '1' then
+					if wrsp_uart = "00" then
+						state := 0;
+					---this is a successful write back, yayyy
+					end if;
+					wrready_uart <= '0';
+				end if;
+
 			end if;
 		end if;
 	end process;
 
 	brs2_arbitor : entity work.arbiter6(Behavioral)
-   generic map(
+		generic map(
 			DATA_WIDTH => 553
 		)
-	port map(
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => bus_res2_1,
@@ -1205,7 +1201,7 @@ begin
 			ack6  => snp1_ack6,
 			dout  => snoop_req1
 		);
-	
+
 	pwr_arbitor : entity work.arbiter61(Behavioral)
 		generic map(
 			DATA_WIDTH => 5
@@ -1228,11 +1224,11 @@ begin
 			dout  => pwrreq
 		);
 
-	brs1_arbitor : entity work.arbiter7(Behavioral) 
-	generic map(
-		DATA_WIDTH=>553
-	)
-	port map(
+	brs1_arbitor : entity work.arbiter7(Behavioral)
+		generic map(
+			DATA_WIDTH => 553
+		)
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => bus_res1_1,
@@ -1251,31 +1247,31 @@ begin
 			ack7  => brs1_ack7,
 			dout  => bus_res1
 		);
-	gfx_upres_arbitor : entity work.arbiter6(Behavioral) 
-generic map(
-		DATA_WIDTH=>73
-	)	port map(
+	gfx_upres_arbitor : entity work.arbiter6(Behavioral)
+		generic map(
+			DATA_WIDTH => 73
+		) port map(
 			clock => Clock,
 			reset => reset,
-			din1  => gfx_upres1,
-			ack1  => gfx_upres_ack1,
-			din2  => gfx_upres2,
-			ack2  => gfx_upres_ack2,
-			din3  => gfx_upres3,
-			ack3  => gfx_upres_ack3,
-			din4  => gfx_upres4,
-			ack4  => gfx_upres_ack4,
-			din5  => gfx_upres5,
-			ack5  => gfx_upres_ack5,
-			din6  => gfx_upres6,
-			ack6  => gfx_upres_ack6,
-			dout  => gfx_upres
+			din1 => gfx_upres1,
+			ack1 => gfx_upres_ack1,
+			din2 => gfx_upres2,
+			ack2 => gfx_upres_ack2,
+			din3 => gfx_upres3,
+			ack3 => gfx_upres_ack3,
+			din4 => gfx_upres4,
+			ack4 => gfx_upres_ack4,
+			din5 => gfx_upres5,
+			ack5 => gfx_upres_ack5,
+			din6 => gfx_upres6,
+			ack6 => gfx_upres_ack6,
+			dout => gfx_upres
 		);
-	audio_upres_arbitor : entity work.arbiter6(Behavioral) 
-	generic map(
-		DATA_WIDTH=>73
-	)
-	port map(
+	audio_upres_arbitor : entity work.arbiter6(Behavioral)
+		generic map(
+			DATA_WIDTH => 73
+		)
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => audio_upres1,
@@ -1328,10 +1324,10 @@ generic map(
 		);
 
 	wb_arbitor : entity work.arbiter2(Behavioral)
-	generic map(
-		DATA_WIDTH=>553
-	)
-	port map(
+		generic map(
+			DATA_WIDTH => 553
+		)
+		port map(
 			clock => Clock,
 			reset => reset,
 			din1  => mem_wb1,
@@ -1341,75 +1337,75 @@ generic map(
 			dout  => mem_wb
 		);
 	gfx_wb_arbitor : entity work.arbiter2(Behavioral)
-generic map(
-		DATA_WIDTH=>553
-	)	port map(
+		generic map(
+			DATA_WIDTH => 553
+		) port map(
 			clock => Clock,
 			reset => reset,
-			din1  => gfx_wb1,
-			ack1  => gfx_wb_ack1,
-			din2  => gfx_wb2,
-			ack2  => gfx_wb_ack2,
-			dout  => gfx_wb
+			din1 => gfx_wb1,
+			ack1 => gfx_wb_ack1,
+			din2 => gfx_wb2,
+			ack2 => gfx_wb_ack2,
+			dout => gfx_wb
 		);
-	audio_wb_arbitor : entity work.arbiter2(Behavioral)generic map(
-		DATA_WIDTH=>553
-	) port map(
+	audio_wb_arbitor : entity work.arbiter2(Behavioral) generic map(
+			DATA_WIDTH => 553
+		) port map(
 			clock => Clock,
 			reset => reset,
-			din1  => audio_wb1,
-			ack1  => audio_wb_ack1,
-			din2  => audio_wb2,
-			ack2  => audio_wb_ack2,
-			dout  => audio_wb
+			din1 => audio_wb1,
+			ack1 => audio_wb_ack1,
+			din2 => audio_wb2,
+			ack2 => audio_wb_ack2,
+			dout => audio_wb
 		);
 	toaudio_channel : process(reset, Clock)
-		variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
-		variable sdata		: std_logic_vector(31 downto 0):=(others => '0');
-		variable state   : integer                        := 0;
-		variable lp      : integer                        := 0;
+		variable tdata     : std_logic_vector(511 downto 0) := (others => '0');
+		variable sdata     : std_logic_vector(31 downto 0)  := (others => '0');
+		variable state     : integer                        := 0;
+		variable lp        : integer                        := 0;
 		variable tep_audio : std_logic_vector(75 downto 0);
-		variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+		variable nullreq   : std_logic_vector(552 downto 0) := (others => '0');
 	begin
 		if reset = '1' then
 			rvalid_audio  <= '0';
 			rdready_audio <= '0';
 		elsif rising_edge(Clock) then
 			if state = 0 then
-				bus_res1_5 <= nullreq;
-				bus_res2_5 <= nullreq;
-				gfx_upres5 <= (others => '0');
+				bus_res1_5  <= nullreq;
+				bus_res2_5  <= nullreq;
+				gfx_upres5  <= (others => '0');
 				uart_upres5 <= (others => '0');
 				--audio_upres5 <= (others => '0');
-				usb_upres5 <= (others => '0');
-				if toaudio_p(72 downto 72) = "1" and toaudio_p(71 downto 64)="10000000" then
+				usb_upres5  <= (others => '0');
+				if toaudio_p(72 downto 72) = "1" and toaudio_p(71 downto 64) = "10000000" then
 					tep_audio := toaudio_p;
-					state :=6;
-				elsif toaudio_p(72 downto 72) = "1" and toaudio_p(71 downto 64)="01000000" then
+					state     := 6;
+				elsif toaudio_p(72 downto 72) = "1" and toaudio_p(71 downto 64) = "01000000" then
 					tep_audio := toaudio_p;
-					state :=9;
+					state     := 9;
 				end if;
-			elsif state =6 then
+			elsif state = 6 then
 				if rready_audio = '1' then
 					---audio_ack <= '0';
-					rvalid_audio  <= '1';
-					raddr_audio   <= toaudio_p(63 downto 32);
-					if (toaudio_p(75 downto 73)="000" or toaudio_p(75 downto 73)="101") then
-						rlen_audio    <= "00001" & "00000";
+					rvalid_audio <= '1';
+					raddr_audio  <= toaudio_p(63 downto 32);
+					if (toaudio_p(75 downto 73) = "000" or toaudio_p(75 downto 73) = "101") then
+						rlen_audio <= "00001" & "00000";
 					else
-						rlen_audio <= "00000"&"00001";
+						rlen_audio <= "00000" & "00001";
 					end if;
-					rsize_audio   <= "00001" & "00000";
-					state   := 1;
+					rsize_audio <= "00001" & "00000";
+					state       := 1;
 				end if;
 			elsif state = 1 then
 				rvalid_audio  <= '0';
 				rdready_audio <= '1';
-				state   := 2;
+				state         := 2;
 			elsif state = 2 then
 				if rdvalid_audio = '1' and rres_audio = "00" then
-					if tep_audio(75 downto 73)="000" or tep_audio(75 downto 73)="101" then
-						rdready_audio                            <= '0';
+					if tep_audio(75 downto 73) = "000" or tep_audio(75 downto 73) = "101" then
+						rdready_audio                      <= '0';
 						tdata(lp * 32 + 31 downto lp * 32) := rdata;
 						lp                                 := lp + 1;
 						if rlast_audio = '1' then
@@ -1418,34 +1414,34 @@ generic map(
 						end if;
 						rdready_audio <= '1';
 					else
-						rdready_audio <='1';
-						sdata := rdata;
-						rdready_audio <='1';
+						rdready_audio <= '1';
+						sdata         := rdata;
+						rdready_audio <= '1';
 					end if;
-						
+
 				end if;
 			elsif state = 3 then
 				--audio_ack <= '1';
 				if tep_audio(75 downto 73) = "000" then
 					bus_res1_5 <= tep_audio(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_audio(75 downto 73)="101" then
+					state      := 4;
+				elsif tep_audio(75 downto 73) = "101" then
 					bus_res2_5 <= tep_audio(72 downto 32) & tdata;
-					state := 4;
-				elsif tep_audio(75 downto 73)="001" then
+					state      := 4;
+				elsif tep_audio(75 downto 73) = "001" then
 					gfx_upres5 <= tep_audio(72 downto 32) & sdata;
-					state := 5;
-				elsif tep_audio(75 downto 73)="010" then
-					uart_upres5<= tep_audio(72 downto 32) & sdata;
-					state := 6;
-				elsif tep_audio(75 downto 73)="011" then
-					usb_upres5<= tep_audio(72 downto 32) & sdata;
-					state := 7;
---				elsif tep_audio(75 downto 73)="100" then
---					audio_upres5 <= tep_audio(72 downto 32) & sdata;
---					state := 8;
+					state      := 5;
+				elsif tep_audio(75 downto 73) = "010" then
+					uart_upres5 <= tep_audio(72 downto 32) & sdata;
+					state       := 6;
+				elsif tep_audio(75 downto 73) = "011" then
+					usb_upres5 <= tep_audio(72 downto 32) & sdata;
+					state      := 7;
+				--				elsif tep_audio(75 downto 73)="100" then
+				--					audio_upres5 <= tep_audio(72 downto 32) & sdata;
+				--					state := 8;
 				end if;
-				
+
 			elsif state = 4 then
 				if brs2_ack5 = '1' then
 					bus_res2_5 <= nullreq;
@@ -1454,80 +1450,80 @@ generic map(
 					bus_res1_5 <= nullreq;
 					state      := 0;
 				end if;
-			elsif state =5 then
-				if gfx_upres_ack5 ='1' then
+			elsif state = 5 then
+				if gfx_upres_ack5 = '1' then
 					gfx_upres5 <= (others => '0');
-					state :=0;
+					state      := 0;
 				end if;
-			elsif state =6 then
-				if uart_upres_ack5 ='1' then
+			elsif state = 6 then
+				if uart_upres_ack5 = '1' then
 					uart_upres5 <= (others => '0');
-					state :=0;
-				end if;	
-			elsif state =7 then
-				if usb_upres_ack5 ='1' then
-					usb_upres5 <= (others => '0');
-					state :=0;
+					state       := 0;
 				end if;
---			elsif state =8 then
---				if audio_upres_ack5 ='1' then
---					audio_upres5 <= (others => '0');
---					state :=0;
---				end if;	
-			elsif state =9 then
-        		if wready_audio = '0' then
-         			wvalid_audio <= '1';
-         			waddr_audio <= tep_audio(63 downto 32);
-         			wlen_audio <= "00000"&"10000";
-         			wsize_audio <= "00001"&"00000";
-         			--wdata_audio := tep_audio(31 downto 0);
-         			state := 10;
-        		end if;
-       		elsif state = 10 then
-        		if wdataready_audio = '1' then
-        			 wdvalid_audio <= '1';
-        			 wtrb_audio <= "1111";
-         			wdata_audio <=tep_audio(lp+31 downto lp);
-         			wlast_audio <= '1';
-         			state := 11;
-        		end if;
-      
-       		elsif state = 11 then
-         		wdvalid_audio <= '0';
-         		wrready_audio <= '1';
-         		if wrvalid_audio = '1' then
-          			if wrsp_audio="00" then
-           				state := 0;
-          					 ---this is a successful write back, yayyy
-          			end if;
-          			wrready_audio <= '0';
-        		end if;
-				
+			elsif state = 7 then
+				if usb_upres_ack5 = '1' then
+					usb_upres5 <= (others => '0');
+					state      := 0;
+				end if;
+			--			elsif state =8 then
+			--				if audio_upres_ack5 ='1' then
+			--					audio_upres5 <= (others => '0');
+			--					state :=0;
+			--				end if;	
+			elsif state = 9 then
+				if wready_audio = '0' then
+					wvalid_audio <= '1';
+					waddr_audio  <= tep_audio(63 downto 32);
+					wlen_audio   <= "00000" & "10000";
+					wsize_audio  <= "00001" & "00000";
+					--wdata_audio := tep_audio(31 downto 0);
+					state        := 10;
+				end if;
+			elsif state = 10 then
+				if wdataready_audio = '1' then
+					wdvalid_audio <= '1';
+					wtrb_audio    <= "1111";
+					wdata_audio   <= tep_audio(lp + 31 downto lp);
+					wlast_audio   <= '1';
+					state         := 11;
+				end if;
+
+			elsif state = 11 then
+				wdvalid_audio <= '0';
+				wrready_audio <= '1';
+				if wrvalid_audio = '1' then
+					if wrsp_audio = "00" then
+						state := 0;
+					---this is a successful write back, yayyy
+					end if;
+					wrready_audio <= '0';
+				end if;
+
 			end if;
 		end if;
 	end process;
 
-	usb_wb_arbitor : entity work.arbiter2(Behavioral)generic map(
-		DATA_WIDTH=>553
-	) port map(
+	usb_wb_arbitor : entity work.arbiter2(Behavioral) generic map(
+			DATA_WIDTH => 553
+		) port map(
 			clock => Clock,
 			reset => reset,
-			din1  => usb_wb1,
-			ack1  => usb_wb_ack1,
-			din2  => usb_wb2,
-			ack2  => usb_wb_ack2,
-			dout  => usb_wb
+			din1 => usb_wb1,
+			ack1 => usb_wb_ack1,
+			din2 => usb_wb2,
+			ack2 => usb_wb_ack2,
+			dout => usb_wb
 		);
-	uart_wb_arbitor : entity work.arbiter2(Behavioral)generic map(
-		DATA_WIDTH=>553
-	) port map(
+	uart_wb_arbitor : entity work.arbiter2(Behavioral) generic map(
+			DATA_WIDTH => 553
+		) port map(
 			clock => Clock,
 			reset => reset,
-			din1  => uart_wb1,
-			ack1  => uart_wb_ack1,
-			din2  => uart_wb2,
-			ack2  => uart_wb_ack2,
-			dout  => uart_wb
+			din1 => uart_wb1,
+			ack1 => uart_wb_ack1,
+			din2 => uart_wb2,
+			ack2 => uart_wb_ack2,
+			dout => uart_wb
 		);
 
 	snp_res1_fifo : process(reset, Clock)
@@ -1548,105 +1544,104 @@ generic map(
 
 		end if;
 	end process;
-	
-	snp_res1_p: process(reset, Clock)
-		variable state : integer:=0;
+
+	snp_res1_p : process(reset, Clock)
+		variable state : integer := 0;
 	begin
-		if reset ='1' then
+		if reset = '1' then
 		elsif rising_edge(Clock) then
-			if state =0 then
-				if re2 ='0' and emp2='0' then
-					re2<='1';
-					state :=1;
+			if state = 0 then
+				if re2 = '0' and emp2 = '0' then
+					re2   <= '1';
+					state := 1;
 				end if;
-			elsif state =1 then
-				re2<='0';
-				if out2(76 downto 76)="0" then
+			elsif state = 1 then
+				re2 <= '0';
+				if out2(76 downto 76) = "0" then
 					---now we look at which components it want to go
-					if out2(63 downto 63)="1" then
+					if out2(63 downto 63) = "1" then
 						---this belongs to the memory					
 						tomem3 <= out2(75 downto 0);
-						state := 5;
-					elsif out2(62 downto 61)="00" then
+						state  := 5;
+					elsif out2(62 downto 61) = "00" then
 						togfx3 <= out2(75 downto 0);
-						state :=6;
-					elsif out2(62 downto 61)="01" then
+						state  := 6;
+					elsif out2(62 downto 61) = "01" then
 						touart3 <= out2(75 downto 0);
-						state :=7;
-					elsif out2(62 downto 61)="10" then
+						state   := 7;
+					elsif out2(62 downto 61) = "10" then
 						tousb3 <= out2(75 downto 0);
-						state :=8;
-					elsif out2(62 downto 61)="11" then
-						toaudio3 <=out2(75 downto 0);
-						state :=13;
-					end if;	
+						state  := 8;
+					elsif out2(62 downto 61) = "11" then
+						toaudio3 <= out2(75 downto 0);
+						state    := 13;
+					end if;
 				--it's a hit, return to the source ip
 				else
-					if out2(75 downto 73)="001" then
+					if out2(75 downto 73) = "001" then
 						gfx_upres2 <= out2(72 downto 0);
-						state :=9;
-					elsif out2(75 downto 73)="010" then
-						uart_upres3 <=out2(72 downto 0);
-						state :=10;
-					elsif out2(75 downto 73)="011" then
+						state      := 9;
+					elsif out2(75 downto 73) = "010" then
+						uart_upres3 <= out2(72 downto 0);
+						state       := 10;
+					elsif out2(75 downto 73) = "011" then
 						usb_upres4 <= out2(72 downto 0);
-						state :=11;
-					elsif out2(75 downto 73)="100" then
+						state      := 11;
+					elsif out2(75 downto 73) = "100" then
 						audio_upres5 <= out2(72 downto 0);
-						state :=12;
+						state        := 12;
 					end if;
 				end if;
-			elsif state =5 then
-				if mem_ack3='1' then
-					state :=0;
-					tomem3 <=(others=>'0');
+			elsif state = 5 then
+				if mem_ack3 = '1' then
+					state  := 0;
+					tomem3 <= (others => '0');
 				end if;
-			elsif state =6 then
-				if gfx_ack3='1' then
-					state :=0;
-					togfx3 <=(others=>'0');
+			elsif state = 6 then
+				if gfx_ack3 = '1' then
+					state  := 0;
+					togfx3 <= (others => '0');
 				end if;
-			elsif state =7 then
-				if uart_ack3='1' then
-					state :=0;
-					touart3 <=(others=>'0');
+			elsif state = 7 then
+				if uart_ack3 = '1' then
+					state   := 0;
+					touart3 <= (others => '0');
 				end if;
-			elsif state =8 then
-				if audio_ack3='1' then
-					state :=0;
-					toaudio3 <=(others=>'0');
+			elsif state = 8 then
+				if audio_ack3 = '1' then
+					state    := 0;
+					toaudio3 <= (others => '0');
 				end if;
-			elsif state =12 then
-				if usb_ack3 ='1' then
-					state :=0;
-					tousb3 <=(others => '0');
+			elsif state = 12 then
+				if usb_ack3 = '1' then
+					state  := 0;
+					tousb3 <= (others => '0');
 				end if;
-			elsif state =9 then
-				if gfx_upres_ack2='1' then
-					gfx_upres2<=(others => '0');
-					state :=0;
+			elsif state = 9 then
+				if gfx_upres_ack2 = '1' then
+					gfx_upres2 <= (others => '0');
+					state      := 0;
 				end if;
-			elsif state =10 then
-				if uart_upres_ack3='1' then
-					uart_upres3<=(others => '0');
-					state :=0;
+			elsif state = 10 then
+				if uart_upres_ack3 = '1' then
+					uart_upres3 <= (others => '0');
+					state       := 0;
 				end if;
-			elsif state =11 then
-				if usb_upres_ack4='1' then
-					usb_upres4<=(others => '0');
-					state :=0;
+			elsif state = 11 then
+				if usb_upres_ack4 = '1' then
+					usb_upres4 <= (others => '0');
+					state      := 0;
 				end if;
-			elsif state =12 then
-				if audio_upres_ack4='1' then
-					audio_upres5<=(others => '0');
-					state :=0;
+			elsif state = 12 then
+				if audio_upres_ack4 = '1' then
+					audio_upres5 <= (others => '0');
+					state        := 0;
 				end if;
-			
+
 			end if;
-			
+
 		end if;
 	end process;
-		
 
 	wb_req1_fifo : process(reset, Clock)
 	begin
@@ -1711,7 +1706,7 @@ generic map(
 	--1. axi protocl
 	---2. more than 2 ips
 	wb_1_p : process(reset, Clock)
-		variable state  : integer;
+		variable state : integer;
 	begin
 		if reset = '1' then
 			mem_wb1 <= (others => '0');
@@ -1792,243 +1787,243 @@ generic map(
 		end if;
 	end process;
 	---not sure if this need to be changed
-	wb_channel: process(reset, Clock)
-    variable lp: integer := 0;
-    variable state: integer := 0;
-    variable tdata: std_logic_vector(511 downto 0);
-    begin
-    	if reset= '1' then
-    		wvalid <= '0';
-    		wrready <= '0';
-    	elsif rising_edge(Clock) then
-    		if state =0 then
-    			if mem_wb(552 downto 552)="1" then
-    				if mem_wb(543 downto 543)="1" and wready = '0' then
-	    				wvalid <= '1';
-	    				waddr <= mem_wb(543 downto 512);
-	    				wlen <= "00000"&"10000";
-	    				wsize <= "00001"&"00000";
-	    				tdata := mem_wb(511 downto 0);
-	    				state := 1;
-	    			elsif mem_wb(542 downto 541)="00" and wready_gfx = '0' then
-	    				wvalid_gfx <= '1';
-	    				waddr_gfx <= mem_wb(543 downto 512);
-	    				wlen_gfx <= "00000"&"10000";
-	    				wsize_gfx <= "00001"&"00000";
-	    				tdata := mem_wb(511 downto 0);
-	    				state := 3;
-	    			elsif mem_wb(542 downto 541)="01" and wready_uart = '0' then
-	    				wvalid_uart <= '1';
-	    				waddr_uart <= mem_wb(543 downto 512);
-	    				wlen_uart <= "00000"&"10000";
-	    				wsize_uart <= "00001"&"00000";
-	    				tdata := mem_wb(511 downto 0);
-	    				state := 4;
-	    			elsif mem_wb(542 downto 541)="10" and wready_usb = '0' then
-	    				wvalid_usb <= '1';
-	    				waddr_usb <= mem_wb(543 downto 512);
-	    				wlen_usb <= "00000"&"10000";
-	    				wsize_usb <= "00001"&"00000";
-	    				tdata := mem_wb(511 downto 0);
-	    				state := 5;
-	    			elsif mem_wb(542 downto 541)="11" and wready_audio = '0' then
-	    				wvalid_audio <= '1';
-	    				waddr_audio <= mem_wb(543 downto 512);
-	    				wlen_audio <= "00000"&"10000";
-	    				wsize_audio <= "00001"&"00000";
-	    				tdata := mem_wb(511 downto 0);
-	    				state := 6;
-    				end if;
-    			end if;
-    		elsif state = 1 then
-    			if wdataready = '1' then
-    				wdvalid <= '1';
-    				wtrb <= "1111";
-    				wdata <= tdata(lp+31 downto lp);
-    				lp := lp + 32;
-    				if lp = 512 then
-    					wlast <= '1';
-    					state := 2;
-    					lp := 0;
-    				end if;
-    			end if;
-    		
-    		elsif state = 2 then
-    		 	wdvalid <= '0';
-    		 	wrready <= '1';
-    		 	if wrvalid = '1' then
-    		 		state := 0;
-    		 		if wrsp="00" then
-    		 			---this is a successful write back, yayyy
-    		 		end if;
-    		 		wrready <= '0';
-    		 	end if;
-    		 elsif state = 3 then
-    			if wdataready_gfx = '1' then
-    				wdvalid_gfx <= '1';
-    				wtrb_gfx <= "1111";
-    				wdata_gfx <= tdata(lp+31 downto lp);
-    				lp := lp + 32;
-    				if lp = 512 then
-    					wlast_gfx <= '1';
-    					state := 7;
-    					lp := 0;
-    				end if;
-    			end if;
-    		 elsif state = 4 then
-    			if wdataready_uart = '1' then
-    				wdvalid_uart <= '1';
-    				wtrb_uart <= "1111";
-    				wdata_uart <= tdata(lp+31 downto lp);
-    				lp := lp + 32;
-    				if lp = 512 then
-    					wlast_uart <= '1';
-    					state := 8;
-    					lp := 0;
-    				end if;
-    			end if;
-    		 elsif state = 5 then
-    			if wdataready_usb = '1' then
-    				wdvalid_usb <= '1';
-    				wtrb_usb <= "1111";
-    				wdata_usb <= tdata(lp+31 downto lp);
-    				lp := lp + 32;
-    				if lp = 512 then
-    					wlast_usb <= '1';
-    					state := 9;
-    					lp := 0;
-    				end if;
-    			end if;
-    		 elsif state = 6 then
-    			if wdataready_audio = '1' then
-    				wdvalid_audio <= '1';
-    				wtrb_audio <= "1111";
-    				wdata_audio <= tdata(lp+31 downto lp);
-    				lp := lp + 32;
-    				if lp = 512 then
-    					wlast_audio <= '1';
-    					state := 10;
-    					lp := 0;
-    				end if;
-    			end if;
-    		elsif state = 7 then
-    		 	wdvalid_gfx <= '0';
-    		 	wrready_gfx <= '1';
-    		 	if wrvalid_gfx = '1' then
-    		 		state := 0;
-    		 		if wrsp_gfx="00" then
-    		 			---this is a successful write back, yayyy
-    		 		end if;
-    		 		wrready_gfx <= '0';
-    		 	end if;
-    		 elsif state = 8 then
-    		 	wdvalid_uart <= '0';
-    		 	wrready_uart <= '1';
-    		 	if wrvalid_uart = '1' then
-    		 		state := 0;
-    		 		if wrsp_uart="00" then
-    		 			---this is a successful write back, yayyy
-    		 		end if;
-    		 		wrready_uart <= '0';
-    		 	end if;
-    		 elsif state = 9 then
-    		 	wdvalid_usb <= '0';
-    		 	wrready_usb <= '1';
-    		 	if wrvalid_usb = '1' then
-    		 		state := 0;
-    		 		if wrsp_usb="00" then
-    		 			---this is a successful write back, yayyy
-    		 		end if;
-    		 		wrready_usb <= '0';
-    		 	end if;
-    		 elsif state = 10 then
-    		 	wdvalid_audio <= '0';
-    		 	wrready_audio <= '1';
-    		 	if wrvalid_audio = '1' then
-    		 		state := 0;
-    		 		if wrsp_audio="00" then
-    		 			---this is a successful write back, yayyy
-    		 		end if;
-    		 		wrready_audio <= '0';
-    		 	end if;
-    		end if;
-    	end if;
-    	
-    end process;
---	
-	cache_req1_p : process(reset, Clock)
-		variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
-		variable state  : integer                       := 0;
-		variable count  : integer                       := 0;
-		variable nildata: std_logic_vector(543 downto 0):=(others=>'0');
+	wb_channel : process(reset, Clock)
+		variable lp    : integer := 0;
+		variable state : integer := 0;
+		variable tdata : std_logic_vector(511 downto 0);
 	begin
 		if reset = '1' then
-			--snoop_req2 <= nilreq;
+			wvalid  <= '0';
+			wrready <= '0';
+		elsif rising_edge(Clock) then
+			if state = 0 then
+				if mem_wb(552 downto 552) = "1" then
+					if mem_wb(543 downto 543) = "1" and wready = '0' then
+						wvalid <= '1';
+						waddr  <= mem_wb(543 downto 512);
+						wlen   <= "00000" & "10000";
+						wsize  <= "00001" & "00000";
+						tdata  := mem_wb(511 downto 0);
+						state  := 1;
+					elsif mem_wb(542 downto 541) = "00" and wready_gfx = '0' then
+						wvalid_gfx <= '1';
+						waddr_gfx  <= mem_wb(543 downto 512);
+						wlen_gfx   <= "00000" & "10000";
+						wsize_gfx  <= "00001" & "00000";
+						tdata      := mem_wb(511 downto 0);
+						state      := 3;
+					elsif mem_wb(542 downto 541) = "01" and wready_uart = '0' then
+						wvalid_uart <= '1';
+						waddr_uart  <= mem_wb(543 downto 512);
+						wlen_uart   <= "00000" & "10000";
+						wsize_uart  <= "00001" & "00000";
+						tdata       := mem_wb(511 downto 0);
+						state       := 4;
+					elsif mem_wb(542 downto 541) = "10" and wready_usb = '0' then
+						wvalid_usb <= '1';
+						waddr_usb  <= mem_wb(543 downto 512);
+						wlen_usb   <= "00000" & "10000";
+						wsize_usb  <= "00001" & "00000";
+						tdata      := mem_wb(511 downto 0);
+						state      := 5;
+					elsif mem_wb(542 downto 541) = "11" and wready_audio = '0' then
+						wvalid_audio <= '1';
+						waddr_audio  <= mem_wb(543 downto 512);
+						wlen_audio   <= "00000" & "10000";
+						wsize_audio  <= "00001" & "00000";
+						tdata        := mem_wb(511 downto 0);
+						state        := 6;
+					end if;
+				end if;
+			elsif state = 1 then
+				if wdataready = '1' then
+					wdvalid <= '1';
+					wtrb    <= "1111";
+					wdata   <= tdata(lp + 31 downto lp);
+					lp      := lp + 32;
+					if lp = 512 then
+						wlast <= '1';
+						state := 2;
+						lp    := 0;
+					end if;
+				end if;
+
+			elsif state = 2 then
+				wdvalid <= '0';
+				wrready <= '1';
+				if wrvalid = '1' then
+					state := 0;
+					if wrsp = "00" then
+					---this is a successful write back, yayyy
+					end if;
+					wrready <= '0';
+				end if;
+			elsif state = 3 then
+				if wdataready_gfx = '1' then
+					wdvalid_gfx <= '1';
+					wtrb_gfx    <= "1111";
+					wdata_gfx   <= tdata(lp + 31 downto lp);
+					lp          := lp + 32;
+					if lp = 512 then
+						wlast_gfx <= '1';
+						state     := 7;
+						lp        := 0;
+					end if;
+				end if;
+			elsif state = 4 then
+				if wdataready_uart = '1' then
+					wdvalid_uart <= '1';
+					wtrb_uart    <= "1111";
+					wdata_uart   <= tdata(lp + 31 downto lp);
+					lp           := lp + 32;
+					if lp = 512 then
+						wlast_uart <= '1';
+						state      := 8;
+						lp         := 0;
+					end if;
+				end if;
+			elsif state = 5 then
+				if wdataready_usb = '1' then
+					wdvalid_usb <= '1';
+					wtrb_usb    <= "1111";
+					wdata_usb   <= tdata(lp + 31 downto lp);
+					lp          := lp + 32;
+					if lp = 512 then
+						wlast_usb <= '1';
+						state     := 9;
+						lp        := 0;
+					end if;
+				end if;
+			elsif state = 6 then
+				if wdataready_audio = '1' then
+					wdvalid_audio <= '1';
+					wtrb_audio    <= "1111";
+					wdata_audio   <= tdata(lp + 31 downto lp);
+					lp            := lp + 32;
+					if lp = 512 then
+						wlast_audio <= '1';
+						state       := 10;
+						lp          := 0;
+					end if;
+				end if;
+			elsif state = 7 then
+				wdvalid_gfx <= '0';
+				wrready_gfx <= '1';
+				if wrvalid_gfx = '1' then
+					state := 0;
+					if wrsp_gfx = "00" then
+					---this is a successful write back, yayyy
+					end if;
+					wrready_gfx <= '0';
+				end if;
+			elsif state = 8 then
+				wdvalid_uart <= '0';
+				wrready_uart <= '1';
+				if wrvalid_uart = '1' then
+					state := 0;
+					if wrsp_uart = "00" then
+					---this is a successful write back, yayyy
+					end if;
+					wrready_uart <= '0';
+				end if;
+			elsif state = 9 then
+				wdvalid_usb <= '0';
+				wrready_usb <= '1';
+				if wrvalid_usb = '1' then
+					state := 0;
+					if wrsp_usb = "00" then
+					---this is a successful write back, yayyy
+					end if;
+					wrready_usb <= '0';
+				end if;
+			elsif state = 10 then
+				wdvalid_audio <= '0';
+				wrready_audio <= '1';
+				if wrvalid_audio = '1' then
+					state := 0;
+					if wrsp_audio = "00" then
+					---this is a successful write back, yayyy
+					end if;
+					wrready_audio <= '0';
+				end if;
+			end if;
+		end if;
+
+	end process;
+	--	
+	cache_req1_p : process(reset, Clock)
+		variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
+		variable state   : integer                        := 0;
+		variable count   : integer                        := 0;
+		variable nildata : std_logic_vector(543 downto 0) := (others => '0');
+	begin
+		if reset = '1' then
+		--snoop_req2 <= nilreq;
 		elsif rising_edge(Clock) then
 			if state = 0 then
 				if cache_req1(72 downto 72) = "1" and cache_req1(71 downto 64) = "11111111" then
 					---let's not consider power now, too complicated
-					pwr_req1 <= '1'&cache_req1(64 downto 61);
-					state := 4;
+					pwr_req1 <= '1' & cache_req1(64 downto 61);
+					state    := 4;
 				elsif cache_req1(72 downto 72) = "1" and cache_req1(63 downto 32) = adr_1 then
-					state   := 3;
+					state      := 3;
 					----should return to cache, let it perform snoop again!!!
 					-----
 					----don't forget to fill this up
 					-----
-					bus_res1_7 <= '1'&"11111111"&nildata;
-				elsif cache_req1(72 downto 72) = "1"  then
-					adr_0      <= cache_req1(63 downto 32);
-					state      := 2;
+					bus_res1_7 <= '1' & "11111111" & nildata;
+				elsif cache_req1(72 downto 72) = "1" then
+					adr_0 <= cache_req1(63 downto 32);
+					state := 2;
 				else
-					state      := 0;
+					state := 0;
 				end if;
-			elsif state =2 then
-				if cache_req1(63 downto 63)="1" then
+			elsif state = 2 then
+				if cache_req1(63 downto 63) = "1" then
 					---this belongs to the memory					
-					tomem1 <= "000"&cache_req1;
-					state := 5;
-				elsif cache_req1(62 downto 61)="00" then
-					togfx1 <= "000"&cache_req1;
-					state :=6;
-				elsif cache_req1(62 downto 61)="01" then
-					touart1 <= "000"&cache_req1;
-					state :=7;
-				elsif cache_req1(62 downto 61)="10" then
-					tousb1 <= "000"&cache_req1;
-					state :=8;
-				elsif cache_req1(62 downto 61)="11" then
-					toaudio1 <= "000"&cache_req1;
-					state :=9;
-				end if;	
-			elsif state =3 then
-				if brs1_ack5='1' then
-					bus_res1_7<=(others => '0');
+					tomem1 <= "000" & cache_req1;
+					state  := 5;
+				elsif cache_req1(62 downto 61) = "00" then
+					togfx1 <= "000" & cache_req1;
+					state  := 6;
+				elsif cache_req1(62 downto 61) = "01" then
+					touart1 <= "000" & cache_req1;
+					state   := 7;
+				elsif cache_req1(62 downto 61) = "10" then
+					tousb1 <= "000" & cache_req1;
+					state  := 8;
+				elsif cache_req1(62 downto 61) = "11" then
+					toaudio1 <= "000" & cache_req1;
+					state    := 9;
+				end if;
+			elsif state = 3 then
+				if brs1_ack5 = '1' then
+					bus_res1_7 <= (others => '0');
 				end if;
 			elsif state = 4 then
 				if pwr_ack1 = '1' then
 					---pwr_req1<= "00000";
 					state := 0;
 				end if;
-			elsif state =5 then
-				if mem_ack1='1' then
-					state :=0;
-					tomem1 <=(others=>'0');
+			elsif state = 5 then
+				if mem_ack1 = '1' then
+					state  := 0;
+					tomem1 <= (others => '0');
 				end if;
-			elsif state =6 then
-				if gfx_ack1='1' then
-					state :=0;
-					togfx1 <=(others=>'0');
+			elsif state = 6 then
+				if gfx_ack1 = '1' then
+					state  := 0;
+					togfx1 <= (others => '0');
 				end if;
-			elsif state =7 then
-				if usb_ack1='1' then
-					state :=0;
-					tousb1 <=(others=>'0');
+			elsif state = 7 then
+				if usb_ack1 = '1' then
+					state  := 0;
+					tousb1 <= (others => '0');
 				end if;
-			elsif state =8 then
-				if audio_ack1='1' then
-					state :=0;
-					toaudio1 <=(others=>'0');
+			elsif state = 8 then
+				if audio_ack1 = '1' then
+					state    := 0;
+					toaudio1 <= (others => '0');
 				end if;
 			end if;
 		end if;
@@ -2036,80 +2031,80 @@ generic map(
 
 	---deal with cache request
 	cache_req2_p : process(reset, Clock)
-		variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
-		variable state  : integer                       := 0;
-		variable count  : integer                       := 0;
-		variable nildata: std_logic_vector(543 downto 0):=(others=>'0');
+		variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
+		variable state   : integer                        := 0;
+		variable count   : integer                        := 0;
+		variable nildata : std_logic_vector(543 downto 0) := (others => '0');
 	begin
 		if reset = '1' then
-			--snoop_req2 <= nilreq;
+		--snoop_req2 <= nilreq;
 		elsif rising_edge(Clock) then
 			if state = 0 then
 				if cache_req2(72 downto 72) = "1" and cache_req2(71 downto 64) = "11111111" then
 					---let's not consider power now, too complicated
-					pwr_req2 <= '1'&cache_req2(64 downto 61);
-					state := 4;
+					pwr_req2 <= '1' & cache_req2(64 downto 61);
+					state    := 4;
 				elsif cache_req2(72 downto 72) = "1" and cache_req2(63 downto 32) = adr_1 then
-					state   := 3;
+					state      := 3;
 					----should return to cache, let it perform snoop again!!!
 					-----
 					----don't forget to fill this up
 					-----
-					bus_res1_6 <= '1'&"11111111"&nildata;
-				elsif cache_req2(72 downto 72) = "1"  then
+					bus_res1_6 <= '1' & "11111111" & nildata;
+				elsif cache_req2(72 downto 72) = "1" then
 					---snoop_req2 <= cache_req2;
-					adr_0      <= cache_req2(63 downto 32);
-					state      := 2;
+					adr_0 <= cache_req2(63 downto 32);
+					state := 2;
 				else
 					---snoop_req2 <= nilreq;
-					state      := 0;
+					state := 0;
 				end if;
-			elsif state =2 then
-				if cache_req2(63 downto 63)="1" then
+			elsif state = 2 then
+				if cache_req2(63 downto 63) = "1" then
 					---this belongs to the memory
-					tomem2 <= "101"&cache_req2;
-					state := 5;
-				elsif cache_req2(62 downto 61)="00" then
-					togfx2 <= "101"&cache_req2;
-					state :=6;
-				elsif cache_req2(62 downto 61)="01" then
-					touart2 <= "101"&cache_req2;
-					state :=7;
-				elsif cache_req2(62 downto 61)="10" then
-					tousb2 <= "101"&cache_req2;
-					state :=8;
-				elsif cache_req2(62 downto 61)="11" then
-					toaudio2 <= "101"&cache_req2;
-					state :=9;
-				end if;	
-			elsif state =3 then
-				if brs1_ack6='1' then
-					bus_res1_6<=(others => '0');
+					tomem2 <= "101" & cache_req2;
+					state  := 5;
+				elsif cache_req2(62 downto 61) = "00" then
+					togfx2 <= "101" & cache_req2;
+					state  := 6;
+				elsif cache_req2(62 downto 61) = "01" then
+					touart2 <= "101" & cache_req2;
+					state   := 7;
+				elsif cache_req2(62 downto 61) = "10" then
+					tousb2 <= "101" & cache_req2;
+					state  := 8;
+				elsif cache_req2(62 downto 61) = "11" then
+					toaudio2 <= "101" & cache_req2;
+					state    := 9;
+				end if;
+			elsif state = 3 then
+				if brs1_ack6 = '1' then
+					bus_res1_6 <= (others => '0');
 				end if;
 			elsif state = 4 then
 				if pwr_ack2 = '1' then
 					---pwr_req2<= "00000";
 					state := 0;
 				end if;
-			elsif state =5 then
-				if mem_ack2='1' then
-					state :=0;
-					tomem2 <=(others=>'0');
+			elsif state = 5 then
+				if mem_ack2 = '1' then
+					state  := 0;
+					tomem2 <= (others => '0');
 				end if;
-			elsif state =6 then
-				if gfx_ack2='1' then
-					state :=0;
-					togfx2 <=(others=>'0');
+			elsif state = 6 then
+				if gfx_ack2 = '1' then
+					state  := 0;
+					togfx2 <= (others => '0');
 				end if;
-			elsif state =7 then
-				if usb_ack2='1' then
-					state :=0;
-					tousb2 <=(others=>'0');
+			elsif state = 7 then
+				if usb_ack2 = '1' then
+					state  := 0;
+					tousb2 <= (others => '0');
 				end if;
-			elsif state =8 then
-				if audio_ack2='1' then
-					state :=0;
-					toaudio2 <=(others=>'0');
+			elsif state = 8 then
+				if audio_ack2 = '1' then
+					state    := 0;
+					toaudio2 <= (others => '0');
 				end if;
 			end if;
 		end if;
