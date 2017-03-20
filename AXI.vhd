@@ -1019,6 +1019,103 @@ begin
 			end if;
 		end if;
 	end process;
+	uart_write:process(reset, Clock)
+		variable state:integer :=0;
+		variable tep_uart:std_logic_vector(75 downto 0);
+		variable tep_uart_l:std_logic_vector(552 downto 0);
+		variable flag:std_logic;
+		variable tdata :std_logic_vector(511 downto 0);
+		variable lp:integer :=0;
+		--if flag is 1, then return uart write 2
+	begin
+		if reset ='1' then
+			flag :='0';
+		elsif rising_edge(Clock)then
+			if state = 0 then
+				lp :=0;
+				uart_write_ack1<='0';
+				uart_write_ack2<='0';
+				uart_write_ack3<='0';
+				if uart_write1(72 downto 72)="1" then
+					state := 1;
+					tep_uart:=uart_write1;
+				elsif uart_write2(552 downto 552)="1" then
+					state := 4;
+					tep_uart_l :=uart_write2;
+					flag :='1';
+				elsif uart_write3(552 downto 552)="1" then
+					state := 4;
+					tep_uart_l :=uart_write3;
+					flag :='0';
+				end if;
+			elsif state =1 then
+				if wready_uart = '0' then
+					wvalid_uart <= '1';
+					waddr_uart  <= tep_uart(63 downto 32);
+					wlen_uart   <= "00000" & "10000";
+					wsize_uart  <= "00001" & "00000";
+					--wdata_audio := tep_uart(31 downto 0);
+					state      := 2;
+				end if;
+			elsif state = 2 then
+				if wdataready_uart = '1' then
+					wdvalid_uart <= '1';
+					wtrb_uart    <= "1111";
+					wdata_uart   <= tep_uart(31 downto 0);
+					wlast_uart   <= '1';
+					state       := 3;
+				end if;
+
+			elsif state = 3 then
+				wdvalid_uart <= '0';
+				wrready_uart <= '1';
+				if wrvalid_uart = '1' then
+					if wrsp_uart = "00" then
+						state := 0;
+						uart_write_ack1<='1';
+					---this is a successful write back, yayyy
+					end if;
+					wrready_uart <= '0';
+				end if;
+			elsif state =4 then
+				if wready_uart = '0' then
+						wvalid_uart <= '1';
+						waddr_uart  <= mem_wb(543 downto 512);
+						wlen_uart   <= "00000" & "10000";
+						wsize_uart  <= "00001" & "00000";
+						tdata      := tep_uart_l(511 downto 0);
+						state      := 5;
+				end if;
+			elsif state = 5 then
+					if wdataready_uart = '1' then
+						wdvalid_uart <= '1';
+						wtrb_uart    <= "1111";
+						wdata_uart   <= tdata(lp + 31 downto lp);
+						lp          := lp + 32;
+						if lp = 512 then
+							wlast_uart <= '1';
+							state     := 6;
+							lp        := 0;
+						end if;
+					end if;
+			elsif state = 6 then
+					wdvalid_uart <= '0';
+					wrready_uart <= '1';
+					if wrvalid_uart = '1' then
+						state := 0;
+						if wrsp_uart = "00" then
+						---this is a successful write back, yayyy
+							if flag='1' then
+								uart_write_ack2<='1';
+							else
+								uart_write_ack3<='1';
+							end if;
+						end if;
+						wrready_uart <= '0';
+					end if;
+			end if;
+		end if;
+	end process;
 	toaudio_arbitor : entity work.arbiter2(Behavioral)
 		generic map(
 			DATA_WIDTH => 76
@@ -1045,6 +1142,103 @@ begin
 			ack2  => usb_ack2,
 			dout  => tousb_p
 		);
+	audio_write:process(reset, Clock)
+		variable state:integer :=0;
+		variable tep_audio:std_logic_vector(75 downto 0);
+		variable tep_audio_l:std_logic_vector(552 downto 0);
+		variable flag:std_logic;
+		variable tdata :std_logic_vector(511 downto 0);
+		variable lp:integer :=0;
+		--if flag is 1, then return audio write 2
+	begin
+		if reset ='1' then
+			flag :='0';
+		elsif rising_edge(Clock)then
+			if state = 0 then
+				lp :=0;
+				audio_write_ack1<='0';
+				audio_write_ack2<='0';
+				audio_write_ack3<='0';
+				if audio_write1(72 downto 72)="1" then
+					state := 1;
+					tep_audio:=audio_write1;
+				elsif audio_write2(552 downto 552)="1" then
+					state := 4;
+					tep_audio_l :=audio_write2;
+					flag :='1';
+				elsif audio_write3(552 downto 552)="1" then
+					state := 4;
+					tep_audio_l :=audio_write3;
+					flag :='0';
+				end if;
+			elsif state =1 then
+				if wready_audio = '0' then
+					wvalid_audio <= '1';
+					waddr_audio  <= tep_audio(63 downto 32);
+					wlen_audio   <= "00000" & "10000";
+					wsize_audio  <= "00001" & "00000";
+					--wdata_audio := tep_audio(31 downto 0);
+					state      := 2;
+				end if;
+			elsif state = 2 then
+				if wdataready_audio = '1' then
+					wdvalid_audio <= '1';
+					wtrb_audio    <= "1111";
+					wdata_audio   <= tep_audio(31 downto 0);
+					wlast_audio   <= '1';
+					state       := 3;
+				end if;
+
+			elsif state = 3 then
+				wdvalid_audio <= '0';
+				wrready_audio <= '1';
+				if wrvalid_audio = '1' then
+					if wrsp_audio = "00" then
+						state := 0;
+						audio_write_ack1<='1';
+					---this is a successful write back, yayyy
+					end if;
+					wrready_audio <= '0';
+				end if;
+			elsif state =4 then
+				if wready_audio = '0' then
+						wvalid_audio <= '1';
+						waddr_audio  <= mem_wb(543 downto 512);
+						wlen_audio   <= "00000" & "10000";
+						wsize_audio  <= "00001" & "00000";
+						tdata      := tep_audio_l(511 downto 0);
+						state      := 5;
+				end if;
+			elsif state = 5 then
+					if wdataready_audio = '1' then
+						wdvalid_audio <= '1';
+						wtrb_audio    <= "1111";
+						wdata_audio   <= tdata(lp + 31 downto lp);
+						lp          := lp + 32;
+						if lp = 512 then
+							wlast_audio <= '1';
+							state     := 6;
+							lp        := 0;
+						end if;
+					end if;
+			elsif state = 6 then
+					wdvalid_audio <= '0';
+					wrready_audio <= '1';
+					if wrvalid_audio = '1' then
+						state := 0;
+						if wrsp_audio = "00" then
+						---this is a successful write back, yayyy
+							if flag='1' then
+								audio_write_ack2<='1';
+							else
+								audio_write_ack3<='1';
+							end if;
+						end if;
+						wrready_audio <= '0';
+					end if;
+			end if;
+		end if;
+	end process;
 	tousb_channel : process(reset, Clock)
 		variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
 		variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
@@ -1068,7 +1262,7 @@ begin
 					tep_usb := tousb_p;
 					state   := 6;
 				elsif tousb_p(72 downto 72) = "1" and tousb_p(71 downto 64) = "01000000" then
-					tep_usb := tousb_p;
+					usb_write1<=tousb_p;
 					state   := 9;
 				end if;
 			elsif state = 6 then
@@ -1146,49 +1340,117 @@ begin
 					uart_upres4 <= (others => '0');
 					state       := 0;
 				end if;
-			--			elsif state =7 then
-			--				if usb_upres_ack4 ='1' then
-			--					usb_upres4 <= (others => '0');
-			--					state :=0;
-			--				end if;
+			
 			elsif state = 8 then
 				if audio_upres_ack4 = '1' then
 					audio_upres4 <= (others => '0');
 					state        := 0;
 				end if;
 			elsif state = 9 then
+				if usb_write_ack1 ='1' then
+					usb_write1<=(others=>'0');
+					state := 0;
+				end if;
+			end if;
+		end if;
+	end process;
+	usb_write:process(reset, Clock)
+		variable state:integer :=0;
+		variable tep_usb:std_logic_vector(75 downto 0);
+		variable tep_usb_l:std_logic_vector(552 downto 0);
+		variable flag:std_logic;
+		variable tdata :std_logic_vector(511 downto 0);
+		variable lp:integer :=0;
+		--if flag is 1, then return usb write 2
+	begin
+		if reset ='1' then
+			flag :='0';
+		elsif rising_edge(Clock)then
+			if state = 0 then
+				lp :=0;
+				usb_write_ack1<='0';
+				usb_write_ack2<='0';
+				usb_write_ack3<='0';
+				if usb_write1(72 downto 72)="1" then
+					state := 1;
+					tep_usb:=usb_write1;
+				elsif usb_write2(552 downto 552)="1" then
+					state := 4;
+					tep_usb_l :=usb_write2;
+					flag :='1';
+				elsif usb_write3(552 downto 552)="1" then
+					state := 4;
+					tep_usb_l :=usb_write3;
+					flag :='0';
+				end if;
+			elsif state =1 then
 				if wready_usb = '0' then
 					wvalid_usb <= '1';
 					waddr_usb  <= tep_usb(63 downto 32);
 					wlen_usb   <= "00000" & "10000";
 					wsize_usb  <= "00001" & "00000";
 					--wdata_audio := tep_usb(31 downto 0);
-					state      := 10;
+					state      := 2;
 				end if;
-			elsif state = 10 then
+			elsif state = 2 then
 				if wdataready_usb = '1' then
 					wdvalid_usb <= '1';
 					wtrb_usb    <= "1111";
-					wdata_usb   <= tep_usb(lp + 31 downto lp);
+					wdata_usb   <= tep_usb(31 downto 0);
 					wlast_usb   <= '1';
-					state       := 11;
+					state       := 3;
 				end if;
 
-			elsif state = 11 then
+			elsif state = 3 then
 				wdvalid_usb <= '0';
 				wrready_usb <= '1';
 				if wrvalid_usb = '1' then
 					if wrsp_usb = "00" then
 						state := 0;
+						usb_write_ack1<='1';
 					---this is a successful write back, yayyy
 					end if;
 					wrready_usb <= '0';
 				end if;
-
+			elsif state =4 then
+				if wready_usb = '0' then
+						wvalid_usb <= '1';
+						waddr_usb  <= mem_wb(543 downto 512);
+						wlen_usb   <= "00000" & "10000";
+						wsize_usb  <= "00001" & "00000";
+						tdata      := tep_usb_l(511 downto 0);
+						state      := 5;
+				end if;
+			elsif state = 5 then
+					if wdataready_usb = '1' then
+						wdvalid_usb <= '1';
+						wtrb_usb    <= "1111";
+						wdata_usb   <= tdata(lp + 31 downto lp);
+						lp          := lp + 32;
+						if lp = 512 then
+							wlast_usb <= '1';
+							state     := 6;
+							lp        := 0;
+						end if;
+					end if;
+			elsif state = 6 then
+					wdvalid_usb <= '0';
+					wrready_usb <= '1';
+					if wrvalid_usb = '1' then
+						state := 0;
+						if wrsp_usb = "00" then
+						---this is a successful write back, yayyy
+							if flag='1' then
+								usb_write_ack2<='1';
+							else
+								usb_write_ack3<='1';
+							end if;
+						end if;
+						wrready_usb <= '0';
+					end if;
 			end if;
 		end if;
 	end process;
-
 	touart_arbitor : entity work.arbiter2(Behavioral)
 		generic map(
 			DATA_WIDTH => 76
@@ -1225,8 +1487,8 @@ begin
 					tep_uart := touart_p;
 					state    := 6;
 				elsif touart_p(72 downto 72) = "1" and touart_p(71 downto 64) = "01000000" then
-					tep_uart := touart_p;
-					state    := 9;
+					uart_write1<=touart_p;
+					state   := 9;
 				end if;
 			elsif state = 6 then
 				if rready_uart = '1' then
@@ -1314,34 +1576,10 @@ begin
 					state        := 0;
 				end if;
 			elsif state = 9 then
-				if wready_uart = '0' then
-					wvalid_uart <= '1';
-					waddr_uart  <= tep_uart(63 downto 32);
-					wlen_uart   <= "00000" & "10000";
-					wsize_uart  <= "00001" & "00000";
-					--wdata_audio := tep_uart(31 downto 0);
-					state       := 10;
+				if uart_write_ack1 ='1' then
+					uart_write1<=(others=>'0');
+					state := 0;
 				end if;
-			elsif state = 10 then
-				if wdataready_uart = '1' then
-					wdvalid_uart <= '1';
-					wtrb_uart    <= "1111";
-					wdata_uart   <= tep_uart(lp + 31 downto lp);
-					wlast_uart   <= '1';
-					state        := 11;
-				end if;
-
-			elsif state = 11 then
-				wdvalid_uart <= '0';
-				wrready_uart <= '1';
-				if wrvalid_uart = '1' then
-					if wrsp_uart = "00" then
-						state := 0;
-					---this is a successful write back, yayyy
-					end if;
-					wrready_uart <= '0';
-				end if;
-
 			end if;
 		end if;
 	end process;
@@ -1569,8 +1807,8 @@ begin
 					tep_audio := toaudio_p;
 					state     := 6;
 				elsif toaudio_p(72 downto 72) = "1" and toaudio_p(71 downto 64) = "01000000" then
-					tep_audio := toaudio_p;
-					state     := 9;
+					audio_write1<=toaudio_p;
+					state   := 9;
 				end if;
 			elsif state = 6 then
 				if rready_audio = '1' then
@@ -1658,34 +1896,10 @@ begin
 			--					state :=0;
 			--				end if;	
 			elsif state = 9 then
-				if wready_audio = '0' then
-					wvalid_audio <= '1';
-					waddr_audio  <= tep_audio(63 downto 32);
-					wlen_audio   <= "00000" & "10000";
-					wsize_audio  <= "00001" & "00000";
-					--wdata_audio := tep_audio(31 downto 0);
-					state        := 10;
+				if audio_write_ack1 ='1' then
+					audio_write1<=(others=>'0');
+					state := 0;
 				end if;
-			elsif state = 10 then
-				if wdataready_audio = '1' then
-					wdvalid_audio <= '1';
-					wtrb_audio    <= "1111";
-					wdata_audio   <= tep_audio(lp + 31 downto lp);
-					wlast_audio   <= '1';
-					state         := 11;
-				end if;
-
-			elsif state = 11 then
-				wdvalid_audio <= '0';
-				wrready_audio <= '1';
-				if wrvalid_audio = '1' then
-					if wrsp_audio = "00" then
-						state := 0;
-					---this is a successful write back, yayyy
-					end if;
-					wrready_audio <= '0';
-				end if;
-
 			end if;
 		end if;
 	end process;
