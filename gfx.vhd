@@ -55,7 +55,7 @@ entity gfx is
 end gfx;
 
 architecture Behavioral of gfx is
-	type ram_type is array (0 to (2 ** 10 - 1) - 1) of std_logic_vector(31 downto 0);
+	type ram_type is array (0 to (2 ** 5 - 1) - 1) of std_logic_vector(31 downto 0);
 	signal ROM_array : ram_type  := (others => (others => '0'));
 	signal poweron   : std_logic := '1';
 

@@ -55,7 +55,7 @@ entity Audio is
 end Audio;
 
 architecture Behavioral of Audio is
-	type ram_type is array (0 to (2 ** 10 - 1) - 1) of std_logic_vector(wdata'range);
+	type ram_type is array (0 to (2 ** 5 - 1) - 1) of std_logic_vector(wdata'range);
 	signal ROM_array : ram_type  := (others => (others => '0'));
 	signal poweron   : std_logic := '1';
 

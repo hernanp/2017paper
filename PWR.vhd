@@ -132,7 +132,7 @@ begin
 			elsif state = 4 then
 				usbreq<=tmp_req(4 downto 2);
 				state := 8;
-			elsif state = 5then
+			elsif state = 5 then
 				uartreq<=tmp_req(4 downto 2);
 				state := 9;
 			elsif state = 6 then
