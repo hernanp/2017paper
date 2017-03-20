@@ -223,12 +223,12 @@ architecture Behavioral of top is
 begin
 	reset_proc : process
 	begin
-		--reset <= '0';
-		--wait for 10 ps;
-		reset <= '1';
-		--		wait for 50 ps;
 		reset <= '0';
-	--		wait;
+		wait for 10 ps;
+		reset <= '1';
+		wait for 50 ps;
+		reset <= '0';
+		wait;
 	end process;
 
 	clk_gen : process
@@ -240,11 +240,11 @@ begin
 		variable coma        : string(2 downto 1)  := "  ";
 	begin
 		-- Generate a clock cycle
-		if rising_edge(Clock) then
+		loop
 			Clock <= '0';
-			--			wait for 2 ps;
+						wait for 2 ps;
 			Clock <= '1';
-			--			wait for 2 ps;
+					wait for 2 ps;
 			--- 1
 			if cpu_req1(50 downto 50) = "1" then
 				write(line_output, cpu_req1);
@@ -614,10 +614,10 @@ begin
 
 			writeline(trace_file, line_output);
 			if done1 = '1' and done2 = '1' then
-			--				wait;
+						wait;
 			end if;
-		end if;
-	--		wait;
+		end loop;
+		--wait;
 	end process;
 
 	cpu1 : entity work.CPU(Behavioral) port map(
