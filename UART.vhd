@@ -79,10 +79,10 @@ begin
 
 		---power(pwrcmd, tmp_req, hwlc);
 		--for I in 1 to 1 loop
-			rand1 := selection(2);
-			rand2 := '0' & selection(2 ** 2 - 1, 3) & "111111000000";
-			rand3 := selection(2 ** 15 - 1, 32);
-			rand2 := "0110101010101010";
+--			rand1 := selection(2);
+--			rand2 := '0' & selection(2 ** 2 - 1, 3) & "111111000000";
+--			rand3 := selection(2 ** 15 - 1, 32);
+--			rand2 := "0110101010101010";
 		---if rand1=1 then
 		---    write(rand2,tmp_req,rand3);
 		---else
@@ -181,7 +181,7 @@ begin
 						---if ROM_array(address+lp) ="00000000000000000000000000000000" then
 						---ROM_array(address+lp) := selection(2**15-1,32);
 						---end if;
-						dt      := selection(2 ** 15 - 1, 32);
+						--dt      := selection(2 ** 15 - 1, 32);
 						---rdata <= dt;
 						rdata   <= ROM_array(address+lp);
 						lp      := lp + 1;

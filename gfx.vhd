@@ -64,39 +64,39 @@ architecture Behavioral of gfx is
 
 begin
 	
-	p1 : process
-		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
-
-		variable zero  : std_logic_vector(31 downto 0) := "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0000";
-		variable one   : std_logic_vector(31 downto 0) := "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0001";
-		variable two   : std_logic_vector(31 downto 0) := "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0010";
-		variable rand1 : integer                       := 1;
-		variable rand2 : std_logic_vector(15 downto 0) := "0101010101010111";
-		variable rand3 : std_logic_vector(31 downto 0) := "10101010101010101010101010101010";
-
-	begin
-		--    	wait for 70 ps;
-
-		---power(pwrcmd, tmp_req, hwlc);
-		--for I in 1 to 1 loop
-			rand1 := selection(2);
-			rand2 := '0' & selection(2 ** 2 - 1, 3) & "111111000000";
-			rand3 := selection(2 ** 15 - 1, 32);
-			rand2 := "0110101010101010";
-		---if rand1=1 then
-		---    write(rand2,tmp_req,rand3);
-		---else
-		--	   wait for 370 ps;
-		--  write(rand2,tmp_req,rand3);
-
-		---end if;
-
-		--end loop;
-
---		wait;
-
-	end process;
-
+--	p1 : process
+--		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
+--
+--		variable zero  : std_logic_vector(31 downto 0) := "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0000";
+--		variable one   : std_logic_vector(31 downto 0) := "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0001";
+--		variable two   : std_logic_vector(31 downto 0) := "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0000" & "0010";
+--		variable rand1 : integer                       := 1;
+--		variable rand2 : std_logic_vector(15 downto 0) := "0101010101010111";
+--		variable rand3 : std_logic_vector(31 downto 0) := "10101010101010101010101010101010";
+--
+--	begin
+--		--    	wait for 70 ps;
+--
+--		---power(pwrcmd, tmp_req, hwlc);
+--		--for I in 1 to 1 loop
+--			rand1 := selection(2);
+--			rand2 := '0' & selection(2 ** 2 - 1, 3) & "111111000000";
+--			rand3 := selection(2 ** 15 - 1, 32);
+--			rand2 := "0110101010101010";
+--		---if rand1=1 then
+--		---    write(rand2,tmp_req,rand3);
+--		---else
+--		--	   wait for 370 ps;
+--		--  write(rand2,tmp_req,rand3);
+--
+--		---end if;
+--
+--		--end loop;
+--
+----		wait;
+--
+--	end process;
+--
 	write : process(Clock, reset)
 		variable address : integer;
 		variable len     : integer;
@@ -146,7 +146,7 @@ begin
 			end if;
 		end if;
 	end process;
-
+--
 	read : process(Clock, reset)
 		variable address : integer;
 		variable len     : integer;
@@ -181,7 +181,7 @@ begin
 						---if ROM_array(address+lp) ="00000000000000000000000000000000" then
 						---ROM_array(address+lp) := selection(2**15-1,32);
 						---end if;
-						dt      := selection(2 ** 15 - 1, 32);
+						--dt      := selection(2 ** 15 - 1, 32);
 						---rdata <= dt;
 						rdata   <= ROM_array(address);
 						lp      := lp + 1;

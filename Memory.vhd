@@ -134,7 +134,7 @@ begin
 						---if ROM_array(address+lp) ="00000000000000000000000000000000" then
 						---ROM_array(address+lp) := selection(2**15-1,32);
 						---end if;
-						dt      := selection(2 ** 15 - 1, 32);
+						--dt      := selection(2 ** 15 - 1, 32);
 						---rdata <= dt;
 						rdata   <= ROM_array(slot)(address + lp);
 						lp      := lp + 1;

@@ -28,12 +28,12 @@ architecture Behavioral of CPU is
 			       variable data : out std_logic_vector(31 downto 0)) is
 	begin
 		req <= "101000000" & adx & "00000000000000000000000000000000";
-		wait for 3 ps;
+--		wait for 3 ps;
 		req <= (others => '0');
 		if cpu_res(72 downto 72) = "1" then
 			data := cpu_res(31 downto 0);
 		end if;
-		wait for 10 ps;
+----		wait for 10 ps;
 	end read;
 
 	procedure write(variable adx  : in  std_logic_vector(31 downto 0);
