@@ -1,22 +1,55 @@
 v 4
-file . "L1Cache.vhd" "176bc641c975719355a3e3cfbc4bdf9cdd2d88c4" "20161110210955.867":
-  entity l1cache at 2( 1) + 0 on 23;
-  architecture behavioral of l1cache at 46( 1559) + 0 on 24;
-file . "CPU.vhd" "8a1c9b66f6f9c2414c4958b90501b3aae5d945f3" "20161110210955.576":
-  entity cpu at 1( 0) + 0 on 19;
-  architecture behavioral of cpu at 21( 466) + 0 on 20;
-file . "nondeterminism.vhd" "dd49916f65f9dc0d483dcf1e9cb2426b4594a89a" "20161110210955.477":
-  package nondeterminism at 1( 0) + 0 on 15 body;
-  package body nondeterminism at 18( 683) + 0 on 16;
-file . "arbiter.vhd" "47477dcac083c4c596f6f93e51db18173c453176" "20161110210955.266":
-  entity arbiter at 1( 0) + 0 on 11;
-  architecture behavioral of arbiter at 21( 463) + 0 on 12;
-file . "arbiter2.vhd" "7fa11437b03e7a6c14e8c860faf460deaf27914f" "20161110210955.362":
-  entity arbiter2 at 1( 0) + 0 on 13;
-  architecture behavioral of arbiter2 at 24( 556) + 0 on 14;
-file . "std_fifo.vhd" "b5504c9b15f452f6b151ed9f20331924d44910ef" "20161110210955.504":
-  entity std_fifo at 1( 0) + 0 on 17;
-  architecture behavioral of std_fifo at 22( 481) + 0 on 18;
-file . "Memory.vhd" "c790813c9837a8dd7bac3ba010875910064a75a4" "20161110210955.787":
-  entity memory at 2( 1) + 0 on 21;
-  architecture behavioral of memory at 18( 466) + 0 on 22;
+file . "arbiter6.vhd" "b445b1460f229f145608b928767ed38826e657cd" "20170322132341.219":
+  entity arbiter6 at 1( 0) + 0 on 117;
+  architecture behavioral of arbiter6 at 36( 996) + 0 on 118;
+file . "cpu.vhd" "2eff486a04a47df5a088c951a2f0446b9898ca8f" "20170322132226.081":
+  entity cpu at 1( 0) + 0 on 113;
+  architecture behavioral of cpu at 19( 387) + 0 on 114;
+file . "l1cache.vhd" "1630fbc3409b2c8e6fbea9ee2404d7810e3ea152" "20170322130540.496":
+  entity l1cache at 1( 0) + 0 on 107;
+  architecture behavioral of l1cache at 52( 2034) + 0 on 108;
+file . "pwr.vhd" "5da4c46b55e11ee52097ee034a5822ecde775700" "20170322132233.092":
+  entity pwr at 22( 464) + 0 on 115;
+  architecture behavioral of pwr at 53( 1529) + 0 on 116;
+file . "axi.vhd" "377c9b067437508ee2ee01edd4a0af7c888cf956" "20170322132439.953":
+  entity axi at 9( 204) + 0 on 123;
+  architecture behavioral of axi at 210( 11362) + 0 on 124;
+file . "arbiter2.vhd" "e95d124b2acba9a720833529bb87209e5c287b67" "20170322115118.620":
+  entity arbiter2 at 1( 0) + 0 on 83;
+  architecture behavioral of arbiter2 at 24( 556) + 0 on 84;
+file . "arbiter.vhd" "47477dcac083c4c596f6f93e51db18173c453176" "20170322115118.557":
+  entity arbiter at 1( 0) + 0 on 81;
+  architecture behavioral of arbiter at 21( 463) + 0 on 82;
+file . "nondeterminism.vhd" "973b487c7f634e676855450044e6568122cd3aa7" "20170322132220.981":
+  package nondeterminism at 1( 0) + 0 on 111 body;
+  package body nondeterminism at 18( 683) + 0 on 112;
+file . "arbiter7.vhd" "df9c81460d799c49d5d407a3809ca2f417722757" "20170322132356.486":
+  entity arbiter7 at 1( 0) + 0 on 121;
+  architecture behavioral of arbiter7 at 39( 1090) + 0 on 122;
+file . "gfx.vhd" "fa1342290a9103341ae34477772b4933206162aa" "20170322132610.614":
+  entity gfx at 1( 0) + 0 on 125;
+  architecture behavioral of gfx at 57( 1832) + 0 on 126;
+file . "top.vhd" "7e5bdaba656bf7dc6c891f8847b7641a6430f77d" "20170322134948.136":
+  entity top at 10( 222) + 0 on 141;
+  architecture behavioral of top at 22( 433) + 0 on 142;
+file . "arbiter3.vhd" "8289b7c3ea5eadd3355493e15c9481ee7b060ba1" "20170322115118.690":
+  entity arbiter3 at 1( 0) + 0 on 85;
+  architecture behavioral of arbiter3 at 24( 522) + 0 on 86;
+file . "fifo.vhd" "d834993e8547bf36cb2e9f769841a4b38ca9aaec" "20170322124911.298":
+  entity std_fifo at 1( 0) + 0 on 87;
+  architecture behavioral of std_fifo at 22( 481) + 0 on 88;
+file . "mem.vhd" "44b999ea5d129395f85c501dffbaf11e8182805a" "20170322134945.101":
+  entity memory at 1( 0) + 0 on 139;
+  architecture behavioral of memory at 42( 1306) + 0 on 140;
+file . "arbiter61.vhd" "5683fea1ca152be275fbee3a1d8056363d69508f" "20170322132344.832":
+  entity arbiter61 at 1( 0) + 0 on 119;
+  architecture behavioral of arbiter61 at 36( 998) + 0 on 120;
+file . "audio.vhd" "46a64eff1c21d7d81d5ca7335d501f1c5de7d7de" "20170322134610.832":
+  entity audio at 1( 0) + 0 on 129;
+  architecture behavioral of audio at 57( 1836) + 0 on 130;
+file . "usb.vhd" "379e52018a5745ae98dd9170bc2462bc9cc56a79" "20170322134721.152":
+  entity usb at 1( 0) + 0 on 133;
+  architecture behavioral of usb at 57( 1832) + 0 on 134;
+file . "uart.vhd" "3122d7c343f1b85efb6e08bc4c0bb9bc74738561" "20170322134926.173":
+  entity uart at 1( 0) + 0 on 137;
+  architecture behavioral of uart at 57( 1834) + 0 on 138;

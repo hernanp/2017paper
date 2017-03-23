@@ -53,7 +53,7 @@ architecture Behavioral of L1Cache is
 	--IMB cache 1
 	--3 lsb: dirty bit, valid bit, exclusive bit
 	--cache hold valid bit ,dirty bit, exclusive bit, 6 bits tag, 32 bits data, 41 bits in total
-	type rom_type is array (2 ** 14 - 1 downto 0) of std_logic_vector(56 downto 0);
+	type rom_type is array (natural(2 ** 14 - 1) downto 0) of std_logic_vector(56 downto 0);
 	signal ROM_array                                                  : rom_type  := (others => (others => '0'));
 	signal we1, we2, we3, we4, re1, re2, re3, re4, re5, we5           : std_logic := '0';
 	signal out1, out2, out3, out5                                     : std_logic_vector(72 downto 0);

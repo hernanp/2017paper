@@ -11,7 +11,7 @@ use work.nondeterminism.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity Audio is
+entity USB is
 	Port(Clock      : in  std_logic;
 		 reset      : in  std_logic;
 		 ---write address chanel
@@ -52,10 +52,10 @@ entity Audio is
 		 upres      : in  std_logic_vector(72 downto 0);
 		 upreq_full : in  std_logic
 	);
-end Audio;
+end USB;
 
-architecture Behavioral of Audio is
-	type ram_type is array (0 to (2 ** 5 - 1) - 1) of std_logic_vector(wdata'range);
+architecture Behavioral of USB is
+	type ram_type is array (0 to natural(2 ** 5 - 1) - 1) of std_logic_vector(wdata'range);
 	signal ROM_array : ram_type  := (others => (others => '0'));
 	signal poweron   : std_logic := '1';
 
@@ -77,13 +77,13 @@ begin
 	begin
 		--    	wait for 70 ps;
 
-		---power(pwrcmd, tmp_req, hwlc);
-		--for I in 1 to 1 loop
+--		---power(pwrcmd, tmp_req, hwlc);
+--		--for I in 1 to 1 loop
 --			rand1 := selection(2);
 --			rand2 := '0' & selection(2 ** 2 - 1, 3) & "111111000000";
 --			rand3 := selection(2 ** 15 - 1, 32);
 --			rand2 := "0110101010101010";
-		---if rand1=1 then
+--		-if rand1=1 then
 		---    write(rand2,tmp_req,rand3);
 		---else
 		--	   wait for 370 ps;
@@ -93,7 +93,7 @@ begin
 
 		--end loop;
 
---	--	wait;
+--		wait;
 
 	end process;
 
@@ -183,7 +183,7 @@ begin
 						---end if;
 						--dt      := selection(2 ** 15 - 1, 32);
 						---rdata <= dt;
-						rdata   <= ROM_array(address+lp);
+						rdata   <= ROM_array(address);
 						lp      := lp + 1;
 						rres    <= "00";
 						if lp = len then

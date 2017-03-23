@@ -18,6 +18,7 @@ package body writefunction is
     variable linept:line;
    
   begin
+    -- TODO fix path
     file_open(logfile,"C:\Users\cao2\Documents\log.txt",append_mode);
     write(linept,logsr);
     write(linept,logct);    
@@ -31,7 +32,8 @@ package body writefunction is
     file logfile: text;
     variable linept:line;
    
-  begin
+   begin
+    -- TODO fix path 
     file_open(logfile,"C:\Users\cao2\Documents\log.txt",append_mode);
     write(linept,logsr);
     write(linept,logct);    

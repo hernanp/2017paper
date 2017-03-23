@@ -34,6 +34,8 @@ package body nondeterminism is
     variable tmp_real:real;
   begin
     uniform(s1,s2,tmp_real);
+    -- TODO replace with std_logic_vector(to_unsigned(..)) # or to_signed(..),
+    -- so that ieee.std_logic_arith is not needed
     result := conv_std_logic_vector (integer(trunc(tmp_real * real (num)))
                                       +1,size);
     return (result);
