@@ -4,18 +4,18 @@ all:
 	ghdl -a arbiter2.vhd
 	ghdl -a arbiter3.vhd
 	ghdl -a --ieee=synopsys nondeterminism.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
-	ghdl -a fifo.vhd
+	ghdl -a fifo.vhd # dependency for [pwr,l1cache,axi].vhd
 	ghdl -a axi.vhd
 	ghdl -a --ieee=synopsys gfx.vhd
-	ghdl -a pwr.vhd
+	ghdl -a pwr.vhd # uses fifo
 	ghdl -a --ieee=synopsys mem.vhd
-	ghdl -a -fexplicit l1cache.vhd
+	ghdl -a -fexplicit l1cache.vhd # uses fifo, arbiter2
 	ghdl -a -ieee=synopsys cpu.vhd
 	ghdl -a pwd.vhd
 	ghdl -a arbiter6.vhd
 	ghdl -a arbiter61.vhd
 	ghdl -a arbiter7.vhd
-	ghdl -a axi.vhd
+	ghdl -a axi.vhd # uses fifo
 	ghdl -a --ieee=synopsys  gfx.vhd
 	ghdl -a --ieee=synopsys audio.vhd
 	ghdl -a --ieee=synopsys usb.vhd

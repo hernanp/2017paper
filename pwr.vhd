@@ -36,7 +36,7 @@ architecture Behavioral of pwr is
 	signal we1,re1,emp1,we2,re2,emp2 : std_logic:='0';
 begin
 
-	pwr_req_fif: entity work.STD_FIFO(Behavioral) 
+	pwr_req_fif: entity work.fifo(Behavioral) 
 	generic map(
         DATA_WIDTH => 5,
         FIFO_DEPTH => 16

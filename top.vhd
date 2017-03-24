@@ -228,7 +228,7 @@ architecture tb of top is
   signal rres_audio    : std_logic_vector(1 downto 0);
 
 begin
-  cpu1 : entity work.CPU(Behavioral) port map(
+  cpu1 : entity work.cpu(Behavioral) port map(
     reset   => reset,
     Clock   => Clock,
     seed    => 1,
@@ -238,7 +238,7 @@ begin
    --done    => done1
     );
 
-  cpu2 : entity work.CPU(Behavioral) port map(
+  cpu2 : entity work.cpu(Behavioral) port map(
     reset   => reset,
     Clock   => Clock,
     seed    => 2,
@@ -248,7 +248,7 @@ begin
    --done    => done2
     );
 
-  cache1 : entity work.L1Cache(Behavioral) port map(
+  cache1 : entity work.l1_cache(Behavioral) port map(
     Clock        => Clock,
     reset        => reset,
     cpu_req      => cpu_req1,
@@ -274,7 +274,7 @@ begin
     wb_req       => wb_req1
     );
 
-  cache2 : entity work.L1Cache(Behavioral) port map(
+  cache2 : entity work.l1_cache(Behavioral) port map(
     Clock        => Clock,
     reset        => reset,
     cpu_req      => cpu_req2,

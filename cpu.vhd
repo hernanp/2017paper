@@ -6,17 +6,18 @@ use work.nondeterminism.all;
 use std.textio.all;
 use IEEE.std_logic_textio.all;
 
-entity CPU is
+entity cpu is
   Port(reset   : in  std_logic;
        Clock   : in  std_logic;
        seed    : in  integer;
        cpu_res : in  std_logic_vector(72 downto 0);
        cpu_req : out std_logic_vector(72 downto 0);
-       full_c  : in  std_logic
+       full_c  : in  std_logic -- an input signal from cache, enabled when
+                               -- cache is full TODO confirm
        );
-end CPU;
+end cpu;
 
-architecture Behavioral of CPU is
+architecture Behavioral of cpu is
   signal tmp_req : std_logic_vector(72 downto 0);
 
   signal rand1 : integer                       := 1;
