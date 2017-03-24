@@ -1,24 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 11/01/2015 11:10:38 PM
--- Design Name: 
--- Module Name: Memory - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 -- Uncomment the following library declaration if using
@@ -30,7 +9,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity PWR is
+entity pwr is
     Port (  Clock: in std_logic;
             reset: in std_logic;
             
@@ -48,9 +27,9 @@ entity PWR is
             uartreq : out STD_LOGIC_VECTOR(2 downto 0)
             );
             
-end PWR;
+end pwr;
 
-architecture Behavioral of PWR is
+architecture Behavioral of pwr is
 	signal tmp_req: std_logic_vector(4 downto 0);
 	signal in1,out1 : std_logic_vector(4 downto 0);
 	signal in2,out2 : std_logic_vector(2 downto 0);
@@ -73,7 +52,6 @@ begin
 		Empty=>emp1
 		);
 		
-	
 	pwr_req_fifo: process (Clock)      
 	begin
 		if reset='1' then
@@ -87,8 +65,6 @@ begin
 			end if;
 		end if;
 	end process;
-	
-	
 	
 	req_p:process (reset, Clock)
         variable nilreq:std_logic_vector(4 downto 0):=(others => '0');
@@ -163,7 +139,4 @@ begin
 		
 		end if;
 	end process;
-        
-	
-
 end Behavioral;

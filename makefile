@@ -7,7 +7,7 @@ all:
 	ghdl -a fifo.vhd
 	ghdl -a axi.vhd
 	ghdl -a --ieee=synopsys gfx.vhd
-	ghdl -a pwd.vhd
+	ghdl -a pwr.vhd
 	ghdl -a --ieee=synopsys mem.vhd
 	ghdl -a -fexplicit l1cache.vhd
 	ghdl -a -ieee=synopsys cpu.vhd
@@ -22,6 +22,10 @@ all:
 	ghdl -a --ieee=synopsys uart.vhd
 	ghdl -a --ieee=synopsys  top.vhd
 	ghdl -e --ieee=synopsys  top
+topnsim:
+	ghdl -a --ieee=synopsys  top.vhd
+	ghdl -e --ieee=synopsys  top
+	./top --vcd=tb.vcd
 clean:
 	rm *.o
 showtree:
