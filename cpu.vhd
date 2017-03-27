@@ -9,7 +9,7 @@ use IEEE.std_logic_textio.all;
 entity cpu is
   Port(reset   : in  std_logic;
        Clock   : in  std_logic;
-       seed    : in  integer;
+       cpu_id   : in  integer;
        cpu_res : in  std_logic_vector(72 downto 0);
        cpu_req : out std_logic_vector(72 downto 0);
        full_c  : in  std_logic -- an input signal from cache, enabled when
@@ -75,7 +75,6 @@ begin
     end if;
   end process;
   
-  -- TODO problem bc process has emtpy sensitivity list
   -- processor random generate read or write request
   p1 : process(Clock)
     variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
@@ -97,10 +96,10 @@ begin
     pwrcmd := "00";
     hwlc   := "00";
     ----power(pwrcmd, tmp_req, hwlc);
-    if seed = 1 then
+    if cpu_id = 1 then
       write(flag0, tmp_req, one);
 
-    elsif seed = 2 then
+    elsif cpu_id = 2 then
       read(turn, tmp_req, turn_v);
 
     end if;

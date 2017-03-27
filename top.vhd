@@ -231,7 +231,7 @@ begin
   cpu1 : entity work.cpu(Behavioral) port map(
     reset   => reset,
     Clock   => Clock,
-    seed    => 1,
+    cpu_id  => 1,
     cpu_res => cpu_res1,
     cpu_req => cpu_req1,
     full_c  => full_c1_u
@@ -241,7 +241,7 @@ begin
   cpu2 : entity work.cpu(Behavioral) port map(
     reset   => reset,
     Clock   => Clock,
-    seed    => 2,
+    cpu_id  => 2,
     cpu_res => cpu_res2,
     cpu_req => cpu_req2,
     full_c  => full_c2_u
