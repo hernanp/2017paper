@@ -42,13 +42,25 @@ architecture Behavioral of cpu is
   procedure read(variable adx  : in  std_logic_vector(31 downto 0);
                  signal req    : out std_logic_vector(72 downto 0);
                  variable data : out std_logic_vector(31 downto 0)) is
+  variable state:integer:=0;
   begin
-    --* TODO what does this value mean?
-    req <= "101000000" & adx & "00000000000000000000000000000000";
-    req <= (others => '0');
-    if cpu_res(72 downto 72) = "1" then
-      data := cpu_res(31 downto 0);
-    end if;
+  	--* TODO what does this value mean?
+  	if reset = '1' then
+		state :=0;
+	elsif (rising_edge(Clock)) then
+	  	if state =0 then
+	  		req <= "101000000" & adx & "00000000000000000000000000000000";
+	  		state := 1;
+	  	elsif state =1 then  
+	  		req <= (others => '0');
+	  		state := 2;
+	    elsif state =3 then
+	    		if cpu_res(72 downto 72) = "1" then
+	    			data := cpu_res(31 downto 0);
+	    			state := 0;
+	    		end if;
+	    	end if;
+	end if;
   end read;
 
   --* wrapper fun to create write_req given an address, a req (?), and some data
@@ -56,11 +68,23 @@ architecture Behavioral of cpu is
   procedure write(variable adx  : in  std_logic_vector(31 downto 0);
                   signal req    : out std_logic_vector(72 downto 0);
                   variable data : in  std_logic_vector(31 downto 0)) is
-  begin
-    req <= "110000000" & adx & data;
-    req <= (others => '0');
-    if cpu_res(72 downto 72) = "1" then
-    end if;
+  variable state: integer :=0;
+begin
+	if reset = '1' then
+		state :=0;
+	elsif (rising_edge(Clock)) then
+		if state =0 then
+	  		req <= "110000000" & adx & data;
+	  		state := 1;
+	  	elsif state =1 then
+	  		req <= (others => '0');
+	  		state := 2;
+	  	elsif state =2 then
+	  		if cpu_res(72 downto 72) = "1" then
+	  			state :=0;
+	    		end if;
+	    	end if;
+    	end if;
   end write;
 
   ----* TODO is this a fun to create a power_req?
@@ -118,7 +142,7 @@ begin
     variable pwrcmd      : std_logic_vector(1 downto 0);
     variable hwlc        : std_logic_vector(1 downto 0);
   begin
-    ----wait for 80 ps;
+    ---wait for 80 ps;
     pwrcmd := "00";
     hwlc   := "00";
     ----power(pwrcmd, tmp_req, hwlc);
