@@ -13,7 +13,7 @@ USE ieee.numeric_std.ALL;
 --use UNISIM.VComponents.all;
 
 entity l1_cache is
-  Port(
+  port(
     Clock                : in  std_logic;
     reset                : in  std_logic;
     cpu_req              : in  STD_LOGIC_VECTOR(72 downto 0);
@@ -85,11 +85,13 @@ architecture Behavioral of l1_cache is
   signal upreq        : std_logic_vector(75 downto 0);
   signal snpreq       : std_logic_vector(73 downto 0);
 
+  constant DEFAULT_DATA_WIDTH : positive := 73;
+  constant DEFAULT_FIFO_DEPTH : positive := 256;
 begin
   cpu_req_fif : entity work.fifo(Behavioral)
     generic map(
-      DATA_WIDTH => 73,
-      FIFO_DEPTH => 256
+      DATA_WIDTH => DEFAULT_DATA_WIDTH,
+      FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
       CLK     => Clock,
@@ -103,8 +105,8 @@ begin
       );
   snp_res_fif : entity work.fifo(Behavioral)
     generic map(
-      DATA_WIDTH => 73,
-      FIFO_DEPTH => 256
+      DATA_WIDTH => DEFAULT_DATA_WIDTH,
+      FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
       CLK     => Clock,
@@ -118,8 +120,8 @@ begin
       );
   up_snp_req_fif : entity work.fifo(Behavioral)
     generic map(
-      DATA_WIDTH => 76,
-      FIFO_DEPTH => 256
+      DATA_WIDTH => 76, -- TODO why this val?
+      FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
       CLK     => Clock,
@@ -133,8 +135,8 @@ begin
       );
   snp_req_fif : entity work.fifo(Behavioral)
     generic map(
-      DATA_WIDTH => 73,
-      FIFO_DEPTH => 256
+      DATA_WIDTH => DEFAULT_DATA_WIDTH,
+      FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
       CLK     => Clock,
@@ -148,8 +150,8 @@ begin
       );
   bus_res_fif : entity work.fifo(Behavioral)
     generic map(
-      DATA_WIDTH => 553,
-      FIFO_DEPTH => 256
+      DATA_WIDTH => 553, -- TODO why this val?
+      FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
       CLK     => Clock,
@@ -192,7 +194,8 @@ begin
       ack2  => mem_req2_ack2,
       dout  => mem_req2
       );
-  -- Store CPU requests into fifo	
+  
+  --* Store cpu requests into fifo	
   cpu_req_fifo : process(Clock)
   begin
     if reset = '1' then
@@ -207,6 +210,7 @@ begin
     end if;
   end process;
 
+  --* Store snoop requests into fifo	
   snp_req_fifo : process(Clock)
   begin
     if reset = '1' then
@@ -222,6 +226,7 @@ begin
     end if;
   end process;
 
+  --* Store bus requests into fifo	
   bus_res_fifo : process(Clock)
   begin
     if reset = '1' then
@@ -237,6 +242,7 @@ begin
     end if;
   end process;
 
+  --* Process requests from cpu
   cpu_req_p : process(reset, Clock)
     variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
     variable state  : integer                       := 0;
@@ -309,7 +315,7 @@ begin
     end if;
   end process;
 
-  ---deal with snoop request from bus,
+  --* Process requests from bus 
   --the difference is that when it's  uprequest snoop, once it fails,
   --it will go to the other cache snoop
   --also when found, the write will be operated here directly, and return
@@ -360,7 +366,8 @@ begin
     end if;
 
   end process;
-  --deal with snoop request
+
+  --* Process snoop requests
   snp_req_p : process(reset, Clock)
     variable nilreq1 : std_logic_vector(552 downto 0) := (others => '0');
     variable addr    : std_logic_vector(31 downto 0);
@@ -405,7 +412,7 @@ begin
     end if;
   end process;
 
-  ---deal with bus response
+  --* Process response from bus
   bus_res_p : process(reset, Clock)
     variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
     variable state  : integer                       := 0;
@@ -436,7 +443,7 @@ begin
     end if;
   end process;
 
-  --deal with cache memory
+  --* Deal with cache memory
   mem_control_unit : process(reset, Clock)
     variable indx    : integer;
     variable memcont : std_logic_vector(56 downto 0);
