@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
-use work.nondeterminism.all;
+--use work.rand.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -87,7 +87,7 @@ begin
 
     ---power(pwrcmd, tmp_req, hwlc);
     --for I in 1 to 1 loop
---			rand1 := selection(2);
+--			rand1 := selection(2); -- TODO replace all calls "selection" in this file by rand_int, etc...
 --			rand2 := '0' & selection(2 ** 2 - 1, 3) & "111111000000";
 --			rand3 := selection(2 ** 15 - 1, 32);
 --			rand2 := "0110101010101010";

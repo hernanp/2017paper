@@ -1,9 +1,9 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
-use work.nondeterminism.all;
+--use work.rand.all;
 
-entity Memory is
+entity memory is
 	Port(Clock      : in  std_logic;
 		 reset      : in  std_logic;
 		 ---write address chanel
@@ -132,7 +132,7 @@ begin
 						---strob here is not considered
 						---left alone , dono how to fix
 						---if ROM_array(address+lp) ="00000000000000000000000000000000" then
-						---ROM_array(address+lp) := selection(2**15-1,32);
+						---ROM_array(address+lp) := selection(2**15-1,32); -- TODO replace all calls "selection" in this file by rand_int, etc...
 						---end if;
 						--dt      := selection(2 ** 15 - 1, 32);
 						---rdata <= dt;

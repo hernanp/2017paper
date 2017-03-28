@@ -10,13 +10,15 @@
 --*   +-----------------------------+
 --* </pre>
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee,std;
+use ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 use work.nondeterminism.all;
+use work.type_defs.all;
+use work.rand.all;
 
+use ieee.std_logic_textio.all;
 use std.textio.all;
-use IEEE.std_logic_textio.all;
 
 entity cpu is
   Port(reset   : in  std_logic;
@@ -30,63 +32,9 @@ entity cpu is
 end cpu;
 
 architecture Behavioral of cpu is
-  signal tmp_req : std_logic_vector(72 downto 0);
-
-  --* TODO why are these signals are not being used?
-  signal rand1 : integer                       := 1;
-  signal rand2 : std_logic_vector(31 downto 0) := "01101010101010101010101010101010";
-  signal rand3 : std_logic_vector(31 downto 0) := "10101010101010101010101010101010";
-
-  --* wrapper fun to create read_req given an addr, req (?) and some data
-  -- TODO what is req here?
-  procedure read(variable adx  : in  std_logic_vector(31 downto 0);
-                 signal req    : out std_logic_vector(72 downto 0);
-                 variable data : out std_logic_vector(31 downto 0)) is
-  variable state:integer:=0;
-  begin
-  	--* TODO what does this value mean?
-  	if reset = '1' then
-		state :=0;
-	elsif (rising_edge(Clock)) then
-	  	if state =0 then
-	  		req <= "101000000" & adx & "00000000000000000000000000000000";
-	  		state := 1;
-	  	elsif state =1 then  
-	  		req <= (others => '0');
-	  		state := 2;
-	    elsif state =3 then
-	    		if cpu_res(72 downto 72) = "1" then
-	    			data := cpu_res(31 downto 0);
-	    			state := 0;
-	    		end if;
-	    	end if;
-	end if;
-  end read;
-
-  --* wrapper fun to create write_req given an address, a req (?), and some data
-  -- TODO what is req here?
-  procedure write(variable adx  : in  std_logic_vector(31 downto 0);
-                  signal req    : out std_logic_vector(72 downto 0);
-                  variable data : in  std_logic_vector(31 downto 0)) is
-  variable state: integer :=0;
-begin
-	if reset = '1' then
-		state :=0;
-	elsif (rising_edge(Clock)) then
-		if state =0 then
-	  		req <= "110000000" & adx & data;
-	  		state := 1;
-	  	elsif state =1 then
-	  		req <= (others => '0');
-	  		state := 2;
-	  	elsif state =2 then
-	  		if cpu_res(72 downto 72) = "1" then
-	  			state :=0;
-	    		end if;
-	    	end if;
-    	end if;
-  end write;
-
+  type states is (init, send, idle);
+  signal st, next_st : states;
+    
   ----* TODO is this a fun to create a power_req?
   --procedure power(variable cmd : in  std_logic_vector(1 downto 0);
   --                signal req   : out std_logic_vector(72 downto 0);
@@ -103,54 +51,46 @@ begin
   --end power;
 
 begin
-  req1 : process(reset, Clock)
+  process(reset, Clock)
   begin
     if reset = '1' then
       cpu_req <= (others => '0');
+      st <= init;
     elsif (rising_edge(Clock)) then
-      cpu_req <= tmp_req;
+      st <= next_st;
     end if;
   end process;
   
-  --* processor 1 (2) generates random* write (read) request
-  --* TODO *right now request is not random, why is random fun not being used?
-  p1 : process(Clock)
-    variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
-
-    -- cpu1_req.addr
-    variable flag0 : std_logic_vector(31 downto 0) := "1010" & "1010" & "0010" &
-                                                      "0000" & "0000" & "0000" &
-                                                      "0011" & "0000";
-    -- cpu1_req.data
-    variable one : std_logic_vector(31 downto 0) := "0000" & "0000" & "0000" &
-                                                    "0000" & "0000" & "0000" &
-                                                    "0000" & "0001";
-    
-    -- cpu2_req.addr
-    variable turn  : std_logic_vector(31 downto 0) := "1111" & "1111" & "0100" &
-                                                      "0000" & "0000" & "0000" &
-                                                      "0011" & "0000";
-    -- cpu2_req.data
-    variable turn_data : std_logic_vector(31 downto 0) := "0000" & "0000" & "0100" &
-                                                          "0000" & "0000" & "0000" &
-                                                          "0011" & "0000";
-    -- not used
-    variable line_output : line;
-    variable logsr       : string(8 downto 1);
-
-    -- vars for power messages
-    variable pwrcmd      : std_logic_vector(1 downto 0);
-    variable hwlc        : std_logic_vector(1 downto 0);
+  transitions : process(st)
+    ---- vars for power messages
+    --variable pwrcmd      : std_logic_vector(1 downto 0);
+    --variable hwlc        : std_logic_vector(1 downto 0);
   begin
-    ---wait for 80 ps;
-    pwrcmd := "00";
-    hwlc   := "00";
+    --pwrcmd := "00";
+    --hwlc   := "00";
     ----power(pwrcmd, tmp_req, hwlc);
     -- TODO why is tmp_req is an empty message (not initialized)?
-    if cpu_id = 1 then
-      write(flag0, tmp_req, one);
-    elsif cpu_id = 2 then
-      read(turn, tmp_req, turn_data);
-    end if;
+    --if cpu_id = 1 then
+    --  write(flag0, tmp_req, one);
+    --elsif cpu_id = 2 then
+    --  read(turn, tmp_req, turn_data);
+    --end if;
+    case st is
+      when init =>
+        -- output nothing
+        cpu_req <= (others => '0');
+        next_st <= send;
+      when send =>
+        -- send a random msg
+        if cpu_id = 1 then
+          cpu_req <= rand_req(write);
+        elsif cpu_id = 2 then
+          cpu_req <= rand_req(read);
+        end if;
+        next_st <= idle;
+      when idle =>
+        -- TODO wait for resp
+        next_st <= idle;
+    end case;
   end process;
 end Behavioral;
