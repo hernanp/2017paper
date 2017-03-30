@@ -25,13 +25,13 @@ architecture tb of top is
   signal full_c1_u, full_c2_u, full_b_m                                     : std_logic;
   signal cpu_res1, cpu_res2, cpu_req1, cpu_req2                             : std_logic_vector(72 downto 0);
   signal bus_res1, bus_res2                                                 : std_logic_vector(552 downto 0);
-  signal snoop_hit1, snoop_hit2                                             : std_logic;
-  signal snoop_req1, snoop_req2                                             : std_logic_vector(72 downto 0);
-  signal snoop_res1, snoop_res2                                             : std_logic_vector(72 downto 0);
-  signal snoop_req                                                          : std_logic_vector(75 downto 0);
+  signal snp_hit1, snp_hit2                                             : std_logic;
+  signal snp_req1, snp_req2                                             : std_logic_vector(72 downto 0);
+  signal snp_res1, snp_res2                                             : std_logic_vector(72 downto 0);
+  signal snp_req                                                          : std_logic_vector(75 downto 0);
   ---this should be 72
-  signal snoop_res                                                          : std_logic_vector(75 downto 0);
-  signal snoop_hit                                                          : std_logic;
+  signal snp_res                                                          : std_logic_vector(75 downto 0);
+  signal snp_hit                                                          : std_logic;
   signal bus_req1, bus_req2                                                 : std_logic_vector(72 downto 0);
   signal memres, tomem                                                      : std_logic_vector(75 downto 0);
   signal full_crq1, full_srq1, full_brs1, full_wb1, full_srs1, full_crq2,
@@ -60,14 +60,16 @@ architecture tb of top is
   signal usb_upreq_full, usb_wb_ack   : std_logic;
 
   signal zero   : std_logic                     := '0';
-  signal zero72 : std_logic_vector(72 downto 0) := (others => '0');
-  signal zero75 : std_logic_vector(75 downto 0) := (others => '0');
+  signal zero72 : std_logic_vector(72 downto 0) := (others => '0'); --TODO
+                                                                    --replace
+                                                                    --by constant
+  signal zero75 : std_logic_vector(75 downto 0) := (others => '0'); -- TODO idem
   signal uart_b, touart                  : std_logic_vector(75 downto 0);
   signal uart_upreq, uart_upres, uart_wb : std_logic_vector(72 downto 0);
   signal uart_upreq_full, uart_wb_ack    : std_logic;
 
-  signal up_snoop, up_snoop_res : std_logic_vector(75 downto 0);
-  signal up_snoop_hit           : std_logic;
+  signal up_snp_req, up_snp_res : std_logic_vector(75 downto 0);
+  signal up_snp_hit           : std_logic;
 
   signal waddr      : std_logic_vector(31 downto 0);
   signal wlen       : std_logic_vector(9 downto 0);
@@ -249,55 +251,72 @@ begin
     );
 
   cache1 : entity work.l1_cache(Behavioral) port map(
-    Clock        => Clock,
-    reset        => reset,
-    cpu_req      => cpu_req1,
-    snoop_c_req  => snoop_req2,
-    snoop_c_res  => snoop_res2,
-    snoop_c_hit  => snoop_hit2,
-    snoop_req    => snoop_req1,
-    snoop_hit    => snoop_hit1,
-    snoop_res    => snoop_res1,
-    cache_req    => bus_req1,
-    bus_res      => bus_res1,
-    cpu_res      => cpu_res1,
-    full_cprq    => full_c1_u,
-    up_snoop     => up_snoop,
-    up_snoop_res => up_snoop_res,
-    up_snoop_hit => up_snoop_hit,
+    Clock       => Clock,
+    reset       => reset,
 
-    --full_srq    => zero,
-    full_brs     => full_brs1,
-    full_crq     => full_crq1,
-    full_wb      => full_wb1,
-    full_srs     => full_srs1,
-    wb_req       => wb_req1
+    cpu_req     => cpu_req1, -- i
+    cpu_res     => cpu_res1, -- o
+    crf_full    => full_c1_u, -- o - cpu req fifo full
+
+    snp_req     => snp_req1, -- i - snoop req from cache 2
+    snp_hit     => snp_hit1, -- o
+    snp_res     => snp_res1, -- o
+
+    up_snp_req  => up_snp_req, -- i - upstream snoop req 
+    up_snp_hit  => up_snp_hit, -- o
+    up_snp_res  => up_snp_res, -- o
+
+    snoop_c_req => snp_req2, -- o - TODO diff with cache_req?
+    snoop_c_hit => snp_hit2, -- i
+    snoop_c_res => snp_res2, -- i
+
+    ----------------------------------------------------------
+    cache_req   => bus_req1, -- o - TODO snoop req to cache 2
+    bus_res     => bus_res1, -- i - TODO snoop resp from cache 2    
+
+    wb_req      => wb_req1, -- TODO what is it doing?
+                            -- is it supposed be implemented outside cache?
+    
+    bsf_full    => full_brs1, -- bus resp fifo full
+    --srf_full   => zero, -- TODO why is it commented out?
+    
+    full_crq    => full_crq1, -- TODO what are these for?
+    full_wb     => full_wb1,  -- are they not implemented?
+    full_srs    => full_srs1
     );
 
   cache2 : entity work.l1_cache(Behavioral) port map(
     Clock        => Clock,
     reset        => reset,
-    cpu_req      => cpu_req2,
-    snoop_c_req  => snoop_req1,
-    snoop_c_res  => snoop_res1,
-    snoop_c_hit  => snoop_hit1,
-    snoop_req    => snoop_req2,
-    snoop_hit    => snoop_hit2,
-    snoop_res    => snoop_res2,
-    cache_req    => bus_req2,
-    bus_res      => bus_res2,
-    cpu_res      => cpu_res2,
-    full_cprq    => full_c2_u,
-    up_snoop     => zero75,
-    up_snoop_res => zero75,
-    --up_snoop_hit => zero,
 
+    cpu_req      => cpu_req2, -- i
+    cpu_res      => cpu_res2,
+
+    snoop_c_req  => snp_req1, -- o
+    snoop_c_hit  => snp_hit1, -- i
+    snoop_c_res  => snp_res1, -- i
+    
+    snp_req      => snp_req2, -- i
+    snp_hit      => snp_hit2,
+    snp_res      => snp_res2,
+
+    cache_req    => bus_req2, -- o
+    bus_res      => bus_res2,
+
+    up_snp_req   => zero75,   -- i
+    up_snp_res   => zero75,
+    --up_snp_hit => zero,
+
+    wb_req       => wb_req2,
+
+    -- full flags of fifo queues
+    crf_full     => full_c2_u, -- o, cpu req fifo full
+    bsf_full     => full_brs2, -- o - bus resp fifo full
+    
     --full_srq    => zero,
-    full_brs     => full_brs2,
     full_crq     => full_crq2,
     full_wb      => full_wb2,
-    full_srs     => full_srs2,
-    wb_req       => wb_req2
+    full_srs     => full_srs2
     );
 
   power : entity work.pwr(Behavioral) port map(
@@ -457,9 +476,9 @@ begin
     wb_req2          => wb_req2,
     bus_res1         => bus_res1,
     bus_res2         => bus_res2,
-    snoop_req1       => snoop_req,
-    snoop_res1       => snoop_res,
-    snp_hit1         => snoop_hit,
+    snp_req1         => snp_req,
+    snp_res1         => snp_res,
+    snp_hit1         => snp_hit,
     full_srq1        => full_srq1,
     full_wb1         => full_wb1,
     full_srs1        => full_srs1,

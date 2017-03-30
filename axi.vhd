@@ -11,8 +11,8 @@ entity axi is
     wb_req1, wb_req2                        : in  std_logic_vector(552 downto 0);
     bus_res1                                : out STD_LOGIC_VECTOR(552 downto 0);
     bus_res2                                : out STD_LOGIC_VECTOR(552 downto 0);
-    snoop_req1                              : out STD_LOGIC_VECTOR(75 downto 0);
-    snoop_res1                              : in  STD_LOGIC_VECTOR(75 downto 0);
+    snp_req1                              : out STD_LOGIC_VECTOR(75 downto 0);
+    snp_res1                              : in  STD_LOGIC_VECTOR(75 downto 0);
     snp_hit1                                : in  std_logic;
     full_srq1                               : in  std_logic;
     full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
@@ -203,7 +203,6 @@ architecture Behavioral of axi is
   --fifo has 53 bits
   --3 bits for indicating its source¡
   --50 bits for packet
-
 
   signal in6, in7, out6, out7 : std_logic_vector(552 downto 0);
 
@@ -426,7 +425,7 @@ begin
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---snoop_req1 <= "000"&nilreq;
+    ---snp_req1 <= "000"&nilreq;
     ---pwr_req1 <= "00000";
     elsif rising_edge(Clock) then
       if stage = 0 then
@@ -453,7 +452,7 @@ begin
     variable stage : integer := 0;
   begin
     if reset = '1' then
-    ---snoop_req1 <= "000"&nilreq;
+    ---snp_req1 <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re13 = '0' and emp13 = '0' then
@@ -481,7 +480,7 @@ begin
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---snoop_req1 <= "000"&nilreq;
+    ---snp_req1 <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re14 = '0' and emp14 = '0' then
@@ -509,7 +508,7 @@ begin
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---snoop_req1 <= "000"&nilreq;
+    ---snp_req1 <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re15 = '0' and emp15 = '0' then
@@ -1616,7 +1615,7 @@ begin
       ack5  => snp1_ack5,
       din6  => snp1_6,
       ack6  => snp1_ack6,
-      dout  => snoop_req1
+      dout  => snp_req1
       );
 
   pwr_arbitor : entity work.arbiter61(Behavioral)
@@ -1924,11 +1923,11 @@ begin
     if reset = '1' then
       we2 <= '0';
     elsif rising_edge(Clock) then
-      if snoop_res1(72 downto 72) = "1" then
+      if snp_res1(72 downto 72) = "1" then
         if snp_hit1 = '0' then
-          in2 <= '0' & snoop_res1;
+          in2 <= '0' & snp_res1;
         else
-          in2 <= '1' & snoop_res1;
+          in2 <= '1' & snp_res1;
         end if;
         we2 <= '1';
       else
@@ -2400,7 +2399,7 @@ begin
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
   begin
     if reset = '1' then
-    --snoop_req2 <= nilreq;
+    --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
         if cache_req1(72 downto 72) = "1" and cache_req1(71 downto 64) = "11111111" then
@@ -2479,7 +2478,7 @@ begin
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
   begin
     if reset = '1' then
-    --snoop_req2 <= nilreq;
+    --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
         if cache_req2(72 downto 72) = "1" and cache_req2(71 downto 64) = "11111111" then
@@ -2494,11 +2493,11 @@ begin
           -----
           bus_res1_6 <= '1' & "11111111" & nildata;
         elsif cache_req2(72 downto 72) = "1" then
-          ---snoop_req2 <= cache_req2;
+          ---snp_req2 <= cache_req2;
           adr_0 <= cache_req2(63 downto 32);
           state := 2;
         else
-          ---snoop_req2 <= nilreq;
+          ---snp_req2 <= nilreq;
           state := 0;
         end if;
       elsif state = 2 then

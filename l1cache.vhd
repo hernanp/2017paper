@@ -1,7 +1,9 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+
+library ieee;
+use ieee.std_logic_1164.ALL;
 --use iEEE.std_logic_unsigned.all ;
-USE ieee.numeric_std.ALL;
+use ieee.numeric_std.ALL;
+use work.type_defs.all;
 --use IEEE.STD_LOGIC_ARITH.ALL;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -17,7 +19,7 @@ entity l1_cache is
     Clock                : in  std_logic;
     reset                : in  std_logic;
     cpu_req              : in  STD_LOGIC_VECTOR(72 downto 0);
-    snoop_req            : in  STD_LOGIC_VECTOR(72 downto 0);
+    snp_req              : in  STD_LOGIC_VECTOR(72 downto 0);
     bus_res              : in  STD_LOGIC_VECTOR(552 downto 0);
     --01: read response
     --10: write response
@@ -26,25 +28,30 @@ entity l1_cache is
     --01: read response 
     --10: write response
     --11: fifo full response
-    snoop_hit            : out std_logic;
-    snoop_res            : out STD_LOGIC_VECTOR(72 downto 0) := (others => '0');
+    snp_hit            : out std_logic;
+    snp_res            : out STD_LOGIC_VECTOR(72 downto 0) := (others => '0');
 
     --goes to cache controller ask for data
-    snoop_c_req          : out std_logic_vector(72 downto 0);
-    snoop_c_res          : in  std_logic_vector(72 downto 0);
-    snoop_c_hit          : in  std_logic;
-    up_snoop             : in  std_logic_vector(75 downto 0);
-    up_snoop_res         : out std_logic_vector(75 downto 0);
-    up_snoop_hit         : out std_logic;
-    wb_req               : out std_logic_vector(552 downto 0);
+    snoop_c_req  : out std_logic_vector(72 downto 0);
+    snoop_c_res  : in  std_logic_vector(72 downto 0);
+    snoop_c_hit  : in  std_logic;
+    up_snp_req       : in  std_logic_vector(75 downto 0);
+    up_snp_res   : out std_logic_vector(75 downto 0);
+    up_snp_hit   : out std_logic;
+    wb_req       : out std_logic_vector(552 downto 0);
     --01: read request
     --10: write request
     --10,11: write back function
-    full_cprq            : out std_logic := '0';
-    full_srq             : out std_logic := '0';
-    full_brs             : out std_logic := '0';
-    full_crq, full_wb, full_srs : in  std_logic;
-    cache_req            : out STD_LOGIC_VECTOR(72 downto 0) := (others => '0')
+
+    -- FIFO flags
+    crf_full : out std_logic := '0'; -- Full flag from cpu_req FIFO
+    srf_full : out std_logic := '0'; -- Full flag from snp_req FIFO
+    bsf_full : out std_logic := '0'; -- Full flag from bus_req FIFO
+
+    full_crq, -- TODO what is this? is it not implemented?
+    full_wb, full_srs : in  std_logic; -- TODO where are these coming from?
+    cache_req : out STD_LOGIC_VECTOR(72 downto 0) :=
+      (others => '0') -- a req going to the other cache
 	);
 
 end l1_cache;
@@ -56,21 +63,50 @@ architecture Behavioral of l1_cache is
   --41 bits in total
   type rom_type is
     array (natural(2 ** 14 - 1) downto 0) of std_logic_vector(56 downto 0);
-  signal ROM_array                      : rom_type  := (others => (others => '0'));
-  signal we1, we2, we3, we4, re1, re2, re3, re4, re5, we5 : std_logic := '0';
-  signal out1, out2, out3, out5         : std_logic_vector(72 downto 0);
-  signal out4, in4                      : std_logic_vector(75 downto 0);
-  signal emp1, emp2, emp3, emp4, emp5,ful4, ful5: std_logic := '0';
-  signal mem_req1, mem_req2, write_req  : std_logic_vector(72 downto 0);
-  signal mem_req3, mem_res3             : std_logic_vector(75 downto 0);
-  signal mem_ack3                       : std_logic;
-  signal mem_req2_1, mem_req2_2         : std_logic_vector(72 downto 0);
-  signal mem_req2_ack1, mem_req2_ack2   : std_logic;
-  signal upd_req, in3                   : std_logic_vector(552 downto 0);
-  signal mem_res1, wt_res, upd_res      : std_logic_vector(71 downto 0);
-  signal mem_res2                       : std_logic_vector(71 downto 0);
-  signal hit1, hit2, hit3, upd_ack, write_ack, mem_ack1, mem_ack2 : std_logic;
-  signal in1, in2, in5                  : std_logic_vector(72 downto 0);
+  signal ROM_array : rom_type  := (others => (others => '0'));
+
+  -- Naming conventions:
+  -- [c|s|b]rf is [cpu|snoop|bus]_req fifo
+  -- [us|s]sf is [upstream-snoop|snoop]_resp fifo
+  
+  -- FIFO queues inputs
+  -- write_enable signals for FIFO queues
+  signal crf_we, srf_we, bsf_we, drf_we, ssf_we : std_logic := '0';
+  -- read_enable signals for FIFO queues
+  signal crf_re, srf_re, bsf_re, drf_re, ssf_re : std_logic;
+  -- data_in signals
+  signal crf_in, srf_in, ssf_in : std_logic_vector(72 downto 0);
+  
+  -- Outputs from FIFO queues
+  -- data_out signals
+  signal out1, out3, -- TODO not used?
+    srf_out, ssf_out : std_logic_vector(72 downto 0);
+  signal drf_out, drf_in : std_logic_vector(75 downto 0);
+  -- empty signals
+  signal crf_emp, srf_emp, bsf_emp, drf_emp, ssf_emp : std_logic;
+  -- full signals
+  signal drf_full, ssf_full: std_logic := '0'; -- TODO not used?
+
+  -- MCU (Memory Control Unit)
+  
+  -- Memory requests (data_out signals from FIFO queues)
+  -- Naming conventions:
+  -- [cpu|snp|usnp]_mem_[req|res|ack] memory (write) request, response, or ack for
+  --   cpu, snoop (from cache), or upstream snoop (from bus on behalf of a device)
+  signal cpu_mem_req, snp_mem_req, mcu_write_req  : std_logic_vector(72 downto 0);
+  signal usnp_mem_req, usnp_mem_res : std_logic_vector(75 downto 0); -- usnp reqs are longer
+  signal usnp_mem_ack : std_logic;
+  signal snp_mem_req_1, snp_mem_req_2 : std_logic_vector(72 downto 0);
+
+  signal snp_mem_ack1, snp_mem_ack2 : std_logic;
+  signal mcu_upd_req, bsf_in : std_logic_vector(552 downto 0);
+  signal cpu_mem_res, wt_res, upd_res : std_logic_vector(71 downto 0);
+  signal snp_mem_res : std_logic_vector(71 downto 0);
+  -- hit signals
+  signal cpu_mem_hit, snp_mem_hit, usnp_mem_hit : std_logic;
+  -- "done" signals
+  signal upd_ack, write_ack, cpu_mem_ack, snp_mem_ack : std_logic;
+
   signal cpu_res1, cpu_res2             : std_logic_vector(72 downto 0);
   signal ack1, ack2                     : std_logic;
   signal snp_c_req1, snp_c_req2         : std_logic_vector(72 downto 0);
@@ -82,9 +118,10 @@ architecture Behavioral of l1_cache is
   signal tmp_hit      : std_logic;
   signal tmp_mem      : std_logic_vector(40 downto 0);
   ---this one is important!!!!
-  signal upreq        : std_logic_vector(75 downto 0);
-  signal snpreq       : std_logic_vector(73 downto 0);
-
+  
+  signal upreq : std_logic_vector(75 downto 0); -- used only by up_snp_req_handler
+  signal snpreq       : std_logic_vector(73 downto 0); -- used only by cpu_req_handler
+  
   constant DEFAULT_DATA_WIDTH : positive := 73;
   constant DEFAULT_FIFO_DEPTH : positive := 256;
 begin
@@ -96,12 +133,12 @@ begin
     port map(
       CLK     => Clock,
       RST     => reset,
-      DataIn  => in1,
-      WriteEn => we1,
-      ReadEn  => re1,
-      DataOut => mem_req1,
-      Full    => full_cprq,
-      Empty   => emp1
+      DataIn  => crf_in,
+      WriteEn => crf_we,
+      ReadEn  => crf_re,
+      DataOut => cpu_mem_req,
+      Full    => crf_full,
+      Empty   => crf_emp
       );
   snp_res_fif : entity work.fifo(Behavioral)
     generic map(
@@ -111,14 +148,14 @@ begin
     port map(
       CLK     => Clock,
       RST     => reset,
-      DataIn  => in5,
-      WriteEn => we5,
-      ReadEn  => re5,
-      DataOut => out5,
-      Full    => ful5,
-      Empty   => emp5
+      DataIn  => ssf_in,
+      WriteEn => ssf_we,
+      ReadEn  => ssf_re,
+      DataOut => ssf_out,
+      Full    => ssf_full,
+      Empty   => ssf_emp
       );
-  up_snp_req_fif : entity work.fifo(Behavioral)
+  up_snp_req_fif : entity work.fifo(Behavioral) -- req from device
     generic map(
       DATA_WIDTH => 76, -- TODO why this val?
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -126,12 +163,12 @@ begin
     port map(
       CLK     => Clock,
       RST     => reset,
-      DataIn  => in4,
-      WriteEn => we4,
-      ReadEn  => re4,
-      DataOut => mem_req3,
-      Full    => ful4,
-      Empty   => emp4
+      DataIn  => drf_in,
+      WriteEn => drf_we,
+      ReadEn  => drf_re,
+      DataOut => usnp_mem_req,
+      Full    => drf_full,
+      Empty   => drf_emp
       );
   snp_req_fif : entity work.fifo(Behavioral)
     generic map(
@@ -141,12 +178,12 @@ begin
     port map(
       CLK     => Clock,
       RST     => reset,
-      DataIn  => in2,
-      WriteEn => we2,
-      ReadEn  => re2,
-      DataOut => out2,
-      Full    => full_srq,
-      Empty   => emp2
+      DataIn  => srf_in,
+      WriteEn => srf_we,
+      ReadEn  => srf_re,
+      DataOut => srf_out,
+      Full    => srf_full,
+      Empty   => srf_emp
       );
   bus_res_fif : entity work.fifo(Behavioral)
     generic map(
@@ -156,24 +193,24 @@ begin
     port map(
       CLK     => Clock,
       RST     => reset,
-      DataIn  => in3,
-      WriteEn => we3,
-      ReadEn  => re3,
-      DataOut => upd_req,
-      Full    => full_brs,
-      Empty   => emp3
+      DataIn  => bsf_in,
+      WriteEn => bsf_we,
+      ReadEn  => bsf_re,
+      DataOut => mcu_upd_req,
+      Full    => bsf_full,
+      Empty   => bsf_emp
       );
-  cpu_res_arbitor : entity work.arbiter2(Behavioral)
+  cpu_res_arbiter : entity work.arbiter2(Behavioral)
     port map(
       clock => Clock,
       reset => reset,
       din1  => cpu_res1,
       ack1  => ack1,
       din2  => cpu_res2,
-      ack2  => ack2,
+      ack2  => ack2, -- o
       dout  => cpu_res
       );
-  snp_c_req_arbitor : entity work.arbiter2(Behavioral)
+  snp_c_req_arbiter : entity work.arbiter2(Behavioral)
     port map(
       clock => Clock,
       reset => reset,
@@ -184,28 +221,28 @@ begin
       dout  => snoop_c_req
       );
 
-  mem_req2_arbitor : entity work.arbiter2(Behavioral)
+  snp_mem_req_arbiter : entity work.arbiter2(Behavioral)
     port map(
       clock => Clock,
       reset => reset,
-      din1  => mem_req2_1,
-      ack1  => mem_req2_ack1,
-      din2  => mem_req2_2,
-      ack2  => mem_req2_ack2,
-      dout  => mem_req2
+      din1  => snp_mem_req_1,
+      ack1  => snp_mem_ack1,
+      din2  => snp_mem_req_2,
+      ack2  => snp_mem_ack2,
+      dout  => snp_mem_req
       );
   
   --* Store cpu requests into fifo	
   cpu_req_fifo : process(Clock)
   begin
     if reset = '1' then
-      we1 <= '0';
+      crf_we <= '0';
     elsif rising_edge(Clock) then
-      if cpu_req(72 downto 72) = "1" then
-        in1 <= cpu_req;
-        we1 <= '1';
+      if cpu_req(72 downto 72) = "1" then -- if req is valid
+        crf_in <= cpu_req;
+        crf_we <= '1';
       else
-        we1 <= '0';
+        crf_we <= '0';
       end if;
     end if;
   end process;
@@ -214,14 +251,14 @@ begin
   snp_req_fifo : process(Clock)
   begin
     if reset = '1' then
-      we2 <= '0';
+      srf_we <= '0';
 
     elsif rising_edge(Clock) then
-      if (snoop_req(72 downto 72) = "1") then
-        in2 <= snoop_req;
-        we2 <= '1';
+      if (snp_req(72 downto 72) = "1") then
+        srf_in <= snp_req;
+        srf_we <= '1';
       else
-        we2 <= '0';
+        srf_we <= '0';
       end if;
     end if;
   end process;
@@ -230,75 +267,76 @@ begin
   bus_res_fifo : process(Clock)
   begin
     if reset = '1' then
-      we3 <= '0';
+      bsf_we <= '0';
 
     elsif rising_edge(Clock) then
       if (bus_res(552 downto 552) = "1") then
-        in3 <= bus_res;
-        we3 <= '1';
+        bsf_in <= bus_res;
+        bsf_we <= '1';
       else
-        we3 <= '0';
+        bsf_we <= '0';
       end if;
     end if;
   end process;
 
   --* Process requests from cpu
-  cpu_req_p : process(reset, Clock)
+  cpu_req_handler : process(reset, Clock)
+    -- TODO should they be signals instead of variables?
     variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
     variable state  : integer                       := 0;
   begin
     if (reset = '1') then
       -- reset signals
       cpu_res1  <= nilreq;
-      write_req <= nilreq;
+      mcu_write_req <= nilreq;
       cache_req <= nilreq;
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
-      if state = 0 then
+      if state = 0 then -- wait_fifo
         cache_req <= nilreq;
 
-        if re1 = '0' and emp1 = '0' then
-          re1   <= '1';
+        if crf_re = '0' and crf_emp = '0' then
+          crf_re   <= '1';
           state := 1;
         end if;
 
-      elsif state = 1 then
-        re1 <= '0';
-        if mem_ack1 = '1' then
-          if hit1 = '1' then
-            if mem_res1(71 downto 64) = "10000000" then
-              write_req    <= '1' & mem_res1;
-              tmp_cpu_res1 <= '1' & mem_res1;
+      elsif state = 1 then -- access
+        crf_re <= '0';
+        if cpu_mem_ack = '1' then
+          if cpu_mem_hit = '1' then
+            if cpu_mem_res(71 downto 64) = WRITE_CMD then
+              mcu_write_req    <= '1' & cpu_mem_res;
+              tmp_cpu_res1 <= '1' & cpu_mem_res;
               state        := 3;
-            else
-              cpu_res1 <= '1' & mem_res1;
+            else -- read cmd
+              cpu_res1 <= '1' & cpu_mem_res;
               state    := 4;
             end if;
-          else
-            snp_c_req1 <= '1' & mem_res1;
-            --snpreq     <= '1' & mem_res1;
+          else -- it's a miss
+            snp_c_req1 <= '1' & cpu_mem_res;
+            --snpreq     <= '1' & cpu_mem_res;
             state      := 5;
           end if;
         end if;
 
-      elsif state = 3 then
+      elsif state = 3 then -- get_resp_from_mcu
         if write_ack = '1' then
-          write_req <= nilreq;
+          mcu_write_req <= nilreq;
           cpu_res1  <= tmp_cpu_res1;
           state     := 4;
         end if;
-      elsif state = 4 then
+      elsif state = 4 then -- output_resp
         if ack1 = '1' then
           cpu_res1 <= nilreq;
           state    := 0;
         end if;
-      elsif state = 5 then
+      elsif state = 5 then -- get_snp_req_ack
         if snp_c_ack1 = '1' then
           snp_c_req1 <= (others => '0');
           state      := 6;
         end if;
       --now we wait for the snoop response
-      elsif state = 6 then
+      elsif state = 6 then -- get_snp_resp
         if snoop_c_res(72 downto 72) = "1" then
           --if we get a snoop response  and the address is the same  => 
           if snoop_c_res(63 downto 32) = snpreq(63 downto 32) then
@@ -315,105 +353,113 @@ begin
     end if;
   end process;
 
-  --* Process requests from bus 
-  --the difference is that when it's  uprequest snoop, once it fails,
+  --* Process upstream snoop requests (from bus on behalf of devices)
+  --the difference is that when it's  uprequest snoop, once it fails (a miss),
   --it will go to the other cache snoop
   --also when found, the write will be operated here directly, and return
   --nothing
   --if it's read, then the data will be returned to request source
-  up_snp_req_p : process(reset, Clock)
+  up_snp_req_handler : process(reset, Clock)
     variable state : integer := 0;
+
   begin
     if (reset = '1') then
       state        := 0;
-      up_snoop_res <= (others => '0');
-      up_snoop_hit <= '1';
+      up_snp_res <= (others => '0');
+      up_snp_hit <= '1';
     elsif rising_edge(Clock) then
-      if state = 0 then
-        up_snoop_res <= (others => '0');
-        up_snoop_hit <= '0';
-        if re4 = '0' and emp4 = '0' then
-          re4   <= '1';
+      if state = 0 then -- wait_fifo
+        up_snp_res <= (others => '0');
+        up_snp_hit <= '0';
+        if drf_re = '0' and drf_emp = '0' then
+          drf_re   <= '1';
           state := 1;
         end if;
-      elsif state = 1 then
-        re4 <= '0';
-        if mem_ack3 = '1' then
-          if hit3 = '1' then
-            up_snoop_res <= mem_res3;
-            up_snoop_hit <= '1';
+      elsif state = 1 then -- access
+        drf_re <= '0';
+        if usnp_mem_ack = '1' then
+          if usnp_mem_hit = '1' then
+            up_snp_res <= usnp_mem_res;
+            up_snp_hit <= '1';
             state        := 0;
-          else
-            snp_c_req2 <= mem_res3(72 downto 0);
-            upreq      <= mem_res3;
+          else -- it's a miss
+            snp_c_req2 <= usnp_mem_res(72 downto 0);
+            upreq      <= usnp_mem_res;
             state      := 2;
           end if;
         end if;
-      elsif state = 2 then
+      elsif state = 2 then -- wait_peer
         if snp_c_ack2 = '1' then
           snp_c_req2 <= (others => '0');
           state      := 3;
         end if;
-      elsif state = 3 then
+      elsif state = 3 then -- output_resp
         if snoop_c_res(72 downto 72) = "1" then
-          --if we get a snoop response  and the address is the same  => 
+          --if we get a snoop response and the address is the same  => 
           if snoop_c_res(63 downto 32) = upreq(63 downto 32) then
-            up_snoop_res <= upreq(75 downto 73) & snoop_c_res;
-            up_snoop_hit <= snoop_c_hit;
+            up_snp_res <= upreq(75 downto 73) & snoop_c_res; -- TODO upreq is
+                                                             -- updated after
+                                                             -- pcs is
+                                                             -- finished. Is
+                                                             -- this a problem?
+                                                             -- (should it be a
+                                                             -- variable?)
+            up_snp_hit <= snoop_c_hit;
           end if;
+          -- TODO do we need to go back to state 0?
         end if;
       end if;
     end if;
 
   end process;
 
-  --* Process snoop requests
-  snp_req_p : process(reset, Clock)
+  --* Process snoop requests (from another cache)
+  snp_req_handler : process(reset, Clock)
     variable nilreq1 : std_logic_vector(552 downto 0) := (others => '0');
     variable addr    : std_logic_vector(31 downto 0);
     variable state   : integer                        := 0;
   begin
     if (reset = '1') then
       -- reset signals
-      snoop_res <= (others => '0');
-      snoop_hit <= '0';
+      snp_res <= (others => '0');
+      snp_hit <= '0';
     elsif rising_edge(Clock) then
-      if state = 0 then
-        snoop_res <= (others => '0');
-        if re2 = '0' and emp2 = '0' then
-          re2   <= '1';
+      if state = 0 then -- wait_fifo
+        snp_res <= (others => '0');
+        if srf_re = '0' and srf_emp = '0' then
+          srf_re   <= '1';
           state := 1;
         end if;
-      elsif state = 1 then
-        re2 <= '0';
-        if out2(72 downto 72) = "1" then
-          mem_req2_1 <= out2;
-          addr       := out2(63 downto 32);
+      elsif state = 1 then -- gen_snp_mem_req (and send to arbiter)
+        srf_re <= '0';
+        if srf_out(72 downto 72) = "1" then
+          snp_mem_req_1 <= srf_out;
+          addr       := srf_out(63 downto 32);
           state      := 3;
         end if;
-      elsif state = 3 then
-        if mem_req2_ack1 = '1' then
-          mem_req2_1 <= (others => '0');
+      elsif state = 3 then -- get_ack
+        if snp_mem_ack1 = '1' then
+          snp_mem_req_1 <= (others => '0');
           state      := 4;
         end if;
-      elsif state = 4 then
-        if mem_ack2 = '1' and mem_res2(63 downto 32) = addr then
-          tmp_snp_res <= '1' & mem_res2;
-          tmp_hit     <= hit2;
+      elsif state = 4 then -- TODO should states 4 and 2 be merged?
+        if snp_mem_ack = '1' and snp_mem_res(63 downto 32) = addr then
+          tmp_snp_res <= '1' & snp_mem_res;
+          tmp_hit     <= snp_mem_hit;
           state       := 2;
         end if;
-      elsif state = 2 then
+      elsif state = 2 then -- output_res
         if full_srs = '0' then
-          snoop_hit <= tmp_hit;
-          snoop_res <= tmp_snp_res;
+          snp_hit <= tmp_hit;
+          snp_res <= tmp_snp_res;
           state     := 0;
         end if;
       end if;
     end if;
   end process;
 
-  --* Process response from bus
-  bus_res_p : process(reset, Clock)
+  --* Process snoop response (to snoop request issued by this cache)
+  bus_res_handler : process(reset, Clock)
     variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
     variable state  : integer                       := 0;
   begin
@@ -422,19 +468,19 @@ begin
       cpu_res2 <= nilreq;
     --upd_req <= nilreq;
     elsif rising_edge(Clock) then
-      if state = 0 then
-        if re3 = '0' and emp3 = '0' then
-          re3   <= '1';
+      if state = 0 then -- wait_fifo
+        if bsf_re = '0' and bsf_emp = '0' then
+          bsf_re   <= '1';
           state := 1;
         end if;
-      elsif state = 1 then
-        re3 <= '0';
+      elsif state = 1 then -- 
+        bsf_re <= '0';
         if upd_ack = '1' then
           cpu_res2 <= '1' & upd_res;
           state    := 2;
         end if;
-      elsif state = 2 then
-        if ack2 = '1' then
+      elsif state = 2 then -- 
+        if ack2 = '1' then -- TODO ack2 from cpu_resp_arbiter? meaning?
           cpu_res2 <= nilreq;
           state    := 0;
         end if;
@@ -445,7 +491,7 @@ begin
 
   --* Deal with cache memory
   mem_control_unit : process(reset, Clock)
-    variable indx    : integer;
+    variable idx    : integer;
     variable memcont : std_logic_vector(56 downto 0);
     variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
     variable nilreq2 : std_logic_vector(552 downto 0) := (others => '0');
@@ -453,186 +499,194 @@ begin
   begin
     if (reset = '1') then
       -- reset signals;
-      mem_res1  <= (others => '0');
-      mem_res2  <= (others => '0');
+      cpu_mem_res  <= (others => '0');
+      snp_mem_res  <= (others => '0');
       write_ack <= '0';
       upd_ack   <= '0';
     elsif rising_edge(Clock) then
-      mem_res1  <= nilreq(71 downto 0);
-      mem_res2  <= nilreq(71 downto 0);
+      cpu_mem_res  <= nilreq(71 downto 0);
+      snp_mem_res  <= nilreq(71 downto 0);
       write_ack <= '0';
       upd_ack   <= '0';
       wb_req    <= nilreq2;
-      if mem_req1(72 downto 72) = "1" then
-        indx    := to_integer(unsigned(mem_req1(45 downto 32)));
-        memcont := ROM_array(indx);
+
+      -- cpu memory request
+      if cpu_mem_req(72 downto 72) = "1" then
+        idx    := to_integer(unsigned(cpu_mem_req(45 downto 32)));
+        memcont := ROM_array(idx);
         --if we can't find it in memory
         if memcont(56 downto 56) = "0" or
-          (mem_req1(71 downto 64) = "10000000" and
+          (cpu_mem_req(71 downto 64) = WRITE_CMD and
            memcont(54 downto 54) = "0") or
-          mem_req1(71 downto 64) = "11000000"
-          or memcont(53 downto 32) /= mem_req1(63 downto 42) then
-          mem_ack1 <= '1';
-          hit1     <= '0';
-          mem_res1 <= mem_req1(71 downto 0);
-        else
-          mem_ack1 <= '1';
-          hit1     <= '1';
-          if mem_req1(71 downto 64) = "10" then
-            mem_res1 <= mem_req1(71 downto 0);
+          cpu_mem_req(71 downto 64) = "11000000" -- TODO writeback? how does it work?
+          or memcont(53 downto 32) /= cpu_mem_req(63 downto 42) then
+          cpu_mem_ack <= '1';
+          cpu_mem_hit     <= '0';
+          cpu_mem_res <= cpu_mem_req(71 downto 0);
+        else -- it's a hit
+          cpu_mem_ack <= '1';
+          cpu_mem_hit     <= '1';
+          if cpu_mem_req(71 downto 64) = "10" then -- TODO why compare to 10?
+            cpu_mem_res <= cpu_mem_req(71 downto 0);
           else
-            mem_res1 <= mem_req1(71 downto 32) & memcont(31 downto 0);
+            cpu_mem_res <= cpu_mem_req(71 downto 32) & memcont(31 downto 0);
           end if;
         end if;
       else
-        mem_ack1 <= '0';
+        cpu_mem_ack <= '0';
       end if;
 
-      if mem_req2(72 downto 72) = "1" then
-        indx    := to_integer(unsigned(mem_req2(45 downto 32)));
-        memcont := ROM_array(indx);
+      -- snoop memory request
+      if snp_mem_req(72 downto 72) = "1" then
+        idx    := to_integer(unsigned(snp_mem_req(45 downto 32)));
+        memcont := ROM_array(idx);
         -- if we can't find it in memory
-        if memcont(56 downto 56) = "0" or
-          memcont(53 downto 32) /= mem_req2(63 downto 42) then
-          mem_ack2 <= '1';
-          hit2     <= '0';
-          mem_res2 <= mem_req2(71 downto 0);
+        if memcont(56 downto 56) = "0" or -- it's a miss
+          memcont(53 downto 32) /= snp_mem_req(63 downto 42) then
+          snp_mem_ack <= '1';
+          snp_mem_hit     <= '0';
+          snp_mem_res <= snp_mem_req(71 downto 0);
         else
-          mem_ack2 <= '1';
-          hit2     <= '1';
+          snp_mem_ack <= '1';
+          snp_mem_hit     <= '1';
           --if it's write, invalidate the cache line
-          if mem_req2(71 downto 64) = "10000000" then
-            ROM_array(indx)(56)          <= '0';
-            ROM_array(indx)(31 downto 0) <= mem_req2(31 downto 0);
-            mem_res2                     <= mem_req2(71 downto 32) &
-                                            ROM_array(indx)(31 downto 0);
+          if snp_mem_req(71 downto 64) = WRITE_CMD then
+            ROM_array(idx)(56)          <= '0'; -- it's a miss
+            ROM_array(idx)(31 downto 0) <= snp_mem_req(31 downto 0);
+            snp_mem_res                     <= snp_mem_req(71 downto 32) &
+                                            ROM_array(idx)(31 downto 0);
           else
             --if it's read, mark the exclusive as 0
-            ROM_array(indx)(54) <= '0';
-            mem_res2            <= mem_req2(71 downto 32) &
-                                   ROM_array(indx)(31 downto 0);
+            ROM_array(idx)(54) <= '0';
+            snp_mem_res            <= snp_mem_req(71 downto 32) &
+                                   ROM_array(idx)(31 downto 0);
           end if;
 
         end if;
       else
-        mem_ack2 <= '0';
+        snp_mem_ack <= '0';
       end if;
 
-      if mem_req3(72 downto 72) = "1" then
-        indx    := to_integer(unsigned(mem_req3(45 downto 32)));
-        memcont := ROM_array(indx);
+      -- upstream snoop req
+      if usnp_mem_req(72 downto 72) = "1" then -- valid req
+        idx    := to_integer(unsigned(usnp_mem_req(45 downto 32))); -- memory addr
+        memcont := ROM_array(idx);
         -- if we can't find it in memory
         --invalide  ---or tag different
         --or its write, but not exclusive
-        if memcont(56 downto 56) = "0" or
-          (mem_req1(71 downto 64) = "10000000" and
-           memcont(54 downto 54) = "0") or
-          memcont(53 downto 32) /= mem_req3(63 downto 42) then
-          mem_ack3 <= '1';
-          hit3     <= '0';
-          mem_res3 <= mem_req3;
-        else
-          mem_ack3 <= '1';
-          hit3     <= '1';
+        if memcont(56 downto 56) = "0" or -- mem not found
+          (cpu_mem_req(71 downto 64) = WRITE_CMD and
+           memcont(54 downto 54) = "0") or -- TODO what is this bit?
+          memcont(53 downto 32) /= usnp_mem_req(63 downto 42) then -- TODO meaning?
+          usnp_mem_ack <= '1';
+          usnp_mem_hit     <= '0';
+          usnp_mem_res <= usnp_mem_req;
+        else -- it's a hit
+          usnp_mem_ack <= '1';
+          usnp_mem_hit <= '1';
           --if it's write, write it directly
-          -----this need to be changed
-          if mem_req3(71 downto 64) = "10000000" then
-            ROM_array(indx)(56)          <= '0';
-            ROM_array(indx)(31 downto 0) <= mem_req3(31 downto 0);
-            mem_res3                     <= mem_req3(75 downto 32) &
-                                            ROM_array(indx)(31 downto 0);
+          -----this need to be changed TODO ?
+          if usnp_mem_req(71 downto 64) = WRITE_CMD then
+            ROM_array(idx)(56)          <= '0';
+            ROM_array(idx)(31 downto 0) <= usnp_mem_req(31 downto 0);
+            usnp_mem_res                     <= usnp_mem_req(75 downto 32) &
+                                            ROM_array(idx)(31 downto 0);
           else
             --if it's read, mark the exclusive as 0
             ---not for this situation, because it is shared by other ips
-            ---ROM_array(indx)(54) <= '0';
-            mem_res3 <= mem_req3(75 downto 32) & ROM_array(indx)(31 downto 0);
+            ---ROM_array(idx)(54) <= '0';
+            usnp_mem_res <= usnp_mem_req(75 downto 32) & ROM_array(idx)(31 downto 0);
           end if;
-
         end if;
-      else
-        mem_ack3 <= '0';
+      else -- invalid req
+        usnp_mem_ack <= '0';
       end if;
       --first deal with write request from cpu_request
       --the write is only sent here if the data exist in cahce memory
 
-      -- Handling CPU write request (no update req from bus)
-      if write_req(72 downto 72) = "1" and upd_req(552 downto 552) = "0" then
-        indx            := to_integer(unsigned(write_req(45 downto 32)));
-        ROM_array(indx) <= "110" & write_req(63 downto 42) &
-                           write_req(31 downto 0);
+      -- Handling write request from cpu_req_handler (when there's no update
+      -- req from bus)
+      if mcu_write_req(72 downto 72) = "1" and mcu_upd_req(552 downto 552) = "0" then
+        idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
+        ROM_array(idx) <= "110" & mcu_write_req(63 downto 42) &
+                           mcu_write_req(31 downto 0);
         write_ack       <= '1';
         upd_ack         <= '0';
-        wt_res          <= write_req(71 downto 0);
+        wt_res          <= mcu_write_req(71 downto 0);
 
-      -- Handling update request (no write_req from CPU)
-      elsif upd_req(552 downto 552) = "1" and write_req(72 downto 72) = "0" then
-        indx    := to_integer(unsigned(upd_req(525 downto 508))) * 16;
-        memcont := ROM_array(indx);
+      -- Handling update request from bus (when there's no mcu_write_req from
+      -- cpu_req_handler)
+      -- TODO why two cases?
+      -- case invalid request
+      elsif mcu_upd_req(552 downto 552) = "1" and mcu_write_req(72 downto 72) = "0" then
+        idx    := to_integer(unsigned(mcu_upd_req(525 downto 508))) * 16;
+        memcont := ROM_array(idx);
         --if tags do not match, dirty bit is 1,
         -- and write_back fifo in BUS is not full,
         if memcont(56 downto 56) = "1" and
           memcont(55 downto 55) = "1" and
-          memcont(53 downto 32) /= upd_req(63 downto 42) and
+          memcont(53 downto 32) /= mcu_upd_req(63 downto 42) and
           full_wb /= '1' then
-          wb_req <= "110000000" & upd_req(63 downto 32) &
+          wb_req <= "110000000" & mcu_upd_req(63 downto 32) &
                     memcont(31 downto 0) &
-                    ROM_array(indx + 1)(31 downto 0) &
-                    ROM_array(indx + 2)(31 downto 0) &
-                    ROM_array(indx + 3)(31 downto 0) &
-                    ROM_array(indx + 4)(31 downto 0) &
-                    ROM_array(indx + 5)(31 downto 0) &
-                    ROM_array(indx + 6)(31 downto 0) &
-                    ROM_array(indx + 7)(31 downto 0) &
-                    ROM_array(indx + 8)(31 downto 0) &
-                    ROM_array(indx + 9)(31 downto 0) &
-                    ROM_array(indx + 10)(31 downto 0) &
-                    ROM_array(indx + 11)(31 downto 0) &
-                    ROM_array(indx + 12)(31 downto 0) &
-                    ROM_array(indx + 13)(31 downto 0) &
-                    ROM_array(indx + 14)(31 downto 0) &
-                    ROM_array(indx + 15)(31 downto 0);
+                    ROM_array(idx + 1)(31 downto 0) &
+                    ROM_array(idx + 2)(31 downto 0) &
+                    ROM_array(idx + 3)(31 downto 0) &
+                    ROM_array(idx + 4)(31 downto 0) &
+                    ROM_array(idx + 5)(31 downto 0) &
+                    ROM_array(idx + 6)(31 downto 0) &
+                    ROM_array(idx + 7)(31 downto 0) &
+                    ROM_array(idx + 8)(31 downto 0) &
+                    ROM_array(idx + 9)(31 downto 0) &
+                    ROM_array(idx + 10)(31 downto 0) &
+                    ROM_array(idx + 11)(31 downto 0) &
+                    ROM_array(idx + 12)(31 downto 0) &
+                    ROM_array(idx + 13)(31 downto 0) &
+                    ROM_array(idx + 14)(31 downto 0) &
+                    ROM_array(idx + 15)(31 downto 0);
         end if;
-        ROM_array(indx) <= "100" & upd_req(63 downto 42) & upd_req(31 downto 0);
+        ROM_array(idx) <= "100" & mcu_upd_req(63 downto 42) & mcu_upd_req(31 downto 0);
         upd_ack         <= '1';
-        upd_res         <= upd_req(71 downto 0);
+        upd_res         <= mcu_upd_req(71 downto 0);
         write_ack       <= '0';
-      elsif upd_req(552 downto 552) = "1" and write_req(72 downto 72) = "1" then
+      -- case valid request
+      elsif mcu_upd_req(552 downto 552) = "1" and mcu_write_req(72 downto 72) = "1" then
         if shifter = true then
           shifter         := false;
-          indx            := to_integer(unsigned(write_req(45 downto 32)));
-          ROM_array(indx) <= "110" & write_req(63 downto 42) &
-                             write_req(31 downto 0);
+          idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
+          ROM_array(idx) <= "110" & mcu_write_req(63 downto 42) &
+                             mcu_write_req(31 downto 0);
           write_ack       <= '1';
           upd_ack         <= '0';
-          wt_res          <= write_req(71 downto 0);
+          wt_res          <= mcu_write_req(71 downto 0);
         else
           shifter := true;
-          indx    := to_integer(unsigned(upd_req(525 downto 512))) / 16 * 16;
-          memcont := ROM_array(indx);
+          idx    := to_integer(unsigned(mcu_upd_req(525 downto 512))) / 16 * 16;
+          memcont := ROM_array(idx);
           --if tags do not match, dirty bit is 1, and write_back fifo in BUS is not full, 
           if memcont(56 downto 56) = "1" and
-            memcont(53 downto 32) /= upd_req(63 downto 42) and
+            memcont(53 downto 32) /= mcu_upd_req(63 downto 42) and
             full_wb /= '1' then
-            wb_req <= "110000000" & upd_req(63 downto 32) & memcont(31 downto 0) &
-                      ROM_array(indx + 1)(31 downto 0) &
-                      ROM_array(indx + 2)(31 downto 0) &
-                      ROM_array(indx + 3)(31 downto 0) &
-                      ROM_array(indx + 4)(31 downto 0) &
-                      ROM_array(indx + 5)(31 downto 0) &
-                      ROM_array(indx + 6)(31 downto 0) &
-                      ROM_array(indx + 7)(31 downto 0) &
-                      ROM_array(indx + 8)(31 downto 0) &
-                      ROM_array(indx + 9)(31 downto 0) &
-                      ROM_array(indx + 10)(31 downto 0) &
-                      ROM_array(indx + 11)(31 downto 0) &
-                      ROM_array(indx + 12)(31 downto 0) &
-                      ROM_array(indx + 13)(31 downto 0) &
-                      ROM_array(indx + 14)(31 downto 0) &
-                      ROM_array(indx + 15)(31 downto 0);
+            wb_req <= "110000000" & mcu_upd_req(63 downto 32) & memcont(31 downto 0) &
+                      ROM_array(idx + 1)(31 downto 0) &
+                      ROM_array(idx + 2)(31 downto 0) &
+                      ROM_array(idx + 3)(31 downto 0) &
+                      ROM_array(idx + 4)(31 downto 0) &
+                      ROM_array(idx + 5)(31 downto 0) &
+                      ROM_array(idx + 6)(31 downto 0) &
+                      ROM_array(idx + 7)(31 downto 0) &
+                      ROM_array(idx + 8)(31 downto 0) &
+                      ROM_array(idx + 9)(31 downto 0) &
+                      ROM_array(idx + 10)(31 downto 0) &
+                      ROM_array(idx + 11)(31 downto 0) &
+                      ROM_array(idx + 12)(31 downto 0) &
+                      ROM_array(idx + 13)(31 downto 0) &
+                      ROM_array(idx + 14)(31 downto 0) &
+                      ROM_array(idx + 15)(31 downto 0);
           end if;
-          ROM_array(indx) <= "100" & upd_req(63 downto 42) & upd_req(31 downto 0);
+          ROM_array(idx) <= "100" & mcu_upd_req(63 downto 42) & mcu_upd_req(31 downto 0);
           upd_ack         <= '1';
-          upd_res         <= upd_req(71 downto 0);
+          upd_res         <= mcu_upd_req(71 downto 0);
           write_ack       <= '0';
         end if;
 

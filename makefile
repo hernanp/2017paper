@@ -40,3 +40,5 @@ simulate:
 	./top --disp-time --stop-time=1ps --stop-delta=2 --vcd=top.vcd
 viewwave:
 	gtkwave top.vcd
+docs:
+	vhdocl *.vhd

@@ -81,13 +81,14 @@ package body rand is
       rand_vect(32);
     variable data : std_logic_vector(31 downto 0) :=
       rand_vect(32);
+    constant valid_bit : std_logic := '1';
   begin
     if cmd = read then
-      return WRITE_CMD & addr & data;
+      return valid_bit & WRITE_CMD & addr & data;
     elsif cmd = write then 
-      return READ_CMD & addr & data;
+      return valid_bit & READ_CMD & addr & data;
     else
-      return ZEROS_CMD & addr & data; 
+      return valid_bit & ZEROS_CMD & addr & data; 
     end if;
   end rand_req;
 end rand;
