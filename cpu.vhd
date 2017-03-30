@@ -13,7 +13,6 @@
 library ieee,std;
 use ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
-use work.nondeterminism.all;
 use work.type_defs.all;
 use work.rand.all;
 
