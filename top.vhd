@@ -673,9 +673,6 @@ begin
     wait for 15 ps;
     reset <= '0';
 
-    -- to make sim finite
-    --wait for tb_period * 20;
-    --tb_sim_ended <= '1';
     wait;
   end process;
 end tb;
