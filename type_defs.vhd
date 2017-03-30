@@ -3,6 +3,8 @@ use ieee.std_logic_1164.all;
 
 package type_defs is
   type CMD_TYP is (READ, WRITE);
+  subtype RAND_RANGE_TYP is natural range 0 to 32;
+  
   constant READ_CMD  : std_logic_vector(7 downto 0) := "01000000";
   constant WRITE_CMD : std_logic_vector(7 downto 0) := "10000000";
   constant ZEROS_CMD : std_logic_vector(7 downto 0) := "00000000";
