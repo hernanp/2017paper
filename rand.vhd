@@ -44,7 +44,7 @@ package body rand is
     variable tmp_real:real;
   begin
     uniform(s1,s2,tmp_real);
-    result := std_logic_vector(to_unsigned(integer(trunc(tmp_real * real (2**size)))+1, size));
+    result := std_logic_vector(to_unsigned(integer(trunc(tmp_real * real (2**size-1))), size));
     return (result);
   end rand_vect;
   
