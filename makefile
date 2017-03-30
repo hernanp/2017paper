@@ -34,10 +34,10 @@ clean:
 	rm *.o
 showtree:
 	./top --no-run --disp-tree
-simulate:
+sim:
 # TODO need to adjust parameters here
 # see http://ghdl.readthedocs.io/en/latest/Simulation_and_runtime.html#simulation-and-runtime
-	./top --disp-time --stop-time=1ps --stop-delta=2 --vcd=top.vcd
+	./top --stop-time=10000ps --vcd=top.vcd
 viewwave:
 	gtkwave top.vcd
 docs:

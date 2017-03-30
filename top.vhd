@@ -13,7 +13,7 @@ end top;
 architecture tb of top is
   
 -- Clock frequency and signal
-  signal Clock                                                                                           : std_logic;
+  signal Clock : std_logic;
   constant tb_period : time := 10 ps;
   signal tb_clk : std_logic := '0';
   signal tb_sim_ended : std_logic := '0';
@@ -672,9 +672,10 @@ begin
     reset <= '1';
     wait for 15 ps;
     reset <= '0';
-    
-    wait for tb_period * 20;
-    tb_sim_ended <= '1';
+
+    -- to make sim finite
+    --wait for tb_period * 20;
+    --tb_sim_ended <= '1';
     wait;
   end process;
 end tb;
