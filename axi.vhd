@@ -210,7 +210,7 @@ architecture Behavioral of axi is
   signal we2, we6, we7, re7, re2, re6 : std_logic := '0';
   signal emp2, emp6, emp7, ful2       : std_logic := '0';
 
-  signal bus_res1_1, bus_res1_2, bus_res2_1, bus_res2_2                 : std_logic_vector(552 downto 0);
+  signal bus_res1_1, bus_res1_2, bus_res2_1, bus_res2_2                 : std_logic_vector(552 downto 0):=(others => '0');
   signal mem_ack1, mem_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2 : std_logic;
   signal mem_ack, mem_ack3, mem_ack4, mem_ack5, mem_ack6                : std_logic;
 
@@ -565,8 +565,13 @@ begin
     if reset = '1' then
       rvalid  <= '0';
       rdready <= '0';
+		state :=0;
     elsif rising_edge(Clock) then
-      if state = 0 then
+	   if state = 0 then
+			mem_ack <= '1';
+			state :=20;
+      elsif state = 20 then
+			mem_ack <='0';
         bus_res1_1   <= nullreq;
         bus_res2_1   <= nullreq;
         gfx_upres1   <= (others => '0');

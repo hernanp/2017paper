@@ -672,7 +672,7 @@ begin
     reset <= '1';
     wait for 15 ps;
     reset <= '0';
-
+		
     wait;
   end process;
 end tb;

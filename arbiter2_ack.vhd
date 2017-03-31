@@ -70,11 +70,13 @@ begin
 	                when others =>
 	            end case;
 	    elsif state =1 then
+		 dout <= nilreq;
 	    		if ack ='1' then
 	    			s_ack2 <= '1';
 	    			state :=0;
 		    	end if;
 		    elsif state =2 then
+			 dout <= nilreq;
 		    	if ack ='1' then
 		    		s_ack1 <= '1';
 		    		state :=0;

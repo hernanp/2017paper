@@ -55,7 +55,7 @@ begin
         	dout <=  nilreq;
         elsif rising_edge(clock) then
         	if state = 0 then
-	        	dout <= nilreq;
+					dout <= nilreq;
 	            s_ack1 <= '0';
 	            s_ack2 <= '0';   
 	            s_ack3 <= '0'; 
@@ -94,17 +94,41 @@ begin
 	                end if; 
 	            end if;
 	    elsif state =1 then
+			dout <= nilreq;
+			if ack ='1' then
 	    		s_ack1 <= '1';
+				state :=0;
+			end if;
 	    elsif state =2 then
+		 dout <= nilreq;
+	    		if ack ='1' then
 	    		s_ack2 <= '1';
+				state :=0;
+			end if;								
 	    elsif state =3 then
+		 dout <= nilreq;
+	    		if ack ='1' then
 	    		s_ack3 <= '1';
+				state :=0;
+			end if;
 	    elsif state =4 then
+		 dout <= nilreq;
+	    	if ack ='1' then
 	    		s_ack4 <= '1';
+				state :=0;
+			end if;
 	    elsif state =5 then
+		 dout <= nilreq;
+	    	if ack ='1' then
 	    		s_ack5 <= '1';
+				state :=0;
+			end if;
 	    elsif state =6 then
+		 dout <= nilreq;
+	    	if ack ='1' then
 	    		s_ack6 <= '1';
+				state :=0;
+			end if;
 	    end if;
         end if;
         ack1 <= s_ack1;
