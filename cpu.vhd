@@ -53,11 +53,12 @@ begin
   process(reset, Clock)
   begin
     if reset = '1' then
-      cpu_req <= (others => '0');
+     -- cpu_req <= (others => '0');
       st <= init;
     elsif (rising_edge(Clock)) then
       st <= next_st;
     end if;
+	 
   end process;
   
   transitions : process(st)
@@ -74,6 +75,7 @@ begin
     --elsif cpu_id = 2 then
     --  read(turn, tmp_req, turn_data);
     --end if;
+	 
     case st is
       when init =>
         -- output nothing
@@ -82,13 +84,15 @@ begin
       when send =>
         -- send a random msg
         if cpu_id = 1 then
-          cpu_req <= rand_req(write);
+         --- cpu_req <= rand_req(write);
+			 cpu_req<="110000000"&"10000000000000000000000000000000"&"00000000000000000000000000000000";
         elsif cpu_id = 2 then
-          cpu_req <= rand_req(read);
+          cpu_req<="101000000"&"10000000000000000000000000000000"&"00000000000000000000000000000000";
         end if;
         next_st <= idle;
       when idle =>
         -- TODO wait for resp
+		  cpu_req<=(others =>'0');
         next_st <= idle;
     end case;
   end process;

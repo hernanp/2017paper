@@ -118,8 +118,8 @@ begin
 				lp := 0;
 				if rvalid = '1' then
 					rready  <= '0';
-					slot    := to_integer(unsigned(waddr(30 downto 15)));
-					address := to_integer(unsigned(waddr(15 downto 0)));
+					slot    := to_integer(unsigned(waddr(30 downto 25)));
+					address := to_integer(unsigned(waddr(15 downto 14)));
 					len     := to_integer(unsigned(rlen));
 					size    := rsize;
 					state   := 2;

@@ -75,13 +75,13 @@ architecture Behavioral of l1_cache is
   -- read_enable signals for FIFO queues
   signal crf_re, srf_re, bsf_re, drf_re, ssf_re : std_logic;
   -- data_in signals
-  signal crf_in, srf_in, ssf_in : std_logic_vector(72 downto 0);
+  signal crf_in, srf_in, ssf_in : std_logic_vector(72 downto 0):=(others => '0');
   
   -- Outputs from FIFO queues
   -- data_out signals
   signal out1, out3, -- TODO not used?
-    srf_out, ssf_out : std_logic_vector(72 downto 0);
-  signal drf_out, drf_in : std_logic_vector(75 downto 0);
+    srf_out, ssf_out : std_logic_vector(72 downto 0):=(others => '0');
+  signal drf_out, drf_in : std_logic_vector(75 downto 0):=(others => '0');
   -- empty signals
   signal crf_emp, srf_emp, bsf_emp, drf_emp, ssf_emp : std_logic;
   -- full signals
@@ -94,33 +94,33 @@ architecture Behavioral of l1_cache is
   -- [cpu|snp|usnp]_mem_[req|res|ack] memory (write) request, response, or ack for
   --   cpu, snoop (from cache), or upstream snoop (from bus on behalf of a device)
   signal cpu_mem_req, snp_mem_req, mcu_write_req  : std_logic_vector(72 downto 0);
-  signal usnp_mem_req, usnp_mem_res : std_logic_vector(75 downto 0); -- usnp reqs are longer
+  signal usnp_mem_req, usnp_mem_res : std_logic_vector(75 downto 0):=(others => '0'); -- usnp reqs are longer
   signal usnp_mem_ack : std_logic;
-  signal snp_mem_req_1, snp_mem_req_2 : std_logic_vector(72 downto 0);
+  signal snp_mem_req_1, snp_mem_req_2 : std_logic_vector(72 downto 0) :=(others => '0');
 
   signal snp_mem_ack1, snp_mem_ack2 : std_logic;
-  signal mcu_upd_req, bsf_in : std_logic_vector(552 downto 0);
-  signal cpu_mem_res, wt_res, upd_res : std_logic_vector(71 downto 0);
-  signal snp_mem_res : std_logic_vector(71 downto 0);
+  signal mcu_upd_req, bsf_in : std_logic_vector(552 downto 0):=(others => '0');
+  signal cpu_mem_res, wt_res, upd_res : std_logic_vector(71 downto 0):=(others => '0');
+  signal snp_mem_res : std_logic_vector(71 downto 0):=(others => '0');
   -- hit signals
   signal cpu_mem_hit, snp_mem_hit, usnp_mem_hit : std_logic;
   -- "done" signals
   signal upd_ack, write_ack, cpu_mem_ack, snp_mem_ack : std_logic;
 
-  signal cpu_res1, cpu_res2             : std_logic_vector(72 downto 0);
+  signal cpu_res1, cpu_res2             : std_logic_vector(72 downto 0):=(others => '0');
   signal ack1, ack2                     : std_logic;
-  signal snp_c_req1, snp_c_req2         : std_logic_vector(72 downto 0);
+  signal snp_c_req1, snp_c_req2         : std_logic_vector(72 downto 0):=(others => '0');
   signal snp_c_ack1, snp_c_ack2         : std_logic;
 
   signal prc          : std_logic_vector(1 downto 0);
   signal tmp_cpu_res1 : std_logic_vector(72 downto 0) := (others => '0');
-  signal tmp_snp_res  : std_logic_vector(72 downto 0);
+  signal tmp_snp_res  : std_logic_vector(72 downto 0):=(others => '0');
   signal tmp_hit      : std_logic;
-  signal tmp_mem      : std_logic_vector(40 downto 0);
+  signal tmp_mem      : std_logic_vector(40 downto 0):=(others => '0');
   ---this one is important!!!!
   
   signal upreq : std_logic_vector(75 downto 0); -- used only by up_snp_req_handler
-  signal snpreq       : std_logic_vector(73 downto 0); -- used only by cpu_req_handler
+  signal snpreq       : std_logic_vector(72 downto 0); -- used only by cpu_req_handler
   
   constant DEFAULT_DATA_WIDTH : positive := 73;
   constant DEFAULT_FIFO_DEPTH : positive := 256;
@@ -290,6 +290,8 @@ begin
       cpu_res1  <= nilreq;
       mcu_write_req <= nilreq;
       cache_req <= nilreq;
+		crf_re <='0';
+		snp_c_req1 <=(others =>'0');
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
@@ -314,7 +316,7 @@ begin
             end if;
           else -- it's a miss
             snp_c_req1 <= '1' & cpu_mem_res;
-            --snpreq     <= '1' & cpu_mem_res;
+            snpreq     <= '1' & cpu_mem_res;
             state      := 5;
           end if;
         end if;
@@ -367,6 +369,8 @@ begin
       state        := 0;
       up_snp_res <= (others => '0');
       up_snp_hit <= '1';
+		drf_re <= '0';
+		snp_c_req2 <=(others => '0');
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
         up_snp_res <= (others => '0');
@@ -423,6 +427,8 @@ begin
       -- reset signals
       snp_res <= (others => '0');
       snp_hit <= '0';
+		srf_re <='0';
+		snp_mem_req_1 <=(others => '0');
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
         snp_res <= (others => '0');
@@ -444,15 +450,9 @@ begin
         end if;
       elsif state = 4 then -- TODO should states 4 and 2 be merged?
         if snp_mem_ack = '1' and snp_mem_res(63 downto 32) = addr then
-          tmp_snp_res <= '1' & snp_mem_res;
-          tmp_hit     <= snp_mem_hit;
-          state       := 2;
-        end if;
-      elsif state = 2 then -- output_res
-        if full_srs = '0' then
-          snp_hit <= tmp_hit;
-          snp_res <= tmp_snp_res;
-          state     := 0;
+          snp_res <= '1' & snp_mem_res;
+          snp_hit     <= snp_mem_hit;
+          state       := 0;
         end if;
       end if;
     end if;
@@ -512,7 +512,7 @@ begin
 
       -- cpu memory request
       if cpu_mem_req(72 downto 72) = "1" then
-        idx    := to_integer(unsigned(cpu_mem_req(45 downto 32)));
+        idx    := to_integer(unsigned(cpu_mem_req(41 downto 32)));
         memcont := ROM_array(idx);
         --if we can't find it in memory
         if memcont(56 downto 56) = "0" or
@@ -538,7 +538,7 @@ begin
 
       -- snoop memory request
       if snp_mem_req(72 downto 72) = "1" then
-        idx    := to_integer(unsigned(snp_mem_req(45 downto 32)));
+        idx    := to_integer(unsigned(snp_mem_req(41 downto 32)));
         memcont := ROM_array(idx);
         -- if we can't find it in memory
         if memcont(56 downto 56) = "0" or -- it's a miss
@@ -569,7 +569,7 @@ begin
 
       -- upstream snoop req
       if usnp_mem_req(72 downto 72) = "1" then -- valid req
-        idx    := to_integer(unsigned(usnp_mem_req(45 downto 32))); -- memory addr
+        idx    := to_integer(unsigned(usnp_mem_req(41 downto 32))); -- memory addr
         memcont := ROM_array(idx);
         -- if we can't find it in memory
         --invalide  ---or tag different
@@ -607,7 +607,7 @@ begin
       -- Handling write request from cpu_req_handler (when there's no update
       -- req from bus)
       if mcu_write_req(72 downto 72) = "1" and mcu_upd_req(552 downto 552) = "0" then
-        idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
+        idx            := to_integer(unsigned(mcu_write_req(41 downto 32)));
         ROM_array(idx) <= "110" & mcu_write_req(63 downto 42) &
                            mcu_write_req(31 downto 0);
         write_ack       <= '1';
@@ -653,7 +653,7 @@ begin
       elsif mcu_upd_req(552 downto 552) = "1" and mcu_write_req(72 downto 72) = "1" then
         if shifter = true then
           shifter         := false;
-          idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
+          idx            := to_integer(unsigned(mcu_write_req(41 downto 32)));
           ROM_array(idx) <= "110" & mcu_write_req(63 downto 42) &
                              mcu_write_req(31 downto 0);
           write_ack       <= '1';

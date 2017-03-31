@@ -282,6 +282,7 @@ architecture Behavioral of axi is
   signal mem_write_ack2,gfx_write_ack2,usb_write_ack2,uart_write_ack2,audio_write_ack2: std_logic;
   signal mem_write_ack3,gfx_write_ack3,usb_write_ack3,uart_write_ack3,audio_write_ack3: std_logic;
 
+	signal tmp_cache_req1, tmp_cache_req2: std_logic_vector(72 downto 0);
 begin
   wb_fif1 : entity work.fifo(Behavioral)
     generic map(
@@ -590,7 +591,7 @@ begin
           rvalid <= '1';
           raddr  <= tomem_p(63 downto 32);
           if (tomem_p(75 downto 73) = "000" or tomem_p(75 downto 73) = "101") then
-            rlen <= "00001" & "00000";
+            rlen <= "00000" & "10000";
           else
             rlen <= "00000" & "00001";
           end if;
@@ -2227,171 +2228,7 @@ begin
 
     end if;
   end process;
-  ---not sure if this need to be changed
---	wb_channel : process(reset, Clock)
---		variable lp    : integer := 0;
---		variable state : integer := 0;
---		variable tdata : std_logic_vector(511 downto 0);
---	begin
---		if reset = '1' then
---			wvalid  <= '0';
---			wrready <= '0';
---		elsif rising_edge(Clock) then
---			if state = 0 then
---				if mem_wb(552 downto 552) = "1" then
---					if mem_wb(543 downto 543) = "1" and wready = '0' then
---						wvalid <= '1';
---						waddr  <= mem_wb(543 downto 512);
---						wlen   <= "00000" & "10000";
---						wsize  <= "00001" & "00000";
---						tdata  := mem_wb(511 downto 0);
---						state  := 1;
---					elsif mem_wb(542 downto 541) = "00" and wready_gfx = '0' then
---						wvalid_gfx <= '1';
---						waddr_gfx  <= mem_wb(543 downto 512);
---						wlen_gfx   <= "00000" & "10000";
---						wsize_gfx  <= "00001" & "00000";
---						tdata      := mem_wb(511 downto 0);
---						state      := 3;
---					elsif mem_wb(542 downto 541) = "01" and wready_uart = '0' then
---						wvalid_uart <= '1';
---						waddr_uart  <= mem_wb(543 downto 512);
---						wlen_uart   <= "00000" & "10000";
---						wsize_uart  <= "00001" & "00000";
---						tdata       := mem_wb(511 downto 0);
---						state       := 4;
---					elsif mem_wb(542 downto 541) = "10" and wready_usb = '0' then
---						wvalid_usb <= '1';
---						waddr_usb  <= mem_wb(543 downto 512);
---						wlen_usb   <= "00000" & "10000";
---						wsize_usb  <= "00001" & "00000";
---						tdata      := mem_wb(511 downto 0);
---						state      := 5;
---					elsif mem_wb(542 downto 541) = "11" and wready_audio = '0' then
---						wvalid_audio <= '1';
---						waddr_audio  <= mem_wb(543 downto 512);
---						wlen_audio   <= "00000" & "10000";
---						wsize_audio  <= "00001" & "00000";
---						tdata        := mem_wb(511 downto 0);
---						state        := 6;
---					end if;
---				end if;
---			elsif state = 1 then
---				if wdataready = '1' then
---					wdvalid <= '1';
---					wtrb    <= "1111";
---					wdata   <= tdata(lp + 31 downto lp);
---					lp      := lp + 32;
---					if lp = 512 then
---						wlast <= '1';
---						state := 2;
---						lp    := 0;
---					end if;
---				end if;
---
---			elsif state = 2 then
---				wdvalid <= '0';
---				wrready <= '1';
---				if wrvalid = '1' then
---					state := 0;
---					if wrsp = "00" then
---					---this is a successful write back, yayyy
---					end if;
---					wrready <= '0';
---				end if;
---			elsif state = 3 then
---				if wdataready_gfx = '1' then
---					wdvalid_gfx <= '1';
---					wtrb_gfx    <= "1111";
---					wdata_gfx   <= tdata(lp + 31 downto lp);
---					lp          := lp + 32;
---					if lp = 512 then
---						wlast_gfx <= '1';
---						state     := 7;
---						lp        := 0;
---					end if;
---				end if;
---			elsif state = 4 then
---				if wdataready_uart = '1' then
---					wdvalid_uart <= '1';
---					wtrb_uart    <= "1111";
---					wdata_uart   <= tdata(lp + 31 downto lp);
---					lp           := lp + 32;
---					if lp = 512 then
---						wlast_uart <= '1';
---						state      := 8;
---						lp         := 0;
---					end if;
---				end if;
---			elsif state = 5 then
---				if wdataready_usb = '1' then
---					wdvalid_usb <= '1';
---					wtrb_usb    <= "1111";
---					wdata_usb   <= tdata(lp + 31 downto lp);
---					lp          := lp + 32;
---					if lp = 512 then
---						wlast_usb <= '1';
---						state     := 9;
---						lp        := 0;
---					end if;
---				end if;
---			elsif state = 6 then
---				if wdataready_audio = '1' then
---					wdvalid_audio <= '1';
---					wtrb_audio    <= "1111";
---					wdata_audio   <= tdata(lp + 31 downto lp);
---					lp            := lp + 32;
---					if lp = 512 then
---						wlast_audio <= '1';
---						state       := 10;
---						lp          := 0;
---					end if;
---				end if;
---			elsif state = 7 then
---				wdvalid_gfx <= '0';
---				wrready_gfx <= '1';
---				if wrvalid_gfx = '1' then
---					state := 0;
---					if wrsp_gfx = "00" then
---					---this is a successful write back, yayyy
---					end if;
---					wrready_gfx <= '0';
---				end if;
---			elsif state = 8 then
---				wdvalid_uart <= '0';
---				wrready_uart <= '1';
---				if wrvalid_uart = '1' then
---					state := 0;
---					if wrsp_uart = "00" then
---					---this is a successful write back, yayyy
---					end if;
---					wrready_uart <= '0';
---				end if;
---			elsif state = 9 then
---				wdvalid_usb <= '0';
---				wrready_usb <= '1';
---				if wrvalid_usb = '1' then
---					state := 0;
---					if wrsp_usb = "00" then
---					---this is a successful write back, yayyy
---					end if;
---					wrready_usb <= '0';
---				end if;
---			elsif state = 10 then
---				wdvalid_audio <= '0';
---				wrready_audio <= '1';
---				if wrvalid_audio = '1' then
---					state := 0;
---					if wrsp_audio = "00" then
---					---this is a successful write back, yayyy
---					end if;
---					wrready_audio <= '0';
---				end if;
---			end if;
---		end if;
---
---	end process;
---	--	
+
   cache_req1_p : process(reset, Clock)
     variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
@@ -2415,26 +2252,27 @@ begin
           bus_res1_7 <= '1' & "11111111" & nildata;
         elsif cache_req1(72 downto 72) = "1" then
           adr_0 <= cache_req1(63 downto 32);
+			 tmp_cache_req1 <= cache_req1;
           state := 2;
         else
           state := 0;
         end if;
       elsif state = 2 then
-        if cache_req1(63 downto 63) = "1" then
+        if tmp_cache_req1(63 downto 63) = "1" then
           ---this belongs to the memory					
-          tomem1 <= "000" & cache_req1;
+          tomem1 <= "000" & tmp_cache_req1;
           state  := 5;
-        elsif cache_req1(62 downto 61) = "00" then
-          togfx1 <= "000" & cache_req1;
+        elsif tmp_cache_req1(62 downto 61) = "00" then
+          togfx1 <= "000" & tmp_cache_req1;
           state  := 6;
-        elsif cache_req1(62 downto 61) = "01" then
-          touart1 <= "000" & cache_req1;
+        elsif tmp_cache_req1(62 downto 61) = "01" then
+          touart1 <= "000" & tmp_cache_req1;
           state   := 7;
-        elsif cache_req1(62 downto 61) = "10" then
-          tousb1 <= "000" & cache_req1;
+        elsif tmp_cache_req1(62 downto 61) = "10" then
+          tousb1 <= "000" & tmp_cache_req1;
           state  := 8;
-        elsif cache_req1(62 downto 61) = "11" then
-          toaudio1 <= "000" & cache_req1;
+        elsif tmp_cache_req1(62 downto 61) = "11" then
+          toaudio1 <= "000" & tmp_cache_req1;
           state    := 9;
         end if;
       elsif state = 3 then
@@ -2496,26 +2334,27 @@ begin
           ---snp_req2 <= cache_req2;
           adr_0 <= cache_req2(63 downto 32);
           state := 2;
+			 tmp_cache_req2 <= cache_req2;
         else
           ---snp_req2 <= nilreq;
           state := 0;
         end if;
       elsif state = 2 then
-        if cache_req2(63 downto 63) = "1" then
+        if tmp_cache_req2(63 downto 63) = "1" then
           ---this belongs to the memory
-          tomem2 <= "101" & cache_req2;
+          tomem2 <= "101" & tmp_cache_req2;
           state  := 5;
-        elsif cache_req2(62 downto 61) = "00" then
-          togfx2 <= "101" & cache_req2;
+        elsif tmp_cache_req2(62 downto 61) = "00" then
+          togfx2 <= "101" & tmp_cache_req2;
           state  := 6;
-        elsif cache_req2(62 downto 61) = "01" then
-          touart2 <= "101" & cache_req2;
+        elsif tmp_cache_req2(62 downto 61) = "01" then
+          touart2 <= "101" & tmp_cache_req2;
           state   := 7;
-        elsif cache_req2(62 downto 61) = "10" then
-          tousb2 <= "101" & cache_req2;
+        elsif tmp_cache_req2(62 downto 61) = "10" then
+          tousb2 <= "101" & tmp_cache_req2;
           state  := 8;
-        elsif cache_req2(62 downto 61) = "11" then
-          toaudio2 <= "101" & cache_req2;
+        elsif tmp_cache_req2(62 downto 61) = "11" then
+          toaudio2 <= "101" & tmp_cache_req2;
           state    := 9;
         end if;
       elsif state = 3 then

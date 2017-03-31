@@ -15,7 +15,7 @@ entity fifo is
     ReadEn	: in  STD_LOGIC;
     DataOut	: out STD_LOGIC_VECTOR (DATA_WIDTH - 1 downto 0);
     Empty	: out STD_LOGIC;
-    Full	: out STD_LOGIC
+    Full	: out STD_LOGIC := '0'
 	);
 end fifo;
 

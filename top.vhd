@@ -256,7 +256,7 @@ begin
 
     cpu_req     => cpu_req1, -- i
     cpu_res     => cpu_res1, -- o
-    crf_full    => full_c1_u, -- o - cpu req fifo full
+    -- o - cpu req fifo full
 
     snp_req     => snp_req1, -- i - snoop req from cache 2
     snp_hit     => snp_hit1, -- o
@@ -278,8 +278,9 @@ begin
                             -- is it supposed be implemented outside cache?
     
     bsf_full    => full_brs1, -- bus resp fifo full
-    --srf_full   => zero, -- TODO why is it commented out?
-    
+    srf_full   => full_srs2, 
+    crf_full    => full_c1_u,
+	 
     full_crq    => full_crq1, -- TODO what are these for?
     full_wb     => full_wb1,  -- are they not implemented?
     full_srs    => full_srs1
@@ -312,7 +313,7 @@ begin
     -- full flags of fifo queues
     crf_full     => full_c2_u, -- o, cpu req fifo full
     bsf_full     => full_brs2, -- o - bus resp fifo full
-    
+    srf_full     => full_srs1,
     --full_srq    => zero,
     full_crq     => full_crq2,
     full_wb      => full_wb2,
@@ -667,8 +668,7 @@ begin
 
   stimuli : process
   begin
-    reset <= '0';
-    wait for 10 ps;
+   
     reset <= '1';
     wait for 15 ps;
     reset <= '0';
