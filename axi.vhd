@@ -236,7 +236,7 @@ architecture Behavioral of axi is
   signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res1_7, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6 : std_logic_vector(552 downto 0);
 
   signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1                                    : std_logic;
-  signal gfx_ack3, gfx_ack4, gfx_ack5, gfx_ack6                                                                       : std_logic;
+  signal gfx_ack3, gfx_ack4, gfx_ack5, gfx_ack6,gfx_ack,usb_ack,uart_ack,audio_ack                                    : std_logic;
   signal uart_ack3, uart_ack4, uart_ack5, uart_ack6                                                                   : std_logic;
   signal usb_ack3, usb_ack4, usb_ack5, usb_ack6                                                                       : std_logic;
   signal audio_ack3, audio_ack4, audio_ack5, audio_ack6                                                               : std_logic;
@@ -531,7 +531,7 @@ begin
     end if;
   end process;
 
-  tomem_arbitor : entity work.arbiter6(Behavioral)
+  tomem_arbitor : entity work.arbiter6_ack(Behavioral)
     generic map(
       DATA_WIDTH => 76
       )
@@ -550,7 +550,8 @@ begin
       ack5  => mem_ack5,
       din6  => tomem6,
       ack6  => mem_ack6,
-      dout  => tomem_p
+      dout  => tomem_p,
+      ack   => mem_ack
       );
 
   tomem_channel : process(reset, Clock)
@@ -674,12 +675,13 @@ begin
         if mem_write_ack1 ='1' then
           mem_write1<=(others=>'0');
           state := 0;
+          mem_ack <= '1';
         end if;
       end if;
     end if;
   end process;
 
-  togfx_arbitor : entity work.arbiter6(Behavioral)
+  togfx_arbitor : entity work.arbiter6_ack(Behavioral)
     generic map(
       DATA_WIDTH => 76
       )
@@ -698,7 +700,8 @@ begin
       ack5  => gfx_ack5,
       din6  => togfx6,
       ack6  => gfx_ack6,
-      dout  => togfx_p
+      dout  => togfx_p,
+      ack 	=> gfx_ack
       );
   togfx_channel : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
@@ -712,7 +715,8 @@ begin
       rvalid_gfx  <= '0';
       rdready_gfx <= '0';
     elsif rising_edge(Clock) then
-      if state = 0 then
+    	if state = 0 then
+    		gfx_ack <='0';
         bus_res1_2   <= nullreq;
         bus_res2_2   <= nullreq;
         --gfx_upres2 <= (others => '0');
@@ -811,6 +815,7 @@ begin
         if gfx_write_ack1 ='1' then
           gfx_write1<=(others=>'0');
           state := 0;
+          gfx_ack <='1';
         end if;
       end if;
     end if;
@@ -1108,7 +1113,7 @@ begin
       end if;
     end if;
   end process;
-  toaudio_arbitor : entity work.arbiter2(Behavioral)
+  toaudio_arbitor : entity work.arbiter2_ack(Behavioral)
     generic map(
       DATA_WIDTH => 76
       )
@@ -1119,9 +1124,10 @@ begin
       ack1  => audio_ack1,
       din2  => toaudio2,
       ack2  => audio_ack2,
-      dout  => toaudio_p
+      dout  => toaudio_p,
+      ack 	=> audio_ack
       );
-  tousb_arbitor : entity work.arbiter2(Behavioral)
+  tousb_arbitor : entity work.arbiter2_ack(Behavioral)
     generic map(
       DATA_WIDTH => 76
       )
@@ -1132,7 +1138,8 @@ begin
       ack1  => usb_ack1,
       din2  => tousb2,
       ack2  => usb_ack2,
-      dout  => tousb_p
+      dout  => tousb_p,
+      ack	=> usb_ack
       );
   audio_write:process(reset, Clock)
     variable state:integer :=0;
@@ -1243,7 +1250,11 @@ begin
       rvalid_usb  <= '0';
       rdready_usb <= '0';
     elsif rising_edge(Clock) then
-      if state = 0 then
+    	if state =0 then
+    		usb_ack <= '1';
+    		state := 20;
+    	elsif state = 20 then
+    		usb_ack <='0';
         bus_res1_4   <= (others => '0');
         bus_res2_4   <= (others => '0');
         gfx_upres4   <= (others => '0');
@@ -1443,7 +1454,7 @@ begin
       end if;
     end if;
   end process;
-  touart_arbitor : entity work.arbiter2(Behavioral)
+  touart_arbitor : entity work.arbiter2_ack(Behavioral)
     generic map(
       DATA_WIDTH => 76
       )
@@ -1454,7 +1465,8 @@ begin
       ack1  => uart_ack1,
       din2  => touart2,
       ack2  => uart_ack2,
-      dout  => touart_p
+      dout  => touart_p,
+      ack	=> uart_ack
       );
   touart_channel : process(reset, Clock)
     variable tdata    : std_logic_vector(511 downto 0) := (others => '0');
@@ -1468,7 +1480,10 @@ begin
       rvalid_uart  <= '0';
       rdready_uart <= '0';
     elsif rising_edge(Clock) then
-      if state = 0 then
+    	  if state = 0 then
+    		uart_ack <= '1';
+    	elsif state = 20 then
+    		uart_ack <='0';
         bus_res1_3   <= nullreq;
         bus_res2_3   <= nullreq;
         gfx_upres3   <= (others => '0');
