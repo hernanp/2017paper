@@ -12,7 +12,7 @@ entity ic is
     wb_req1, wb_req2                        : in  std_logic_vector(552 downto 0);
     bus_res1                                : out STD_LOGIC_VECTOR(552 downto 0);
     bus_res2                                : out STD_LOGIC_VECTOR(552 downto 0);
-    snp_req1                              : out STD_LOGIC_VECTOR(75 downto 0);
+    up_snp_req_out                              : out STD_LOGIC_VECTOR(75 downto 0);
     snp_res1                              : in  STD_LOGIC_VECTOR(75 downto 0);
     snp_hit1                                : in  std_logic;
     full_srq1                               : in  std_logic;
@@ -204,6 +204,16 @@ architecture Behavioral of ic is
   --3 bits for indicating its source¡
   --50 bits for packet
 
+  function is_valid_msg(msg : std_logic_vector) return boolean is
+    variable valid_mask : std_logic_vector(72 downto 0) :=
+      '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
+  begin
+    if (msg and valid_mask) >= valid_mask then
+      return true;
+    end if;
+    return false;
+  end function;
+  
   signal in6, in7, out6, out7 : std_logic_vector(552 downto 0);
 
   signal in2, out2                    : std_logic_vector(76 downto 0);
@@ -284,7 +294,7 @@ architecture Behavioral of ic is
 
 	signal tmp_cache_req1, tmp_cache_req2: std_logic_vector(72 downto 0);
 begin
-  wb_fif1 : entity work.fifo(Behavioral)
+  wb_fifo1 : entity work.fifo(Behavioral)
     generic map(
       DATA_WIDTH => 553
       )
@@ -298,7 +308,7 @@ begin
       Full    => full_wb1,
       Empty   => emp6
       );
-  wb_fif2 : entity work.fifo(Behavioral)
+  wb_fifo2 : entity work.fifo(Behavioral)
     generic map(
       DATA_WIDTH => 553
       )
@@ -313,7 +323,7 @@ begin
       Empty   => emp7
       );
 
-  gfx_fif : entity work.fifo(Behavioral) port map(
+  gfx_fifo : entity work.fifo(Behavioral) port map(
     CLK     => Clock,
     RST     => reset,
     DataIn  => gfx_fifo_din,
@@ -323,6 +333,7 @@ begin
     Full    => gfx_upreq_full,
     Empty   => gfx_fifo_emp
     );
+  
   snp_res_fifo : entity work.fifo(Behavioral)
     generic map(
       DATA_WIDTH => 77
@@ -337,14 +348,15 @@ begin
       Full    => ful2,
       Empty   => emp2
       );
-  gfx_fifo : process(reset, Clock)
+  
+  gfx_fifo_handler : process(reset, Clock)
     variable valid : std_logic_vector(72 downto 0) :=
       '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
   begin
     if reset = '1' then
       we9 <= '0';
     elsif rising_edge(Clock) then
-      if ((gfx_upreq_in and valid) >= valid) then
+      if is_valid_msg(gfx_upreq_in) then
         gfx_fifo_din <= gfx_upreq_in;
         we9 <= '1';
       else
@@ -352,7 +364,7 @@ begin
       end if;
     end if;
   end process;
-  audio_fif : entity work.fifo(Behavioral) port map(
+  audio_fifo : entity work.fifo(Behavioral) port map(
     CLK     => Clock,
     RST     => reset,
     DataIn  => in13,
@@ -362,7 +374,8 @@ begin
     Full    => audio_upreq_full,
     Empty   => emp13
     );
-  audio_fifo : process(reset, Clock)
+  
+  audio_fifo_handler : process(reset, Clock)
   begin
     if reset = '1' then
       we13 <= '0';
@@ -385,7 +398,8 @@ begin
     Full    => usb_upreq_full,
     Empty   => emp14
     );
-  usb_fifo : process(reset, Clock)
+  
+  usb_fifo_handler : process(reset, Clock)
   begin
     if reset = '1' then
       we14 <= '0';
@@ -398,7 +412,8 @@ begin
       end if;
     end if;
   end process;
-  uart_fif : entity work.fifo(Behavioral) port map(
+  
+  uart_fifo : entity work.fifo(Behavioral) port map(
     CLK     => Clock,
     RST     => reset,
     DataIn  => in15,
@@ -408,7 +423,8 @@ begin
     Full    => uart_upreq_full,
     Empty   => emp15
     );
-  uart_fifo : process(reset, Clock)
+  
+  uart_fifo_handler : process(reset, Clock)
   begin
     if reset = '1' then
       we15 <= '0';
@@ -425,13 +441,13 @@ begin
   --* handles up requests
   --* rs: gfx_fifo_re, gfx_fifo_dout, gfx_fifo_emp
   --* ws: gfx_fifo_re, snp1_2
-  gfx_upreq_p : process(reset, Clock)
+  gfx_upreq_handler : process(reset, Clock)
     variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
     variable st  : natural := 0;
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---snp_req1 <= "000"&nilreq;
+    ---up_snp_req_out <= "000"&nilreq;
     ---pwr_req1 <= "00000";
     elsif rising_edge(Clock) then
       if st = 0 then -- init
@@ -441,8 +457,9 @@ begin
         end if;
       elsif st = 1 then -- snd_to_arbiter
         gfx_fifo_re <= '0';
-        if gfx_fifo_dout(72 downto 72) = "1" then
-          snp1_2 <= "001" & gfx_fifo_dout;
+        if is_valid_msg(gfx_fifo_dout) then
+          snp1_2 <= (GFX_ID or "100") & gfx_fifo_dout; -- TODO 'or 100' is a HACK;
+                                                       -- check how to make it correct
           st  := 2;
         end if;
       elsif st = 2 then -- done
@@ -454,11 +471,11 @@ begin
     end if;
   end process;
 
-  audio_upreq_p : process(reset, Clock)
+  audio_upreq_handler : process(reset, Clock)
     variable stage : integer := 0;
   begin
     if reset = '1' then
-    ---snp_req1 <= "000"&nilreq;
+    ---up_snp_req_out <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re13 = '0' and emp13 = '0' then
@@ -480,13 +497,13 @@ begin
     end if;
   end process;
 
-  usb_upreq_p : process(reset, Clock)
+  usb_upreq_handler : process(reset, Clock)
     variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
     variable stage  : integer                       := 0;
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---snp_req1 <= "000"&nilreq;
+    ---up_snp_req_out <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re14 = '0' and emp14 = '0' then
@@ -508,13 +525,13 @@ begin
     end if;
   end process;
 
-  uart_upreq_p : process(reset, Clock)
+  uart_upreq_handler : process(reset, Clock)
     variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
     variable stage  : integer                       := 0;
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---snp_req1 <= "000"&nilreq;
+    ---up_snp_req_out <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re15 = '0' and emp15 = '0' then
@@ -1026,6 +1043,7 @@ begin
       end if;
     end if;
   end process;
+  
   uart_write:process(reset, Clock)
     variable state:integer :=0;
     variable tep_uart:std_logic_vector(75 downto 0);
@@ -1123,6 +1141,7 @@ begin
       end if;
     end if;
   end process;
+
   toaudio_arbitor : entity work.arbiter2_ack(Behavioral)
     generic map(
       DATA_WIDTH => 76
@@ -1137,6 +1156,7 @@ begin
       dout  => toaudio_p,
       ack 	=> audio_ack
       );
+
   tousb_arbitor : entity work.arbiter2_ack(Behavioral)
     generic map(
       DATA_WIDTH => 76
@@ -1151,6 +1171,7 @@ begin
       dout  => tousb_p,
       ack	=> usb_ack
       );
+
   audio_write:process(reset, Clock)
     variable state:integer :=0;
     variable tep_audio:std_logic_vector(75 downto 0);
@@ -1248,6 +1269,7 @@ begin
       end if;
     end if;
   end process;
+
   tousb_channel : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
@@ -1367,6 +1389,7 @@ begin
       end if;
     end if;
   end process;
+
   usb_write:process(reset, Clock)
     variable state:integer :=0;
     variable tep_usb:std_logic_vector(75 downto 0);
@@ -1464,6 +1487,7 @@ begin
       end if;
     end if;
   end process;
+
   touart_arbitor : entity work.arbiter2_ack(Behavioral)
     generic map(
       DATA_WIDTH => 76
@@ -1478,6 +1502,7 @@ begin
       dout  => touart_p,
       ack	=> uart_ack
       );
+
   touart_channel : process(reset, Clock)
     variable tdata    : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata    : std_logic_vector(31 downto 0)  := (others => '0');
@@ -1622,9 +1647,10 @@ begin
       ack6  => brs2_ack6,
       ack3  => brs2_ack3
       );
+
   snp1_arbitor : entity work.arbiter6(Behavioral)
     generic map(
-      DATA_WIDTH => 76
+      DATA_WIDTH => 76 -- TODO check if correct size; look for HACK in gfx_upreq_handler 
       )
     port map(
       clock => Clock,
@@ -1641,7 +1667,7 @@ begin
       ack5  => snp1_ack5,
       din6  => snp1_6,
       ack6  => snp1_ack6,
-      dout  => snp_req1
+      dout  => up_snp_req_out
       );
 
   pwr_arbitor : entity work.arbiter61(Behavioral)
@@ -1689,6 +1715,7 @@ begin
       ack7  => brs1_ack7,
       dout  => bus_res1
       );
+
   gfx_upres_arbitor : entity work.arbiter6(Behavioral)
     generic map(
       DATA_WIDTH => 73
@@ -1709,6 +1736,7 @@ begin
         ack6 => gfx_upres_ack6,
         dout => gfx_upres_out
 		);
+
   audio_upres_arbitor : entity work.arbiter6(Behavioral)
     generic map(
       DATA_WIDTH => 73
@@ -1730,6 +1758,7 @@ begin
       ack6  => audio_upres_ack6,
       dout  => audio_upres
       );
+
   usb_upres_arbitor : entity work.arbiter6(Behavioral) port map(
     clock => Clock,
     reset => reset,
@@ -1747,6 +1776,7 @@ begin
     ack6  => usb_upres_ack6,
     dout  => usb_upres
     );
+
   uart_upres_arbitor : entity work.arbiter6(Behavioral) port map(
     clock => Clock,
     reset => reset,
@@ -1778,6 +1808,7 @@ begin
       ack2  => wb_ack2,
       dout  => mem_wb
       );
+
   gfx_wb_arbitor : entity work.arbiter2(Behavioral)
     generic map(
       DATA_WIDTH => 553
@@ -1790,6 +1821,7 @@ begin
         ack2 => gfx_wb_ack2,
         dout => gfx_wb
 		);
+
   audio_wb_arbitor : entity work.arbiter2(Behavioral) generic map(
     DATA_WIDTH => 553
     ) port map(
@@ -1801,6 +1833,7 @@ begin
       ack2 => audio_wb_ack2,
       dout => audio_wb
       );
+
   toaudio_channel : process(reset, Clock)
     variable tdata     : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata     : std_logic_vector(31 downto 0)  := (others => '0');
@@ -1932,6 +1965,7 @@ begin
       ack2 => usb_wb_ack2,
       dout => usb_wb
       );
+
   uart_wb_arbitor : entity work.arbiter2(Behavioral) generic map(
     DATA_WIDTH => 553
     ) port map(
@@ -1963,7 +1997,7 @@ begin
     end if;
   end process;
 
-  snp_res1_p : process(reset, Clock)
+  snp_res1_handler : process(reset, Clock)
     variable state : integer := 0;
   begin
     if reset = '1' then
@@ -2089,7 +2123,7 @@ begin
     end if;
   end process;
 
-  pwr_res_p : process(reset, Clock)
+  pwr_res_handler : process(reset, Clock)
   begin
     if reset = '1' then
     elsif rising_edge(Clock) then
@@ -2123,7 +2157,7 @@ begin
   ---this need to be edited, 
   --1. axi protocl
   ---2. more than 2 ips
-  wb_1_p : process(reset, Clock)
+  wb_1_handler : process(reset, Clock)
     variable state : integer;
     variable tdata:std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -2160,9 +2194,7 @@ begin
           mem_write2 <=(others => '0');
           state :=0;
         end if;
-		
-        
-        
+
       elsif state = 3 then
         if gfx_write_ack2='1' then
           gfx_write2<=(others=>'0');
@@ -2189,7 +2221,7 @@ begin
   end process;
 
   ---write_back process
-  wb_2_p : process(reset, Clock)
+  wb_2_handler : process(reset, Clock)
     variable state : integer;
     variable tdata:std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -2254,7 +2286,7 @@ begin
     end if;
   end process;
 
-  cache_req1_p : process(reset, Clock)
+  cache_req1_handler : process(reset, Clock)
     variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
@@ -2334,7 +2366,7 @@ begin
   end process;
 
   ---deal with cache request
-  cache_req2_p : process(reset, Clock)
+  cache_req2_handler : process(reset, Clock)
     variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
@@ -2414,5 +2446,4 @@ begin
       end if;
     end if;
   end process;
-
 end Behavioral;

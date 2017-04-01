@@ -302,7 +302,7 @@ begin
     snp_hit      => snp_hit2,
     snp_res      => snp_res2,
 
-    cache_req    => bus_req2, -- o
+    cache_req    => bus_req2, -- o -- TODO check these connections are correct
     bus_res      => bus_res2,
 
     up_snp_req   => zero75,   -- i
@@ -488,7 +488,7 @@ begin
     wb_req2          => wb_req2,
     bus_res1         => bus_res1,
     bus_res2         => bus_res2,
-    snp_req1         => snp_req,
+    up_snp_req_out   => up_snp_req, -- TODO changed right side from snp_req to up_snp_req
     snp_res1         => snp_res,
     snp_hit1         => snp_hit,
     full_srq1        => full_srq1,
