@@ -349,6 +349,7 @@ begin
     uart_upreq       => uart_upreq,
     uart_upres       => uart_upres,
     uart_upreq_full  => uart_upreq_full,
+    -- write
     waddr            => waddr,
     wlen             => wlen,
     wsize            => wsize,
@@ -362,6 +363,7 @@ begin
     wrready          => wrready,
     wrvalid          => wrvalid,
     wrsp             => wrsp,
+    -- read
     raddr            => raddr,
     rlen             => rlen,
     rsize            => rsize,
@@ -373,6 +375,7 @@ begin
     rdvalid          => rdvalid,
     rdready          => rdready,
     rres             => rres,
+
     waddr_gfx        => waddr_gfx,
     wlen_gfx         => wlen_gfx,
     wsize_gfx        => wsize_gfx,
@@ -386,6 +389,7 @@ begin
     wrready_gfx      => wrready_gfx,
     wrvalid_gfx      => wrvalid_gfx,
     wrsp_gfx         => wrsp_gfx,
+
     raddr_gfx        => raddr_gfx,
     rlen_gfx         => rlen_gfx,
     rsize_gfx        => rsize_gfx,
@@ -666,6 +670,86 @@ begin
   tb_clk <= not tb_clk after tb_period/2 when tb_sim_ended /= '1' else '0';
   Clock <= tb_clk;
 
+  logger : process(tb_clk)
+    variable l : line;
+  begin
+    if rising_edge(tb_clk) then
+      ---- cpu
+      write(l, cpu_req1);
+      write(l, cpu_res1);
+      write(l, cpu_req2);
+      write(l, cpu_res2);
+
+      ---- snp
+      write(l, snp_req1);
+      write(l, snp_res1);
+      write(l, snp_hit1);
+
+      write(l, snp_req2);
+      write(l, snp_res2);
+      write(l, snp_hit1);
+
+      ---- up_snp
+      write(l, up_snp_req);
+      write(l, up_snp_res);
+      write(l, up_snp_hit);
+
+      ---- cache_req
+      write(l, bus_req1);
+      write(l, bus_res1);
+
+      ---- ic
+      ---- read
+      write(l, rvalid);
+      write(l, rres);
+      ---- write
+      write(l, wvalid);
+      write(l, waddr);
+      write(l, wrsp);
+
+      ---- gfx
+      ---- read
+      write(l, rvalid_gfx);
+      write(l, rres_gfx);
+      ---- write
+      write(l, wvalid_gfx);
+      write(l, waddr_gfx);
+      write(l, wrsp_gfx);
+
+      ---- uart
+      ---- read
+      write(l, rvalid_uart);
+      write(l, rres_uart);
+      ---- write
+      write(l, wvalid_uart);
+      write(l, waddr_uart);
+      write(l, wrsp_uart);
+
+      ---- usb
+      ---- read
+      write(l, rvalid_usb);
+      write(l, rres_usb);
+      ---- write
+      write(l, wvalid_usb);
+      write(l, waddr_usb);
+      write(l, wrsp_usb);
+
+      ---- audio
+      ---- read
+      write(l, rvalid_audio);
+      write(l, rres_audio);
+      ---- write
+      write(l, wvalid_audio);
+      write(l, waddr_audio);
+      write(l, wrsp_audio);
+
+      ---- pwr
+      ---- TODO not yet implemented
+      
+      writeline(trace_file, l); 
+    end if;
+  end process;
+  
   stimuli : process
   begin
    

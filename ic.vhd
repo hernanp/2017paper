@@ -28,7 +28,6 @@ entity axi is
     --100 audio
     --101 cpu1
 
-
     gfx_upreq                               : in  std_logic_vector(72 downto 0);
     gfx_upres                               : out std_logic_vector(72 downto 0);
     gfx_upreq_full                          : out std_logic;
