@@ -755,7 +755,7 @@ begin
       ---- read
       write(l, rvalid);
       write(l, SEP);
-      write(l, rres);
+      write(l, rdvalid);
       write(l, SEP);
       ---- write
       write(l, wvalid);
@@ -769,7 +769,7 @@ begin
       ---- read
       write(l, rvalid_gfx);
       write(l, SEP);
-      write(l, rres_gfx);
+      write(l, rdvalid_gfx);
       write(l, SEP);
       ---- write
       write(l, wvalid_gfx);
@@ -783,7 +783,7 @@ begin
       ---- read
       write(l, rvalid_uart);
       write(l, SEP);
-      write(l, rres_uart);
+      write(l, rdvalid_uart);
       write(l, SEP);
       ---- write
       write(l, wvalid_uart);
@@ -797,7 +797,7 @@ begin
       ---- read
       write(l, rvalid_usb);
       write(l, SEP);
-      write(l, rres_usb);
+      write(l, rdvalid_usb);
       write(l, SEP);
       ---- write
       write(l, wvalid_usb);
@@ -811,7 +811,7 @@ begin
       ---- read
       write(l, rvalid_audio);
       write(l, SEP);
-      write(l, rres_audio);
+      write(l, rdvalid_audio);
       write(l, SEP);
       ---- write
       write(l, wvalid_audio);
