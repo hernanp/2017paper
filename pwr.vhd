@@ -21,12 +21,11 @@ entity pwr is
             gfxreq : out STD_LOGIC_VECTOR(2 downto 0);
             audiores : in STD_LOGIC_VECTOR(2 downto 0);
             audioreq : out STD_LOGIC_VECTOR(2 downto 0);
-            usbres : in STD_LOGIC_VECTOR(2 downto 0);
-            usbreq : out STD_LOGIC_VECTOR(2 downto 0);
+            usb_res_in : in STD_LOGIC_VECTOR(2 downto 0);
+            usb_req_out : out STD_LOGIC_VECTOR(2 downto 0);
             uartres : in STD_LOGIC_VECTOR(2 downto 0);
             uartreq : out STD_LOGIC_VECTOR(2 downto 0)
-            );
-            
+            );            
 end pwr;
 
 architecture Behavioral of pwr is

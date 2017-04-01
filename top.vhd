@@ -322,10 +322,10 @@ begin
 
   power : entity work.pwr(Behavioral) port map(
     audioreq  => pwr_audioreq,
-    usbreq    => pwr_usbreq,
+    usb_req_out    => pwr_usbreq,
     uartreq   => pwr_uartreq,
     audiores  => pwr_audiores,
-    usbres    => pwr_usbres,
+    usb_res_in    => pwr_usbres,
     uartres   => pwr_uartres,
     Clock     => Clock,
     reset     => reset,
