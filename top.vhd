@@ -39,7 +39,7 @@ architecture tb of top is
   signal done1, done2                                                       : std_logic;
   signal mem_wb, wb_req1, wb_req2                                           : std_logic_vector(552 downto 0);
   signal wb_ack                                                             : std_logic;
-  signal pwr_req, pwrres                                                     : std_logic_vector(4 downto 0);
+  signal pwr_req, pwr_res                                                     : std_logic_vector(4 downto 0);
   signal pwr_req_full                                                        : std_logic;
 
   signal gfx_b, togfx                 : std_logic_vector(75 downto 0);
@@ -326,7 +326,7 @@ begin
     reset     => reset,
     
     req       => pwr_req,
-    res       => pwrres,
+    res       => pwr_res,
     
     audio_req_out  => pwr_audio_req,
     audio_res_in  => pwr_audio_res,
@@ -343,9 +343,9 @@ begin
     gfx_res_in    => pwr_gfx_res
     );
 
-  interconnect : entity work.AXI(Behavioral) port map(
-    gfx_upreq        => gfx_upreq,
-    gfx_upres        => gfx_upres,
+  interconnect : entity work.ic(Behavioral) port map(
+    gfx_upreq_in        => gfx_upreq,
+    gfx_upres_out        => gfx_upres,
     gfx_upreq_full   => gfx_upreq_full,
     audio_upreq      => audio_upreq,
     audio_upres      => audio_upres,
@@ -495,8 +495,8 @@ begin
     full_wb1         => full_wb1,
     full_srs1        => full_srs1,
     full_wb2         => full_wb2,
-    pwr_req           => pwr_req,
-    pwrres           => pwrres,
+    pwr_req_out           => pwr_req,
+    pwr_res_in           => pwr_res,
     pwr_req_full      => pwr_req_full
     );
 
@@ -515,6 +515,7 @@ begin
     rdvalid    => rdvalid_gfx,
     rdready    => rdready_gfx,
     rres       => rres_gfx,
+    -- write
     waddr      => waddr_gfx,
     wlen       => wlen_gfx,
     wsize      => wsize_gfx,
@@ -526,6 +527,7 @@ begin
     wdataready => wdataready_gfx,
     wdvalid    => wdvalid_gfx,
     wrready    => wrready_gfx,
+
     upres      => gfx_upres,
     upreq      => gfx_upreq,
     upreq_full => gfx_upreq_full,
@@ -677,6 +679,29 @@ begin
   tb_clk <= not tb_clk after tb_period/2 when tb_sim_ended /= '1' else '0';
   Clock <= tb_clk;
 
+  log_up_snp : process(tb_clk)
+    variable l : line;
+    constant SEP : String(1 to 1) := ",";
+    file log_file : TEXT open write_mode is "up_snp.log";
+  begin
+    if rising_edge(tb_clk) then
+      write(l, gfx_upreq);
+      write(l, SEP);
+      write(l, up_snp_req);
+      write(l, SEP);
+      write(l, snp_req2);
+      write(l, SEP);
+      write(l, snp_res2);
+      write(l, SEP);
+      write(l, up_snp_res);
+      write(l, SEP);
+      write(l, rvalid);
+      write(l, SEP);
+      write(l, rres);
+      writeline(log_file, l); 
+    end if;
+  end process;
+      
   logger : process(tb_clk)
     variable l : line;
     constant SEP : String(1 to 1) := ",";

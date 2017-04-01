@@ -40,7 +40,7 @@ sim:
 # TODO need to adjust parameters here
 # see http://ghdl.readthedocs.io/en/latest/Simulation_and_runtime.html#simulation-and-runtime
 	./top --stop-time=10000ps --vcd=top.vcd
-viewwave:
+wave:
 	gtkwave top.vcd
 docs:
 	vhdocl *.vhd

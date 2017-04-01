@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
 
-entity axi is
+entity ic is
   Port(
     Clock                                   : in  std_logic;
     reset                                   : in  std_logic;
@@ -16,9 +16,9 @@ entity axi is
     snp_hit1                                : in  std_logic;
     full_srq1                               : in  std_logic;
     full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
-    pwr_req                                  : out std_logic_vector(4 downto 0);
+    pwr_req_out                                  : out std_logic_vector(4 downto 0);
     pwr_req_full                             : in  std_logic;
-    pwrres                                  : in  std_logic_vector(4 downto 0);
+    pwr_res_in                                  : in  std_logic_vector(4 downto 0);
 
     --add 3 bits in snoop request to indicate the source
     --000 cpu0
@@ -28,8 +28,8 @@ entity axi is
     --100 audio
     --101 cpu1
 
-    gfx_upreq                               : in  std_logic_vector(72 downto 0);
-    gfx_upres                               : out std_logic_vector(72 downto 0);
+    gfx_upreq_in                               : in  std_logic_vector(72 downto 0);
+    gfx_upres_out                               : out std_logic_vector(72 downto 0);
     gfx_upreq_full                          : out std_logic;
     audio_upreq                             : in  std_logic_vector(72 downto 0);
     audio_upres                             : out std_logic_vector(72 downto 0);
@@ -196,9 +196,9 @@ entity axi is
     rdready_audio                           : out std_logic;
     rres_audio                              : in  std_logic_vector(1 downto 0)
 	);
-end axi;
+end ic;
 
-architecture Behavioral of axi is
+architecture Behavioral of ic is
   --fifo has 53 bits
   --3 bits for indicating its source¡
   --50 bits for packet
@@ -227,10 +227,10 @@ architecture Behavioral of axi is
   signal mem_wb, gfx_wb, audio_wb, usb_wb, uart_wb      : std_logic_vector(552 downto 0);
   signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(75 downto 0);
 
-  signal in9, out9, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(72 downto 0);
+  signal in9, gfx_fifo_dout, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(72 downto 0);
   signal in8, out8, in10, out10, in11, out11, in12, out12                                           : std_logic_vector(75 downto 0);
-  signal we8, re8, re9, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
-  signal emp8, emp9, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
+  signal we8, re8, gfx_fifo_re, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
+  signal emp8, gfx_fifo_emp, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
 
   signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res1_7, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6 : std_logic_vector(552 downto 0);
 
@@ -317,10 +317,10 @@ begin
     RST     => reset,
     DataIn  => in9,
     WriteEn => we9,
-    ReadEn  => re9,
-    DataOut => out9,
+    ReadEn  => gfx_fifo_re,
+    DataOut => gfx_fifo_dout,
     Full    => gfx_upreq_full,
-    Empty   => emp9
+    Empty   => gfx_fifo_emp
     );
   snp_res_fifo : entity work.fifo(Behavioral)
     generic map(
@@ -341,8 +341,8 @@ begin
     if reset = '1' then
       we9 <= '0';
     elsif rising_edge(Clock) then
-      if (gfx_upreq(50 downto 50) = "1") then
-        in9 <= gfx_upreq;
+      if (gfx_upreq_in(50 downto 50) = "1") then
+        in9 <= gfx_upreq_in;
         we9 <= '1';
       else
         we9 <= '0';
@@ -419,30 +419,33 @@ begin
     end if;
   end process;
 
+  --* handles up requests
+  --* rs: gfx_fifo_re, gfx_fifo_dout, gfx_fifo_emp
+  --* ws: gfx_fifo_re, snp1_2
   gfx_upreq_p : process(reset, Clock)
     variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
-    variable stage  : integer                       := 0;
+    variable st  : natural := 0;
   ---variable count: integer:=0;
   begin
     if reset = '1' then
     ---snp_req1 <= "000"&nilreq;
     ---pwr_req1 <= "00000";
     elsif rising_edge(Clock) then
-      if stage = 0 then
-        if re9 = '0' and emp9 = '0' then
-          re9   <= '1';
-          stage := 1;
+      if st = 0 then -- init
+        if gfx_fifo_re = '0' and gfx_fifo_emp = '0' then -- not (in use or empty)
+          gfx_fifo_re   <= '1';
+          st := 1;
         end if;
-      elsif stage = 1 then
-        re9 <= '0';
-        if out9(72 downto 72) = "1" then
-          snp1_2 <= "001" & out9;
-          stage  := 2;
+      elsif st = 1 then -- snd_to_arbiter
+        gfx_fifo_re <= '0';
+        if gfx_fifo_dout(72 downto 72) = "1" then
+          snp1_2 <= "001" & gfx_fifo_dout;
+          st  := 2;
         end if;
-      elsif stage = 2 then
+      elsif st = 2 then -- done
         if snp1_ack2 = '1' then
           snp1_2 <= (others => '0');
-          stage  := 0;
+          st  := 0;
         end if;
       end if;
     end if;
@@ -1657,7 +1660,7 @@ begin
       ack5  => pwr_ack5,
       din6  => pwr_req6,
       ack6  => pwr_ack6,
-      dout  => pwr_req
+      dout  => pwr_req_out
       );
 
   brs1_arbitor : entity work.arbiter7(Behavioral)
@@ -1701,7 +1704,7 @@ begin
         ack5 => gfx_upres_ack5,
         din6 => gfx_upres6,
         ack6 => gfx_upres_ack6,
-        dout => gfx_upres
+        dout => gfx_upres_out
 		);
   audio_upres_arbitor : entity work.arbiter6(Behavioral)
     generic map(
@@ -2087,25 +2090,25 @@ begin
   begin
     if reset = '1' then
     elsif rising_edge(Clock) then
-      if pwrres(4 downto 4) = "1" then
-        if pwrres(3 downto 2) = "00" then
-          if pwrres(1 downto 0) = "00" then
+      if pwr_res_in(4 downto 4) = "1" then
+        if pwr_res_in(3 downto 2) = "00" then
+          if pwr_res_in(1 downto 0) = "00" then
             gfxpoweron <= '0';
-          elsif pwrres(1 downto 0) = "01" then
+          elsif pwr_res_in(1 downto 0) = "01" then
             audiopoweron <= '0';
-          elsif pwrres(1 downto 0) = "10" then
+          elsif pwr_res_in(1 downto 0) = "10" then
             usbpoweron <= '0';
-          elsif pwrres(1 downto 0) = "11" then
+          elsif pwr_res_in(1 downto 0) = "11" then
             uartpoweron <= '0';
           end if;
-        elsif pwrres(3 downto 2) = "10" then
-          if pwrres(1 downto 0) = "00" then
+        elsif pwr_res_in(3 downto 2) = "10" then
+          if pwr_res_in(1 downto 0) = "00" then
             gfxpoweron <= '1';
-          elsif pwrres(1 downto 0) = "01" then
+          elsif pwr_res_in(1 downto 0) = "01" then
             audiopoweron <= '1';
-          elsif pwrres(1 downto 0) = "10" then
+          elsif pwr_res_in(1 downto 0) = "10" then
             usbpoweron <= '1';
-          elsif pwrres(1 downto 0) = "11" then
+          elsif pwr_res_in(1 downto 0) = "11" then
             uartpoweron <= '1';
           end if;
         end if;

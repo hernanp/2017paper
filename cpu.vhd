@@ -42,7 +42,8 @@ begin
   begin
     if reset = '1' then
      -- cpu_req <= (others => '0');
-      st <= init;
+      -- st <= init; -- TODO commented out to test up_snp; uncomment when done
+      st <= idle; -- TODO see line above
     elsif (rising_edge(Clock)) then
       st <= next_st;
     end if;
@@ -73,9 +74,13 @@ begin
         -- send a random msg
         if cpu_id = 1 then
          --- cpu_req <= rand_req(write);
-			 cpu_req<="110000000"&"10000000000000000000000000000000"&"00000000000000000000000000000000";
+          cpu_req<="110000000" &
+                    "10000000000000000000000000000000" &
+                    "00000000000000000000000000000000";
         elsif cpu_id = 2 then
-          cpu_req<="101000000"&"10000000000000000000000000000000"&"00000000000000000000000000000000";
+          cpu_req<="101000000" &
+                    "10000000000000000000000000000000" &
+                    "00000000000000000000000000000000";
         end if;
         next_st <= idle;
       when idle =>

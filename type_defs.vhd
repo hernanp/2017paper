@@ -11,6 +11,8 @@ package type_defs is
   constant WRITE_CMD : std_logic_vector(7 downto 0) := "10000000";
   constant ZEROS_CMD : std_logic_vector(7 downto 0) := "00000000";
 
+  constant ZEROS32 : std_logic_vector(31 downto 0) := (others => '0');
+  
   constant CPU0_ID  : std_logic_vector(2 downto 0) := "000";
   constant GFX_ID   : std_logic_vector(2 downto 0) := "001";
   constant UART_ID  : std_logic_vector(2 downto 0) := "010";
