@@ -321,16 +321,21 @@ begin
     );
 
   power : entity work.pwr(Behavioral) port map(
-    audioreq  => pwr_audioreq,
-    usb_req_out    => pwr_usbreq,
-    uartreq   => pwr_uartreq,
-    audiores  => pwr_audiores,
-    usb_res_in    => pwr_usbres,
-    uartres   => pwr_uartres,
     Clock     => Clock,
     reset     => reset,
+    
     req       => pwrreq,
     res       => pwrres,
+    
+    audioreq  => pwr_audioreq,
+    audiores  => pwr_audiores,
+    
+    usb_req_out    => pwr_usbreq,
+    usb_res_in    => pwr_usbres,
+    
+    uartreq   => pwr_uartreq,
+    uartres   => pwr_uartres,
+
     full_preq => pwrreq_full,
     gfxreq    => pwr_gfxreq,
     gfxres    => pwr_gfxres
