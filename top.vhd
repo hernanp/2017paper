@@ -39,8 +39,8 @@ architecture tb of top is
   signal done1, done2                                                       : std_logic;
   signal mem_wb, wb_req1, wb_req2                                           : std_logic_vector(552 downto 0);
   signal wb_ack                                                             : std_logic;
-  signal pwrreq, pwrres                                                     : std_logic_vector(4 downto 0);
-  signal pwrreq_full                                                        : std_logic;
+  signal pwr_req, pwrres                                                     : std_logic_vector(4 downto 0);
+  signal pwr_req_full                                                        : std_logic;
 
   signal gfx_b, togfx                 : std_logic_vector(75 downto 0);
   signal gfx_upreq, gfx_upres, gfx_wb : std_logic_vector(72 downto 0);
@@ -325,7 +325,7 @@ begin
     Clock     => Clock,
     reset     => reset,
     
-    req       => pwrreq,
+    req       => pwr_req,
     res       => pwrres,
     
     audio_req_out  => pwr_audio_req,
@@ -337,7 +337,8 @@ begin
     uart_req_out   => pwr_uart_req,
     uart_res_in   => pwr_uart_res,
 
-    full_preq => pwrreq_full,
+    full_preq => pwr_req_full,
+
     gfx_req_out    => pwr_gfx_req,
     gfx_res_in    => pwr_gfx_res
     );
@@ -494,9 +495,9 @@ begin
     full_wb1         => full_wb1,
     full_srs1        => full_srs1,
     full_wb2         => full_wb2,
-    pwrreq           => pwrreq,
+    pwr_req           => pwr_req,
     pwrres           => pwrres,
-    pwrreq_full      => pwrreq_full
+    pwr_req_full      => pwr_req_full
     );
 
   gfx : entity work.gfx(Behavioral) port map(
@@ -703,7 +704,7 @@ begin
       write(l, SEP);
       write(l, snp_res2);
       write(l, SEP);
-      write(l, snp_hit1);
+      write(l, snp_hit2);
       write(l, SEP);
 
       ---- up_snp
@@ -720,6 +721,11 @@ begin
       write(l, bus_res1);
       write(l, SEP);
 
+      write(l, bus_req2);
+      write(l, SEP);
+      write(l, bus_res2);
+      write(l, SEP);
+      
       ---- ic
       ---- read
       write(l, rvalid);

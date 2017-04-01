@@ -16,8 +16,8 @@ entity axi is
     snp_hit1                                : in  std_logic;
     full_srq1                               : in  std_logic;
     full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
-    pwrreq                                  : out std_logic_vector(4 downto 0);
-    pwrreq_full                             : in  std_logic;
+    pwr_req                                  : out std_logic_vector(4 downto 0);
+    pwr_req_full                             : in  std_logic;
     pwrres                                  : in  std_logic_vector(4 downto 0);
 
     --add 3 bits in snoop request to indicate the source
@@ -1657,7 +1657,7 @@ begin
       ack5  => pwr_ack5,
       din6  => pwr_req6,
       ack6  => pwr_ack6,
-      dout  => pwrreq
+      dout  => pwr_req
       );
 
   brs1_arbitor : entity work.arbiter7(Behavioral)
