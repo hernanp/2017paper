@@ -1,6 +1,7 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-USE ieee.numeric_std.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.type_defs.all;
 
 entity ic is
   Port(
@@ -28,8 +29,8 @@ entity ic is
     --100 audio
     --101 cpu1
 
-    gfx_upreq_in                               : in  std_logic_vector(72 downto 0);
-    gfx_upres_out                               : out std_logic_vector(72 downto 0);
+    gfx_upreq_in                            : in  std_logic_vector(72 downto 0);
+    gfx_upres_out                           : out std_logic_vector(72 downto 0);
     gfx_upreq_full                          : out std_logic;
     audio_upreq                             : in  std_logic_vector(72 downto 0);
     audio_upres                             : out std_logic_vector(72 downto 0);
@@ -227,7 +228,7 @@ architecture Behavioral of ic is
   signal mem_wb, gfx_wb, audio_wb, usb_wb, uart_wb      : std_logic_vector(552 downto 0);
   signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(75 downto 0);
 
-  signal in9, gfx_fifo_dout, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(72 downto 0);
+  signal gfx_fifo_din, gfx_fifo_dout, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(72 downto 0);
   signal in8, out8, in10, out10, in11, out11, in12, out12                                           : std_logic_vector(75 downto 0);
   signal we8, re8, gfx_fifo_re, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
   signal emp8, gfx_fifo_emp, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
@@ -315,7 +316,7 @@ begin
   gfx_fif : entity work.fifo(Behavioral) port map(
     CLK     => Clock,
     RST     => reset,
-    DataIn  => in9,
+    DataIn  => gfx_fifo_din,
     WriteEn => we9,
     ReadEn  => gfx_fifo_re,
     DataOut => gfx_fifo_dout,
@@ -337,12 +338,14 @@ begin
       Empty   => emp2
       );
   gfx_fifo : process(reset, Clock)
+    variable valid : std_logic_vector(72 downto 0) :=
+      '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
   begin
     if reset = '1' then
       we9 <= '0';
     elsif rising_edge(Clock) then
-      if (gfx_upreq_in(50 downto 50) = "1") then
-        in9 <= gfx_upreq_in;
+      if ((gfx_upreq_in and valid) >= valid) then
+        gfx_fifo_din <= gfx_upreq_in;
         we9 <= '1';
       else
         we9 <= '0';

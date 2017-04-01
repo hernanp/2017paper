@@ -762,7 +762,7 @@ begin
       write(l, SEP);
       write(l, waddr);
       write(l, SEP);
-      write(l, wrsp);
+      write(l, wrvalid);
       write(l, SEP);
 
       ---- gfx
@@ -776,7 +776,7 @@ begin
       write(l, SEP);
       write(l, waddr_gfx);
       write(l, SEP);
-      write(l, wrsp_gfx);
+      write(l, wrvalid_gfx);
       write(l, SEP);
 
       ---- uart
@@ -790,7 +790,7 @@ begin
       write(l, SEP);
       write(l, waddr_uart);
       write(l, SEP);
-      write(l, wrsp_uart);
+      write(l, wrvalid_uart);
       write(l, SEP);
 
       ---- usb
@@ -804,7 +804,7 @@ begin
       write(l, SEP);
       write(l, waddr_usb);
       write(l, SEP);
-      write(l, wrsp_usb);
+      write(l, wrvalid_usb);
       write(l, SEP);
 
       ---- audio
@@ -818,7 +818,7 @@ begin
       write(l, SEP);
       write(l, waddr_audio);
       write(l, SEP);
-      write(l, wrsp_audio);
+      write(l, wrvalid_audio);
 
       ---- pwr
       ---- TODO not yet implemented

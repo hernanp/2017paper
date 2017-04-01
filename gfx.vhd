@@ -238,7 +238,7 @@ begin
       case t1_st is
         when 0 => -- init
           t1_st <= 1;
-        when 1 => -- snd up_req
+        when 1 => -- snd up_req 
           upreq <= '1' & READ_CMD & ZEROS32 & ZEROS32;
           t1_st <= 2;
         when 2 => -- done

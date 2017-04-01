@@ -25,4 +25,5 @@ package type_defs is
   
   -- indices
   --constant MEM_FOUND_IDX : positive := 56;
+  constant VALID_MSG_IDX : positive := 72;
 end type_defs;
