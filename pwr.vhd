@@ -17,14 +17,17 @@ entity pwr is
           res: out STD_LOGIC_VECTOR(4 downto 0);
           full_preq: out std_logic:='0';
           
-          gfxres : in STD_LOGIC_VECTOR(2 downto 0);
-          gfxreq : out STD_LOGIC_VECTOR(2 downto 0);
-          audiores : in STD_LOGIC_VECTOR(2 downto 0);
-          audioreq : out STD_LOGIC_VECTOR(2 downto 0);
+          gfx_res_in  : in STD_LOGIC_VECTOR(2 downto 0);
+          gfx_req_out : out STD_LOGIC_VECTOR(2 downto 0);
+
+          uart_res_in : in STD_LOGIC_VECTOR(2 downto 0);
+          uart_req_out : out STD_LOGIC_VECTOR(2 downto 0);
+          
           usb_res_in : in STD_LOGIC_VECTOR(2 downto 0);
           usb_req_out : out STD_LOGIC_VECTOR(2 downto 0);
-          uartres : in STD_LOGIC_VECTOR(2 downto 0);
-          uartreq : out STD_LOGIC_VECTOR(2 downto 0)
+
+          audio_res_in : in STD_LOGIC_VECTOR(2 downto 0);
+          audio_req_out : out STD_LOGIC_VECTOR(2 downto 0)
           );            
 end pwr;
 
@@ -70,15 +73,15 @@ begin
     variable state: integer :=0;
   begin
     if (reset = '1') then
-      gfxreq<= nilreq(2 downto 0);
+      gfx_req_out<= nilreq(2 downto 0);
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
       res <= "00000";
       if state =0 then
-        gfxreq <= nilreq(2 downto 0);
-        audioreq <= nilreq(2 downto 0);
+        gfx_req_out <= nilreq(2 downto 0);
+        audio_req_out <= nilreq(2 downto 0);
         usb_req_out <= nilreq(2 downto 0);
-        uartreq <= nilreq(2 downto 0);
+        uart_req_out <= nilreq(2 downto 0);
         if re1 = '0' and emp1 ='0' then
           re1 <= '1';
           state := 1;
@@ -99,26 +102,26 @@ begin
           end if;
         end if;
       elsif state = 2 then
-        gfxreq<=tmp_req(4 downto 2);
+        gfx_req_out<=tmp_req(4 downto 2);
         state := 6;
       elsif state = 3 then
-        audioreq <= tmp_req(4 downto 2);
+        audio_req_out <= tmp_req(4 downto 2);
         state := 7;
       elsif state = 4 then
         usb_req_out <= tmp_req(4 downto 2);
         state := 8;
       elsif state = 5 then
-        uartreq<=tmp_req(4 downto 2);
+        uart_req_out<=tmp_req(4 downto 2);
         state := 9;
       elsif state = 6 then
-        gfxreq <= (others => '0');
-        if gfxres(2 downto 2) = "1" then
+        gfx_req_out <= (others => '0');
+        if gfx_res_in(2 downto 2) = "1" then
           res <= tmp_req;
           state :=0;
         end if;
       elsif state = 7 then
-        audioreq <= (others => '0');
-        if audiores(2 downto 2) = "1" then
+        audio_req_out <= (others => '0');
+        if audio_res_in(2 downto 2) = "1" then
           res <= tmp_req;
           state :=0;
         end if;
@@ -129,8 +132,8 @@ begin
           state :=0;
         end if;
       elsif state = 9 then
-        uartreq <= (others => '0');
-        if uartres(2 downto 2) = "1" then
+        uart_req_out <= (others => '0');
+        if uart_res_in(2 downto 2) = "1" then
           res <= tmp_req;
           state :=0;
         end if;

@@ -1,11 +1,10 @@
-
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+use ieee.std_logic_1164.all;
 --use iEEE.std_logic_unsigned.all ;
-USE ieee.numeric_std.ALL;
+use ieee.numeric_std.all;
 
 use std.textio.all;
-use IEEE.std_logic_textio.all;
+use ieee.std_logic_textio.all;
 
 entity top is
 end top;
@@ -46,10 +45,12 @@ architecture tb of top is
   signal gfx_b, togfx                 : std_logic_vector(75 downto 0);
   signal gfx_upreq, gfx_upres, gfx_wb : std_logic_vector(72 downto 0);
   signal gfx_upreq_full, gfx_wb_ack   : std_logic;
-  signal pwr_gfxreq, pwr_gfxres       : std_logic_vector(2 downto 0);
-  signal pwr_audioreq, pwr_audiores   : std_logic_vector(2 downto 0);
-  signal pwr_usbreq, pwr_usbres       : std_logic_vector(2 downto 0);
-  signal pwr_uartreq, pwr_uartres     : std_logic_vector(2 downto 0);
+
+  -- pwr
+  signal pwr_gfx_req, pwr_gfx_res       : std_logic_vector(2 downto 0);
+  signal pwr_audio_req, pwr_audio_res   : std_logic_vector(2 downto 0);
+  signal pwr_usb_req, pwr_usb_res       : std_logic_vector(2 downto 0);
+  signal pwr_uart_req, pwr_uart_res     : std_logic_vector(2 downto 0);
   
   signal audio_b, toaudio                   : std_logic_vector(53 downto 0);
   signal audio_upreq, audio_upres, audio_wb : std_logic_vector(72 downto 0);
@@ -327,18 +328,18 @@ begin
     req       => pwrreq,
     res       => pwrres,
     
-    audioreq  => pwr_audioreq,
-    audiores  => pwr_audiores,
+    audio_req_out  => pwr_audio_req,
+    audio_res_in  => pwr_audio_res,
     
-    usb_req_out    => pwr_usbreq,
-    usb_res_in    => pwr_usbres,
+    usb_req_out    => pwr_usb_req,
+    usb_res_in    => pwr_usb_res,
     
-    uartreq   => pwr_uartreq,
-    uartres   => pwr_uartres,
+    uart_req_out   => pwr_uart_req,
+    uart_res_in   => pwr_uart_res,
 
     full_preq => pwrreq_full,
-    gfxreq    => pwr_gfxreq,
-    gfxres    => pwr_gfxres
+    gfx_req_out    => pwr_gfx_req,
+    gfx_res_in    => pwr_gfx_res
     );
 
   interconnect : entity work.AXI(Behavioral) port map(
@@ -530,8 +531,8 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwrreq     => pwr_gfxreq,
-    pwrres     => pwr_gfxres
+    pwrreq     => pwr_gfx_req,
+    pwrres     => pwr_gfx_res
     );
 
   audio : entity work.audio(Behavioral) port map(
@@ -566,8 +567,8 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwrreq     => pwr_audioreq,
-    pwrres     => pwr_audiores
+    pwrreq     => pwr_audio_req,
+    pwrres     => pwr_audio_res
     );
 
   usb : entity work.usb(Behavioral) port map(
@@ -602,8 +603,8 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwrreq     => pwr_usbreq,
-    pwrres     => pwr_usbres
+    pwrreq     => pwr_usb_req,
+    pwrres     => pwr_usb_res
     );
 
   uart : entity work.uart(Behavioral) port map(
@@ -638,8 +639,8 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwrreq     => pwr_uartreq,
-    pwrres     => pwr_uartres
+    pwrreq     => pwr_uart_req,
+    pwrres     => pwr_uart_res
     );
 
   mem : entity work.Memory(Behavioral) port map(
@@ -677,75 +678,115 @@ begin
 
   logger : process(tb_clk)
     variable l : line;
+    constant SEP : String(1 to 1) := ",";
   begin
     if rising_edge(tb_clk) then
       ---- cpu
       write(l, cpu_req1);
+      write(l, SEP);
       write(l, cpu_res1);
+      write(l, SEP);
       write(l, cpu_req2);
+      write(l, SEP);
       write(l, cpu_res2);
+      write(l, SEP);
 
       ---- snp
       write(l, snp_req1);
+      write(l, SEP);
       write(l, snp_res1);
+      write(l, SEP);
       write(l, snp_hit1);
+      write(l, SEP);
 
       write(l, snp_req2);
+      write(l, SEP);
       write(l, snp_res2);
+      write(l, SEP);
       write(l, snp_hit1);
+      write(l, SEP);
 
       ---- up_snp
       write(l, up_snp_req);
+      write(l, SEP);
       write(l, up_snp_res);
+      write(l, SEP);
       write(l, up_snp_hit);
+      write(l, SEP);
 
       ---- cache_req
       write(l, bus_req1);
+      write(l, SEP);
       write(l, bus_res1);
+      write(l, SEP);
 
       ---- ic
       ---- read
       write(l, rvalid);
+      write(l, SEP);
       write(l, rres);
+      write(l, SEP);
       ---- write
       write(l, wvalid);
+      write(l, SEP);
       write(l, waddr);
+      write(l, SEP);
       write(l, wrsp);
+      write(l, SEP);
 
       ---- gfx
       ---- read
       write(l, rvalid_gfx);
+      write(l, SEP);
       write(l, rres_gfx);
+      write(l, SEP);
       ---- write
       write(l, wvalid_gfx);
+      write(l, SEP);
       write(l, waddr_gfx);
+      write(l, SEP);
       write(l, wrsp_gfx);
+      write(l, SEP);
 
       ---- uart
       ---- read
       write(l, rvalid_uart);
+      write(l, SEP);
       write(l, rres_uart);
+      write(l, SEP);
       ---- write
       write(l, wvalid_uart);
+      write(l, SEP);
       write(l, waddr_uart);
+      write(l, SEP);
       write(l, wrsp_uart);
+      write(l, SEP);
 
       ---- usb
       ---- read
       write(l, rvalid_usb);
+      write(l, SEP);
       write(l, rres_usb);
+      write(l, SEP);
       ---- write
       write(l, wvalid_usb);
+      write(l, SEP);
       write(l, waddr_usb);
+      write(l, SEP);
       write(l, wrsp_usb);
+      write(l, SEP);
 
       ---- audio
       ---- read
       write(l, rvalid_audio);
+      write(l, SEP);
       write(l, rres_audio);
+      write(l, SEP);
       ---- write
       write(l, wvalid_audio);
+      write(l, SEP);
       write(l, waddr_audio);
+      write(l, SEP);
       write(l, wrsp_audio);
 
       ---- pwr
