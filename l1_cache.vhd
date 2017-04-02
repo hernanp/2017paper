@@ -18,9 +18,9 @@ entity l1_cache is
   port(
     Clock                : in  std_logic;
     reset                : in  std_logic;
-    cpu_req              : in  STD_LOGIC_VECTOR(72 downto 0);
-    snp_req              : in  STD_LOGIC_VECTOR(72 downto 0);
-    bus_res              : in  STD_LOGIC_VECTOR(552 downto 0);
+    cpu_req_in              : in  STD_LOGIC_VECTOR(72 downto 0);
+    snp_req_in              : in  STD_LOGIC_VECTOR(72 downto 0);
+    bus_res_in              : in  STD_LOGIC_VECTOR(552 downto 0);
     --01: read response
     --10: write response
     --11: fifo full response
@@ -29,16 +29,16 @@ entity l1_cache is
     --10: write response
     --11: fifo full response
     snp_hit            : out std_logic;
-    snp_res            : out STD_LOGIC_VECTOR(72 downto 0) := (others => '0');
+    snp_res_out            : out STD_LOGIC_VECTOR(72 downto 0) := (others => '0');
 
     --goes to cache controller ask for data
-    snoop_c_req  : out std_logic_vector(72 downto 0);
-    snoop_c_res  : in  std_logic_vector(72 downto 0);
-    snoop_c_hit  : in  std_logic;
-    up_snp_req_in       : in  std_logic_vector(75 downto 0);
-    up_snp_res   : out std_logic_vector(75 downto 0);
-    up_snp_hit   : out std_logic;
-    wb_req       : out std_logic_vector(552 downto 0);
+    snp_req_out  : out std_logic_vector(72 downto 0);
+    snp_res_in  : in  std_logic_vector(72 downto 0);
+    snp_hit_in  : in  std_logic;
+    up_snp_req_in    : in  std_logic_vector(75 downto 0);
+    up_snp_res_out   : out std_logic_vector(75 downto 0);
+    up_snp_hit_out   : out std_logic;
+    wb_req           : out std_logic_vector(552 downto 0);
     --01: read request
     --10: write request
     --10,11: write back function
@@ -71,9 +71,9 @@ architecture Behavioral of l1_cache is
   
   -- FIFO queues inputs
   -- write_enable signals for FIFO queues
-  signal crf_we, srf_we, bsf_we, drf_we, ssf_we : std_logic := '0';
+  signal crf_we, srf_we, bsf_we, brf_we, ssf_we : std_logic := '0';
   -- read_enable signals for FIFO queues
-  signal crf_re, srf_re, bsf_re, drf_re, ssf_re : std_logic;
+  signal crf_re, srf_re, bsf_re, brf_re, ssf_re : std_logic;
   -- data_in signals
   signal crf_in, srf_in, ssf_in : std_logic_vector(72 downto 0):=(others => '0');
   
@@ -81,11 +81,11 @@ architecture Behavioral of l1_cache is
   -- data_out signals
   signal out1, out3, -- TODO not used?
     srf_out, ssf_out : std_logic_vector(72 downto 0):=(others => '0');
-  signal drf_out, drf_in : std_logic_vector(75 downto 0):=(others => '0');
+  signal brf_out, brf_in : std_logic_vector(75 downto 0):=(others => '0');
   -- empty signals
-  signal crf_emp, srf_emp, bsf_emp, drf_emp, ssf_emp : std_logic;
+  signal crf_emp, srf_emp, bsf_emp, brf_emp, ssf_emp : std_logic;
   -- full signals
-  signal drf_full, ssf_full: std_logic := '0'; -- TODO not used?
+  signal brf_full, ssf_full: std_logic := '0'; -- TODO not implemented yet?
 
   -- MCU (Memory Control Unit)
   
@@ -163,13 +163,29 @@ begin
     port map(
       CLK     => Clock,
       RST     => reset,
-      DataIn  => drf_in,
-      WriteEn => drf_we,
-      ReadEn  => drf_re,
+      DataIn  => brf_in,
+      WriteEn => brf_we,
+      ReadEn  => brf_re,
       DataOut => usnp_mem_req,
-      Full    => drf_full,
-      Empty   => drf_emp
+      Full    => brf_full,
+      Empty   => brf_emp
       );
+
+  --* Store up snoop requests into fifo	
+  up_snp_req_fifo_handler : process(Clock)
+  begin
+    if reset = '1' then
+      brf_we <= '0';
+    elsif rising_edge(Clock) then
+      if (up_snp_req_in(75 downto 75) = "1") then
+        brf_in <= up_snp_req_in;
+        brf_we <= '1';
+      else
+        brf_we <= '0';
+      end if;
+    end if;
+  end process;
+  
   snp_req_fifo : entity work.fifo(Behavioral)
     generic map(
       DATA_WIDTH => DEFAULT_DATA_WIDTH,
@@ -218,7 +234,7 @@ begin
       ack1  => snp_c_ack1,
       din2  => snp_c_req2,
       ack2  => snp_c_ack2,
-      dout  => snoop_c_req
+      dout  => snp_req_out
       );
 
   snp_mem_req_arbiter : entity work.arbiter2(Behavioral)
@@ -238,8 +254,8 @@ begin
     if reset = '1' then
       crf_we <= '0';
     elsif rising_edge(Clock) then
-      if cpu_req(72 downto 72) = "1" then -- if req is valid
-        crf_in <= cpu_req;
+      if cpu_req_in(72 downto 72) = "1" then -- if req is valid
+        crf_in <= cpu_req_in;
         crf_we <= '1';
       else
         crf_we <= '0';
@@ -254,15 +270,15 @@ begin
       srf_we <= '0';
 
     elsif rising_edge(Clock) then
-      if (snp_req(72 downto 72) = "1") then
-        srf_in <= snp_req;
+      if (snp_req_in(72 downto 72) = "1") then
+        srf_in <= snp_req_in;
         srf_we <= '1';
       else
         srf_we <= '0';
       end if;
     end if;
   end process;
-
+  
   --* Store bus requests into fifo	
   bus_res_fifo_handler : process(Clock)
   begin
@@ -270,8 +286,8 @@ begin
       bsf_we <= '0';
 
     elsif rising_edge(Clock) then
-      if (bus_res(552 downto 552) = "1") then
-        bsf_in <= bus_res;
+      if (bus_res_in(552 downto 552) = "1") then
+        bsf_in <= bus_res_in;
         bsf_we <= '1';
       else
         bsf_we <= '0';
@@ -339,14 +355,14 @@ begin
         end if;
       --now we wait for the snoop response
       elsif state = 6 then -- get_snp_resp
-        if snoop_c_res(72 downto 72) = "1" then
+        if snp_res_in(72 downto 72) = "1" then
           --if we get a snoop response  and the address is the same  => 
-          if snoop_c_res(63 downto 32) = snpreq(63 downto 32) then
-            if snoop_c_hit = '1' then
+          if snp_res_in(63 downto 32) = snpreq(63 downto 32) then
+            if snp_hit_in = '1' then
               state    := 4;
-              cpu_res1 <= snoop_c_res;
+              cpu_res1 <= snp_res_in;
             else
-              cache_req <= snoop_c_res;
+              cache_req <= snp_res_in;
               state     := 0;
             end if;
           end if;
@@ -365,25 +381,25 @@ begin
     variable state : integer := 0;
   begin
     if (reset = '1') then
-      state        := 0;
-      up_snp_res <= (others => '0');
-      up_snp_hit <= '1'; -- TODO should it be 0?
-      drf_re <= '0';
-      snp_c_req2 <=(others => '0');
+      state := 0;
+      up_snp_res_out <= (others => '0');
+      up_snp_hit_out <= '1'; -- TODO should it be 0?
+      brf_re <= '0';
+      snp_c_req2 <= (others => '0');
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
-        up_snp_res <= (others => '0');
-        up_snp_hit <= '0';
-        if drf_re = '0' and drf_emp = '0' then
-          drf_re <= '1';
+        up_snp_res_out <= (others => '0');
+        up_snp_hit_out <= '0';
+        if brf_re = '0' and brf_emp = '0' then
+          brf_re <= '1';
           state := 1;
         end if;
       elsif state = 1 then -- access
-        drf_re <= '0';
-        if usnp_mem_ack = '1' then
+        brf_re <= '0';
+        if usnp_mem_ack = '1' then -- if hit
           if usnp_mem_hit = '1' then
-            up_snp_res <= usnp_mem_res;
-            up_snp_hit <= '1';
+            up_snp_res_out <= usnp_mem_res;
+            up_snp_hit_out <= '1';
             state        := 0;
           else -- it's a miss
             snp_c_req2 <= usnp_mem_res(72 downto 0);
@@ -397,17 +413,17 @@ begin
           state      := 3;
         end if;
       elsif state = 3 then -- output_resp
-        if snoop_c_res(72 downto 72) = "1" then
+        if snp_res_in(72 downto 72) = "1" then
           --if we get a snoop response and the address is the same  => 
-          if snoop_c_res(63 downto 32) = upreq(63 downto 32) then
-            up_snp_res <= upreq(75 downto 73) & snoop_c_res; -- TODO upreq is
+          if snp_res_in(63 downto 32) = upreq(63 downto 32) then
+            up_snp_res_out <= upreq(75 downto 73) & snp_res_in; -- TODO upreq is
                                                              -- updated after
                                                              -- pcs is
                                                              -- finished. Is
                                                              -- this a problem?
                                                              -- (should it be a
                                                              -- variable?)
-            up_snp_hit <= snoop_c_hit;
+            up_snp_hit_out <= snp_hit_in;
           end if;
         -- TODO do we need to go back to state 0?
         end if;
@@ -424,13 +440,13 @@ begin
   begin
     if (reset = '1') then
       -- reset signals
-      snp_res <= (others => '0');
+      snp_res_out <= (others => '0');
       snp_hit <= '0';
 		srf_re <='0';
 		snp_mem_req_1 <=(others => '0');
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
-        snp_res <= (others => '0');
+        snp_res_out <= (others => '0');
         if srf_re = '0' and srf_emp = '0' then
           srf_re   <= '1';
           state := 1;
@@ -449,7 +465,7 @@ begin
         end if;
       elsif state = 4 then -- TODO should states 4 and 2 be merged?
         if snp_mem_ack = '1' and snp_mem_res(63 downto 32) = addr then
-          snp_res <= '1' & snp_mem_res;
+          snp_res_out <= '1' & snp_mem_res;
           snp_hit     <= snp_mem_hit;
           state       := 0;
         end if;

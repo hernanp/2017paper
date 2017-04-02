@@ -160,7 +160,7 @@ begin
     variable nilreq:std_logic_vector(REQ_WIDTH - 1 downto 0):=(others => '0');
   begin
     if (reset = '1') then
-      res_out <= nilreq(DATA_WIDTH - 1 downto 0);
+      res_out <= nilreq;
     elsif rising_edge(Clock) then
       -- send res to ic
       if gfx_res_in & gfx_res_in(DATA_WIDTH -1 downto DATA_WIDTH -1) = "1" then

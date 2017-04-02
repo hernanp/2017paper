@@ -16,8 +16,8 @@ entity ic is
     bus_res1                                : out STD_LOGIC_VECTOR(552 downto 0);
     bus_res2                                : out STD_LOGIC_VECTOR(552 downto 0);
     up_snp_req_out                          : out STD_LOGIC_VECTOR(75 downto 0);
-    snp_res1                                : in  STD_LOGIC_VECTOR(75 downto 0);
-    snp_hit1                                : in  std_logic;
+    up_snp_res_in                                : in  STD_LOGIC_VECTOR(75 downto 0);
+    up_snp_hit_in                                : in  std_logic;
     full_srq1                               : in  std_logic;
     full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
     pwr_req_out                             : out std_logic_vector(4 downto 0);
@@ -59,14 +59,14 @@ entity ic is
     wdataready                              : in  std_logic;
     ---write response channel
     wrready                                 : out std_logic;
-    wrvalid                                 : in  std_logic;
+    wrvalid_out                                 : in  std_logic;
     wrsp                                    : in  std_logic_vector(1 downto 0);
 
     ---read address channel
     raddr                                   : out std_logic_vector(31 downto 0);
     rlen                                    : out std_logic_vector(9 downto 0);
     rsize                                   : out std_logic_vector(9 downto 0);
-    rvalid                                  : out std_logic;
+    rvalid_out                                  : out std_logic;
     rready                                  : in  std_logic;
     ---read data channel
     rdata                                   : in  std_logic_vector(31 downto 0);
@@ -591,7 +591,7 @@ begin
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
   begin
     if reset = '1' then
-      rvalid  <= '0';
+      rvalid_out  <= '0';
       rdready <= '0';
 		state :=0;
     elsif rising_edge(Clock) then
@@ -622,7 +622,7 @@ begin
       elsif state = 6 then
         if rready = '1' then
           --mem_ack <= '0';
-          rvalid <= '1';
+          rvalid_out <= '1';
           raddr  <= tomem_p(63 downto 32);
           if (tomem_p(75 downto 73) = "000" or tomem_p(75 downto 73) = "101") then
             rlen <= "00000" & "10000";
@@ -633,7 +633,7 @@ begin
           state := 1;
         end if;
       elsif state = 1 then
-        rvalid  <= '0';
+        rvalid_out  <= '0';
         rdready <= '1';
         state   := 2;
       elsif state = 2 then
@@ -904,7 +904,7 @@ begin
       elsif state = 3 then
         wdvalid <= '0';
         wrready <= '1';
-        if wrvalid = '1' then
+        if wrvalid_out = '1' then
           if wrsp = "00" then
             state := 0;
             mem_write_ack1<='1';
@@ -936,7 +936,7 @@ begin
       elsif state = 6 then
         wdvalid <= '0';
         wrready <= '1';
-        if wrvalid = '1' then
+        if wrvalid_out = '1' then
           state := 0;
           if wrsp = "00" then
             ---this is a successful write back, yayyy
@@ -1989,11 +1989,11 @@ begin
     if reset = '1' then
       we2 <= '0';
     elsif rising_edge(Clock) then
-      if is_valid(snp_res1) then
-        if snp_hit1 = '0' then
-          in2 <= '0' & snp_res1;
+      if is_valid(up_snp_res_in) then
+        if up_snp_hit_in = '0' then
+          in2 <= '0' & up_snp_res_in;
         else
-          in2 <= '1' & snp_res1;
+          in2 <= '1' & up_snp_res_in;
         end if;
         we2 <= '1';
       else

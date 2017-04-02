@@ -258,25 +258,25 @@ begin
     Clock       => Clock,
     reset       => reset,
 
-    cpu_req     => cpu_req1, -- i
+    cpu_req_in  => cpu_req1, -- i
     cpu_res     => cpu_res1, -- o
     -- o - cpu req fifo full
 
-    snp_req     => snp_req1, -- i - snoop req from cache 2
+    snp_req_in     => snp_req1, -- i - snoop req from cache 2
     snp_hit     => snp_hit1, -- o
-    snp_res     => snp_res1, -- o
+    snp_res_out     => snp_res1, -- o
 
-    up_snp_req  => up_snp_req, -- i - upstream snoop req 
-    up_snp_hit  => up_snp_hit, -- o
-    up_snp_res  => up_snp_res, -- o
+    up_snp_req_in  => up_snp_req, -- i - upstream snoop req 
+    up_snp_hit_out     => c1_up_snp_hit, -- o
+    up_snp_res_out     => up_snp_res, -- o
 
-    snoop_c_req => snp_req2, -- o - TODO diff with cache_req?
-    snoop_c_hit => snp_hit2, -- i
-    snoop_c_res => snp_res2, -- i
+    snp_req_out => snp_req2, -- o - TODO diff with cache_req?
+    snp_hit_in => snp_hit2, -- i
+    snp_res_in => snp_res2, -- i
 
     ----------------------------------------------------------
     cache_req   => bus_req1, -- o - TODO snoop req to cache 2
-    bus_res     => bus_res1, -- i - TODO snoop resp from cache 2    
+    bus_res_in     => bus_res1, -- i - TODO snoop resp from cache 2    
 
     wb_req      => wb_req1, -- TODO what is it doing?
                             -- is it supposed be implemented outside cache?
@@ -294,23 +294,23 @@ begin
     Clock        => Clock,
     reset        => reset,
 
-    cpu_req      => cpu_req2, -- i
+    cpu_req_in      => cpu_req2, -- i
     cpu_res      => cpu_res2,
 
-    snoop_c_req  => snp_req1, -- o
-    snoop_c_hit  => snp_hit1, -- i
-    snoop_c_res  => snp_res1, -- i
+    snp_req_out  => snp_req1, -- o
+    snp_hit_in  => snp_hit1, -- i
+    snp_res_in  => snp_res1, -- i
     
-    snp_req      => snp_req2, -- i
+    snp_req_in      => snp_req2, -- i
     snp_hit      => snp_hit2,
-    snp_res      => snp_res2,
+    snp_res_out      => snp_res2,
 
     cache_req    => bus_req2, -- o -- TODO check these connections are correct
-    bus_res      => bus_res2,
+    bus_res_in      => bus_res2,
 
-    up_snp_req   => zero75,   -- i
-    up_snp_res   => zero75,
-    --up_snp_hit => zero,
+    up_snp_req_in   => zero75,   -- TODO not implemented yet
+    up_snp_res_out   => zero75,
+    --up_snp_hit_out => zero,
 
     wb_req       => wb_req2,
 
@@ -371,13 +371,13 @@ begin
     wdvalid          => wdvalid,
     wdataready       => wdataready,
     wrready          => wrready,
-    wrvalid          => wrvalid,
+    wrvalid_out          => wrvalid,
     wrsp             => wrsp,
     -- read
     raddr            => raddr,
     rlen             => rlen,
     rsize            => rsize,
-    rvalid           => rvalid,
+    rvalid_out           => rvalid,
     rready           => rready,
     rdata            => rdata,
     rstrb            => rstrb,
@@ -492,8 +492,8 @@ begin
     bus_res1         => bus_res1,
     bus_res2         => bus_res2,
     up_snp_req_out   => up_snp_req, -- TODO changed right side from snp_req to up_snp_req
-    snp_res1         => snp_res,
-    snp_hit1         => snp_hit,
+    up_snp_res_in    => up_snp_res,
+    up_snp_hit_in    => snp_hit,
     full_srq1        => full_srq1,
     full_wb1         => full_wb1,
     full_srs1        => full_srs1,
