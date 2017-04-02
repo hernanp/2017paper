@@ -296,7 +296,10 @@ architecture Behavioral of ic is
   signal mem_write_ack2,gfx_write_ack2,usb_write_ack2,uart_write_ack2,audio_write_ack2: std_logic;
   signal mem_write_ack3,gfx_write_ack3,usb_write_ack3,uart_write_ack3,audio_write_ack3: std_logic;
 
-	signal tmp_cache_req1, tmp_cache_req2: std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal tmp_cache_req1, tmp_cache_req2: std_logic_vector(DATA_WIDTH - 1 downto 0);
+
+  -- test variables
+  signal t1_st : natural := 0;
 begin
   wb_fifo1 : entity work.fifo(Behavioral)
     generic map(
@@ -462,8 +465,7 @@ begin
       elsif st = 1 then -- snd_to_arbiter
         gfx_fifo_re <= '0';
         if is_valid(gfx_fifo_dout) then
-          snp1_2 <= (GFX_ID or "100") & gfx_fifo_dout; -- TODO 'or 100' is a HACK;
-                                                       -- check how to make it correct
+          snp1_2 <= "100" & gfx_fifo_dout; -- TODO what does 100 mean?
           st  := 2;
         end if;
       elsif st = 2 then -- done
@@ -2451,6 +2453,26 @@ begin
     end if;
   end process;
 
-  -- TODO implement pwr_flow test
-
+  ------ TODO this could probably be abstracted into a procedure
+  --t1 : process(clock, reset) -- pwr_req test
+  --begin
+  --  if reset = '1' then
+  --    pwr_req_out <= (others => '0');
+  --    t1_st <= 0;
+  --  elsif(rising_edge(clock)) then
+  --    case t1_st is
+  --      when 0 => -- init
+  --        t1_st <= 1;
+  --      when 1 => -- snd pwr_req 
+  --        pwr_req_out <= "1" & -- valid bit
+  --                       "10" & -- data means "poweron" (see gfx.vhd)
+  --                       "00"; -- gfx id
+  --        t1_st <= 2;
+  --      when 2 => -- done
+  --        pwr_req_out <= (others => '0');
+  --      when others =>
+  --    end case;
+  --  end if;
+  --end process;
+  
 end Behavioral;

@@ -49,8 +49,8 @@ entity gfx is
        pwr_res_out : out std_logic_vector(2 downto 0);
        
        
-       upreq      : out std_logic_vector(72 downto 0);
-       upres      : in  std_logic_vector(72 downto 0);
+       upreq_out  : out std_logic_vector(72 downto 0);
+       upres_in   : in  std_logic_vector(72 downto 0);
        upreq_full : in  std_logic
        );
 end gfx;
@@ -229,20 +229,20 @@ begin
     end if;
   end process;
 
-  t1 : process(clock, reset) -- up_read_test
+  t1 : process(clock, reset) -- up read test
   begin
     if reset = '1' then
-      upreq <= (others => '0');
+      upreq_out <= (others => '0');
       t1_st <= 0;
     elsif(rising_edge(clock)) then
       case t1_st is
         when 0 => -- init
           t1_st <= 1;
         when 1 => -- snd up_req 
-          upreq <= '1' & READ_CMD & ZEROS32 & ZEROS32;
+          upreq_out <= '1' & READ_CMD & ZEROS32 & ZEROS32;
           t1_st <= 2;
         when 2 => -- done
-          upreq <= (others => '0');
+          upreq_out <= (others => '0');
         when others =>
       end case;
     end if;

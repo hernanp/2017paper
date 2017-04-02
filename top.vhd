@@ -7,6 +7,9 @@ use std.textio.all;
 use ieee.std_logic_textio.all;
 
 entity top is
+  generic (
+    constant DATA_WIDTH : positive := 73
+    );
 end top;
 
 architecture tb of top is
@@ -22,16 +25,16 @@ architecture tb of top is
   signal reset                                                              : std_logic := '1';
   
   signal full_c1_u, full_c2_u, full_b_m                                     : std_logic;
-  signal cpu_res1, cpu_res2, cpu_req1, cpu_req2                             : std_logic_vector(72 downto 0);
+  signal cpu_res1, cpu_res2, cpu_req1, cpu_req2                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal bus_res1, bus_res2                                                 : std_logic_vector(552 downto 0);
   signal snp_hit1, snp_hit2                                             : std_logic;
-  signal snp_req1, snp_req2                                             : std_logic_vector(72 downto 0);
-  signal snp_res1, snp_res2                                             : std_logic_vector(72 downto 0);
+  signal snp_req1, snp_req2                                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal snp_res1, snp_res2                                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal snp_req                                                          : std_logic_vector(75 downto 0);
-  ---this should be 72
+  ---this should be DATA_WIDTH - 1
   signal snp_res                                                          : std_logic_vector(75 downto 0);
   signal snp_hit                                                          : std_logic;
-  signal bus_req1, bus_req2                                                 : std_logic_vector(72 downto 0);
+  signal bus_req1, bus_req2                                                 : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal memres, tomem                                                      : std_logic_vector(75 downto 0);
   signal full_crq1, full_srq1, full_brs1, full_wb1, full_srs1, full_crq2,
     full_brs2, full_wb2, full_srs2                                          : std_logic;
@@ -43,7 +46,7 @@ architecture tb of top is
   signal pwr_req_full                                                       : std_logic;
 
   signal gfx_b, togfx                 : std_logic_vector(75 downto 0);
-  signal gfx_upreq, gfx_upres, gfx_wb : std_logic_vector(72 downto 0);
+  signal gfx_upreq, gfx_upres, gfx_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal gfx_upreq_full, gfx_wb_ack   : std_logic;
 
   -- pwr
@@ -53,20 +56,20 @@ architecture tb of top is
   signal pwr_uart_req, pwr_uart_res     : std_logic_vector(2 downto 0);
   
   signal audio_b, toaudio                   : std_logic_vector(53 downto 0);
-  signal audio_upreq, audio_upres, audio_wb : std_logic_vector(72 downto 0);
+  signal audio_upreq, audio_upres, audio_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal audio_upreq_full, audio_wb_ack     : std_logic;
 
   signal usb_b, tousb                 : std_logic_vector(75 downto 0);
-  signal usb_upreq, usb_upres, usb_wb : std_logic_vector(72 downto 0);
+  signal usb_upreq, usb_upres, usb_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal usb_upreq_full, usb_wb_ack   : std_logic;
 
   signal zero   : std_logic                     := '0';
-  signal zero72 : std_logic_vector(72 downto 0) := (others => '0'); --TODO
+  signal zero72 : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0'); --TODO
                                                                     --replace
                                                                     --by constant
   signal zero75 : std_logic_vector(75 downto 0) := (others => '0'); -- TODO idem
   signal uart_b, touart                  : std_logic_vector(75 downto 0);
-  signal uart_upreq, uart_upres, uart_wb : std_logic_vector(72 downto 0);
+  signal uart_upreq, uart_upres, uart_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal uart_upreq_full, uart_wb_ack    : std_logic;
 
   signal up_snp_req, up_snp_res : std_logic_vector(75 downto 0);
@@ -344,8 +347,8 @@ begin
     );
 
   interconnect : entity work.ic(Behavioral) port map(
-    gfx_upreq_in        => gfx_upreq,
-    gfx_upres_out        => gfx_upres,
+    gfx_upreq_in     => gfx_upreq,
+    gfx_upres_out    => gfx_upres,
     gfx_upreq_full   => gfx_upreq_full,
     audio_upreq      => audio_upreq,
     audio_upres      => audio_upres,
@@ -528,8 +531,8 @@ begin
     wdvalid    => wdvalid_gfx,
     wrready    => wrready_gfx,
 
-    upres      => gfx_upres,
-    upreq      => gfx_upreq,
+    upres_in   => gfx_upres,
+    upreq_out  => gfx_upreq,
     upreq_full => gfx_upreq_full,
 
     Clock       => Clock,

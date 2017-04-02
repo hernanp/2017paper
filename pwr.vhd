@@ -12,12 +12,18 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity pwr is
   Generic(
     constant REQ_WIDTH : positive := 5;
-    constant DATA_WIDTH : positive := 3
+    constant DATA_WIDTH : positive := 3;
     --* Assume req is:
     --* [:2] dev_id
     --* [2:5] data, where:
     --*   [2:4] payload
     --*   [4] valid_bit
+
+    constant GFX_ID : std_logic_vector := "00";
+    constant AUDIO_ID : std_logic_vector := "01";
+    constant USB_ID : std_logic_vector := "10";    
+    constant UART_ID : std_logic_vector := "11"
+    
     );
   Port (  Clock: in std_logic;
           reset: in std_logic;
@@ -100,13 +106,13 @@ begin
         re1 <= '0';
         if out1(REQ_WIDTH - 1 downto REQ_WIDTH - 1)="1" then
           tmp_req <= out1;
-          if out1(1 downto 0)="00" then --gfx
+          if out1(1 downto 0) = GFX_ID then
             state := 2;
-          elsif out1(1 downto 0) ="01" then --audio
+          elsif out1(1 downto 0) = AUDIO_ID then
             state := 3;
-          elsif out1(1 downto 0) ="10" then --usb
+          elsif out1(1 downto 0) = USB_ID then
             state := 4;
-          elsif out1(1 downto 0) ="11" then --uart
+          elsif out1(1 downto 0) = UART_ID then
             state := 5;
           end if;
         end if;
@@ -156,7 +162,12 @@ begin
     if (reset = '1') then
       res_out <= nilreq(DATA_WIDTH - 1 downto 0);
     elsif rising_edge(Clock) then
-      -- TODO send res to ic
+      -- send res to ic
+      if gfx_res_in & gfx_res_in(DATA_WIDTH -1 downto DATA_WIDTH -1) = "1" then
+        res_out <= gfx_res_in & GFX_ID;
+      else
+        -- TODO handle resp from other devs
+      end if;
     end if;
   end process;
   

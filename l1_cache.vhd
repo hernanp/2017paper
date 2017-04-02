@@ -35,7 +35,7 @@ entity l1_cache is
     snoop_c_req  : out std_logic_vector(72 downto 0);
     snoop_c_res  : in  std_logic_vector(72 downto 0);
     snoop_c_hit  : in  std_logic;
-    up_snp_req       : in  std_logic_vector(75 downto 0);
+    up_snp_req_in       : in  std_logic_vector(75 downto 0);
     up_snp_res   : out std_logic_vector(75 downto 0);
     up_snp_hit   : out std_logic;
     wb_req       : out std_logic_vector(552 downto 0);
@@ -125,7 +125,7 @@ architecture Behavioral of l1_cache is
   constant DEFAULT_DATA_WIDTH : positive := 73;
   constant DEFAULT_FIFO_DEPTH : positive := 256;
 begin
-  cpu_req_fif : entity work.fifo(Behavioral)
+  cpu_req_fifo : entity work.fifo(Behavioral)
     generic map(
       DATA_WIDTH => DEFAULT_DATA_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -140,7 +140,7 @@ begin
       Full    => crf_full,
       Empty   => crf_emp
       );
-  snp_res_fif : entity work.fifo(Behavioral)
+  snp_res_fifo : entity work.fifo(Behavioral)
     generic map(
       DATA_WIDTH => DEFAULT_DATA_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -155,7 +155,7 @@ begin
       Full    => ssf_full,
       Empty   => ssf_emp
       );
-  up_snp_req_fif : entity work.fifo(Behavioral) -- req from device
+  up_snp_req_fifo : entity work.fifo(Behavioral) -- req from device
     generic map(
       DATA_WIDTH => 76, -- TODO why this val?
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -170,7 +170,7 @@ begin
       Full    => drf_full,
       Empty   => drf_emp
       );
-  snp_req_fif : entity work.fifo(Behavioral)
+  snp_req_fifo : entity work.fifo(Behavioral)
     generic map(
       DATA_WIDTH => DEFAULT_DATA_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -185,7 +185,7 @@ begin
       Full    => srf_full,
       Empty   => srf_emp
       );
-  bus_res_fif : entity work.fifo(Behavioral)
+  bus_res_fifo : entity work.fifo(Behavioral)
     generic map(
       DATA_WIDTH => 553, -- TODO why this val?
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -233,7 +233,7 @@ begin
       );
   
   --* Store cpu requests into fifo	
-  cpu_req_fifo : process(Clock)
+  cpu_req_fifo_handler : process(Clock)
   begin
     if reset = '1' then
       crf_we <= '0';
@@ -248,7 +248,7 @@ begin
   end process;
 
   --* Store snoop requests into fifo	
-  snp_req_fifo : process(Clock)
+  snp_req_fifo_handler : process(Clock)
   begin
     if reset = '1' then
       srf_we <= '0';
@@ -264,7 +264,7 @@ begin
   end process;
 
   --* Store bus requests into fifo	
-  bus_res_fifo : process(Clock)
+  bus_res_fifo_handler : process(Clock)
   begin
     if reset = '1' then
       bsf_we <= '0';
@@ -363,20 +363,19 @@ begin
   --if it's read, then the data will be returned to request source
   up_snp_req_handler : process(reset, Clock)
     variable state : integer := 0;
-
   begin
     if (reset = '1') then
       state        := 0;
       up_snp_res <= (others => '0');
-      up_snp_hit <= '1';
-		drf_re <= '0';
-		snp_c_req2 <=(others => '0');
+      up_snp_hit <= '1'; -- TODO should it be 0?
+      drf_re <= '0';
+      snp_c_req2 <=(others => '0');
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
         up_snp_res <= (others => '0');
         up_snp_hit <= '0';
         if drf_re = '0' and drf_emp = '0' then
-          drf_re   <= '1';
+          drf_re <= '1';
           state := 1;
         end if;
       elsif state = 1 then -- access
@@ -410,7 +409,7 @@ begin
                                                              -- variable?)
             up_snp_hit <= snoop_c_hit;
           end if;
-          -- TODO do we need to go back to state 0?
+        -- TODO do we need to go back to state 0?
         end if;
       end if;
     end if;
