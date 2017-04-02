@@ -10,35 +10,44 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity pwr is
+  Generic(
+    constant REQ_WIDTH : positive := 5;
+    constant DATA_WIDTH : positive := 3
+    --* Assume req is:
+    --* [:2] dev_id
+    --* [2:5] data, where:
+    --*   [2:4] payload
+    --*   [4] valid_bit
+    );
   Port (  Clock: in std_logic;
           reset: in std_logic;
           
-          req : in STD_LOGIC_VECTOR(4 downto 0);
-          res: out STD_LOGIC_VECTOR(4 downto 0);
+          req_in   : in STD_LOGIC_VECTOR(REQ_WIDTH - 1 downto 0);
+          res_out  : out STD_LOGIC_VECTOR(REQ_WIDTH - 1 downto 0);
           full_preq: out std_logic:='0';
           
-          gfx_res_in  : in STD_LOGIC_VECTOR(2 downto 0);
-          gfx_req_out : out STD_LOGIC_VECTOR(2 downto 0);
+          gfx_res_in  : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          gfx_req_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
 
-          uart_res_in : in STD_LOGIC_VECTOR(2 downto 0);
-          uart_req_out : out STD_LOGIC_VECTOR(2 downto 0);
+          uart_res_in : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          uart_req_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
           
-          usb_res_in : in STD_LOGIC_VECTOR(2 downto 0);
-          usb_req_out : out STD_LOGIC_VECTOR(2 downto 0);
+          usb_res_in : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          usb_req_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
 
-          audio_res_in : in STD_LOGIC_VECTOR(2 downto 0);
-          audio_req_out : out STD_LOGIC_VECTOR(2 downto 0)
+          audio_res_in : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          audio_req_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0)
           );            
 end pwr;
 
 architecture Behavioral of pwr is
-  signal tmp_req: std_logic_vector(4 downto 0);
-  signal in1,out1 : std_logic_vector(4 downto 0);
-  signal in2,out2 : std_logic_vector(2 downto 0);
+  signal tmp_req: std_logic_vector(REQ_WIDTH - 1 downto 0);
+  signal in1,out1 : std_logic_vector(REQ_WIDTH - 1 downto 0);
+  signal in2,out2 : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal we1,re1,emp1,we2,re2,emp2 : std_logic:='0';
 begin
 
-  pwr_req_fif: entity work.fifo(Behavioral) 
+  pwr_req_fifo: entity work.fifo(Behavioral) 
 	generic map(
       DATA_WIDTH => 5,
       FIFO_DEPTH => 16
@@ -54,13 +63,13 @@ begin
       Empty=>emp1
       );
   
-  pwr_req_fifo: process (Clock)      
+  pwr_req_fifo_handler: process (Clock)      
   begin
     if reset='1' then
       we1<='0';
     elsif rising_edge(Clock) then
-      if req(4 downto 4)="1" then
-        in1 <= req;
+      if req_in(REQ_WIDTH - 1 downto REQ_WIDTH - 1)="1" then
+        in1 <= req_in;
         we1 <= '1';
       else
         we1 <= '0';
@@ -68,20 +77,20 @@ begin
     end if;
   end process;
   
-  req_p:process (reset, Clock)
-    variable nilreq:std_logic_vector(4 downto 0):=(others => '0');
+  req_handler : process (reset, Clock)
+    variable nilreq:std_logic_vector(REQ_WIDTH - 1 downto 0):=(others => '0');
     variable state: integer :=0;
   begin
     if (reset = '1') then
-      gfx_req_out<= nilreq(2 downto 0);
+      gfx_req_out<= nilreq(DATA_WIDTH - 1 downto 0);
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
-      res <= "00000";
+      res_out <= "00000";
       if state =0 then
-        gfx_req_out <= nilreq(2 downto 0);
-        audio_req_out <= nilreq(2 downto 0);
-        usb_req_out <= nilreq(2 downto 0);
-        uart_req_out <= nilreq(2 downto 0);
+        gfx_req_out <= nilreq(DATA_WIDTH - 1 downto 0);
+        audio_req_out <= nilreq(DATA_WIDTH - 1 downto 0);
+        usb_req_out <= nilreq(DATA_WIDTH - 1 downto 0);
+        uart_req_out <= nilreq(DATA_WIDTH - 1 downto 0);
         if re1 = '0' and emp1 ='0' then
           re1 <= '1';
           state := 1;
@@ -89,56 +98,66 @@ begin
         
       elsif state = 1 then
         re1 <= '0';
-        if out1(4 downto 4)="1" then
+        if out1(REQ_WIDTH - 1 downto REQ_WIDTH - 1)="1" then
           tmp_req <= out1;
-          if out1(1 downto 0)="00" then
+          if out1(1 downto 0)="00" then --gfx
             state := 2;
-          elsif out1(1 downto 0) ="01" then
+          elsif out1(1 downto 0) ="01" then --audio
             state := 3;
-          elsif out1(1 downto 0) ="10" then
+          elsif out1(1 downto 0) ="10" then --usb
             state := 4;
-          elsif out1(1 downto 0) ="11" then
+          elsif out1(1 downto 0) ="11" then --uart
             state := 5;
           end if;
         end if;
       elsif state = 2 then
-        gfx_req_out<=tmp_req(4 downto 2);
+        gfx_req_out<=tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
         state := 6;
       elsif state = 3 then
-        audio_req_out <= tmp_req(4 downto 2);
+        audio_req_out <= tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
         state := 7;
       elsif state = 4 then
-        usb_req_out <= tmp_req(4 downto 2);
+        usb_req_out <= tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
         state := 8;
       elsif state = 5 then
-        uart_req_out<=tmp_req(4 downto 2);
+        uart_req_out<=tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
         state := 9;
       elsif state = 6 then
         gfx_req_out <= (others => '0');
-        if gfx_res_in(2 downto 2) = "1" then
-          res <= tmp_req;
+        if gfx_res_in(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
+          res_out <= tmp_req;
           state :=0;
         end if;
       elsif state = 7 then
         audio_req_out <= (others => '0');
-        if audio_res_in(2 downto 2) = "1" then
-          res <= tmp_req;
+        if audio_res_in(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
+          res_out <= tmp_req;
           state :=0;
         end if;
       elsif state = 8 then
         usb_req_out <= (others => '0');
-        if usb_res_in(2 downto 2) = "1" then
-          res <= tmp_req;
+        if usb_res_in(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
+          res_out <= tmp_req;
           state :=0;
         end if;
       elsif state = 9 then
         uart_req_out <= (others => '0');
-        if uart_res_in(2 downto 2) = "1" then
-          res <= tmp_req;
+        if uart_res_in(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
+          res_out <= tmp_req;
           state :=0;
         end if;
       end if;
-      
     end if;
   end process;
+
+  dev_res_handler : process(reset, clock)
+    variable nilreq:std_logic_vector(REQ_WIDTH - 1 downto 0):=(others => '0');
+  begin
+    if (reset = '1') then
+      res_out <= nilreq(DATA_WIDTH - 1 downto 0);
+    elsif rising_edge(Clock) then
+      -- TODO send res to ic
+    end if;
+  end process;
+  
 end Behavioral;

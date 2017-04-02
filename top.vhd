@@ -39,8 +39,8 @@ architecture tb of top is
   signal done1, done2                                                       : std_logic;
   signal mem_wb, wb_req1, wb_req2                                           : std_logic_vector(552 downto 0);
   signal wb_ack                                                             : std_logic;
-  signal pwr_req, pwr_res                                                     : std_logic_vector(4 downto 0);
-  signal pwr_req_full                                                        : std_logic;
+  signal ic_pwr_req, ic_pwr_res                                             : std_logic_vector(4 downto 0);
+  signal pwr_req_full                                                       : std_logic;
 
   signal gfx_b, togfx                 : std_logic_vector(75 downto 0);
   signal gfx_upreq, gfx_upres, gfx_wb : std_logic_vector(72 downto 0);
@@ -325,8 +325,8 @@ begin
     Clock     => Clock,
     reset     => reset,
     
-    req       => pwr_req,
-    res       => pwr_res,
+    req_in        => ic_pwr_req,
+    res_out       => ic_pwr_res,
     
     audio_req_out  => pwr_audio_req,
     audio_res_in  => pwr_audio_res,
@@ -495,9 +495,9 @@ begin
     full_wb1         => full_wb1,
     full_srs1        => full_srs1,
     full_wb2         => full_wb2,
-    pwr_req_out           => pwr_req,
-    pwr_res_in           => pwr_res,
-    pwr_req_full      => pwr_req_full
+    pwr_req_out      => ic_pwr_req,
+    pwr_res_in       => ic_pwr_res,
+    pwr_req_full     => pwr_req_full
     );
 
   gfx : entity work.gfx(Behavioral) port map(
@@ -532,10 +532,11 @@ begin
     upreq      => gfx_upreq,
     upreq_full => gfx_upreq_full,
 
-    Clock      => Clock,
-    reset      => reset,
-    pwrreq     => pwr_gfx_req,
-    pwrres     => pwr_gfx_res
+    Clock       => Clock,
+    reset       => reset,
+
+    pwr_req_in  => pwr_gfx_req,
+    pwr_res_out => pwr_gfx_res
     );
 
   audio : entity work.audio(Behavioral) port map(
@@ -570,8 +571,8 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwrreq     => pwr_audio_req,
-    pwrres     => pwr_audio_res
+    pwr_req_in  => pwr_audio_req,
+    pwr_res_out => pwr_audio_res
     );
 
   usb : entity work.usb(Behavioral) port map(
@@ -606,8 +607,8 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwrreq     => pwr_usb_req,
-    pwrres     => pwr_usb_res
+    pwr_req_in     => pwr_usb_req,
+    pwr_res_out     => pwr_usb_res
     );
 
   uart : entity work.uart(Behavioral) port map(
@@ -642,8 +643,9 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwrreq     => pwr_uart_req,
-    pwrres     => pwr_uart_res
+    
+    pwr_req_in  => pwr_uart_req,
+    pwr_res_out => pwr_uart_res
     );
 
   mem : entity work.Memory(Behavioral) port map(

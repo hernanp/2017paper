@@ -42,9 +42,11 @@ sim:
 	./top --stop-time=10000ps --vcd=top.vcd
 wave:
 	gtkwave top.vcd
-docs:
+html_docs:
 	vhdocl *.vhd
-gen_sm: # generate state machines
-	graph-easy --input=doc/arbiter2.sm --output=doc/arbiter2.ascii
-	graph-easy --input=doc/arbiter2_ack.sm --output=doc/arbiter2_ack.ascii
-	graph-easy --input=doc/cpu.sm --output=doc/cpu.ascii
+sm_docs: # generate state machines
+	graph-easy --input=doc/arbiter2_sm.txt --output=doc/arbiter2.ascii
+	graph-easy --input=doc/arbiter2_ack_sm.txt --output=doc/arbiter2_ack.ascii
+	graph-easy --input=doc/cpu_sm.txt --output=doc/cpu.ascii
+flow_docs:
+	graph-easy --input=doc/pwr_flow.txt --output=doc/pwr_flow.ascii

@@ -4,22 +4,25 @@ use ieee.numeric_std.all;
 use work.type_defs.all;
 
 entity ic is
+  generic (
+    constant DATA_WIDTH : positive := 73
+    );
   Port(
     Clock                                   : in  std_logic;
     reset                                   : in  std_logic;
-    cache_req1                              : in  STD_LOGIC_VECTOR(72 downto 0);
-    cache_req2                              : in  STD_LOGIC_VECTOR(72 downto 0);
+    cache_req1                              : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+    cache_req2                              : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
     wb_req1, wb_req2                        : in  std_logic_vector(552 downto 0);
     bus_res1                                : out STD_LOGIC_VECTOR(552 downto 0);
     bus_res2                                : out STD_LOGIC_VECTOR(552 downto 0);
-    up_snp_req_out                              : out STD_LOGIC_VECTOR(75 downto 0);
-    snp_res1                              : in  STD_LOGIC_VECTOR(75 downto 0);
+    up_snp_req_out                          : out STD_LOGIC_VECTOR(75 downto 0);
+    snp_res1                                : in  STD_LOGIC_VECTOR(75 downto 0);
     snp_hit1                                : in  std_logic;
     full_srq1                               : in  std_logic;
     full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
-    pwr_req_out                                  : out std_logic_vector(4 downto 0);
-    pwr_req_full                             : in  std_logic;
-    pwr_res_in                                  : in  std_logic_vector(4 downto 0);
+    pwr_req_out                             : out std_logic_vector(4 downto 0);
+    pwr_req_full                            : in  std_logic;
+    pwr_res_in                              : in  std_logic_vector(4 downto 0);
 
     --add 3 bits in snoop request to indicate the source
     --000 cpu0
@@ -29,17 +32,17 @@ entity ic is
     --100 audio
     --101 cpu1
 
-    gfx_upreq_in                            : in  std_logic_vector(72 downto 0);
-    gfx_upres_out                           : out std_logic_vector(72 downto 0);
+    gfx_upreq_in                            : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
+    gfx_upres_out                           : out std_logic_vector(DATA_WIDTH - 1 downto 0);
     gfx_upreq_full                          : out std_logic;
-    audio_upreq                             : in  std_logic_vector(72 downto 0);
-    audio_upres                             : out std_logic_vector(72 downto 0);
+    audio_upreq                             : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
+    audio_upres                             : out std_logic_vector(DATA_WIDTH - 1 downto 0);
     audio_upreq_full                        : out std_logic;
-    usb_upreq                               : in  std_logic_vector(72 downto 0);
-    usb_upres                               : out std_logic_vector(72 downto 0);
+    usb_upreq                               : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
+    usb_upres                               : out std_logic_vector(DATA_WIDTH - 1 downto 0);
     usb_upreq_full                          : out std_logic;
-    uart_upreq                              : in  std_logic_vector(72 downto 0);
-    uart_upres                              : out std_logic_vector(72 downto 0);
+    uart_upreq                              : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
+    uart_upres                              : out std_logic_vector(DATA_WIDTH - 1 downto 0);
     uart_upreq_full                         : out std_logic;
 
     ---write address channel
@@ -204,11 +207,12 @@ architecture Behavioral of ic is
   --3 bits for indicating its source¡
   --50 bits for packet
 
-  function is_valid_msg(msg : std_logic_vector) return boolean is
-    variable valid_mask : std_logic_vector(72 downto 0) :=
-      '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
+  function is_valid(msg : std_logic_vector) return boolean is
+    --variable valid_mask : std_logic_vector(DATA_WIDTH - 1 downto 0) :=
+    --  '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
   begin
-    if (msg and valid_mask) >= valid_mask then
+    if msg(DATA_WIDTH -1 downto DATA_WIDTH -1) = "1" then
+    --if (msg and valid_mask) >= valid_mask then
       return true;
     end if;
     return false;
@@ -232,13 +236,13 @@ architecture Behavioral of ic is
   signal gfxpoweron       : std_logic                      := '0';
 
   signal adr_0, adr_1                                   : std_logic_vector(31 downto 0);
-  signal tmp_sp1, tmp_sp2                               : std_logic_vector(72 downto 0);
+  signal tmp_sp1, tmp_sp2                               : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal pwr_req1, pwr_req2                             : std_logic_vector(4 downto 0);
   signal pwr_ack1, pwr_ack2                             : std_logic;
   signal mem_wb, gfx_wb, audio_wb, usb_wb, uart_wb      : std_logic_vector(552 downto 0);
   signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(75 downto 0);
 
-  signal gfx_fifo_din, gfx_fifo_dout, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(72 downto 0);
+  signal gfx_fifo_din, gfx_fifo_dout, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal in8, out8, in10, out10, in11, out11, in12, out12                                           : std_logic_vector(75 downto 0);
   signal we8, re8, gfx_fifo_re, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
   signal emp8, gfx_fifo_emp, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
@@ -269,21 +273,21 @@ architecture Behavioral of ic is
   signal snp1_1, snp1_2, snp1_3, snp1_4, snp1_5, snp1_6, snp2_1, snp2_2, snp2_3, snp2_4, snp2_5, snp2_6                                     : std_logic_vector(75 downto 0);
   signal snp1_ack1, snp1_ack2, snp1_ack3, snp1_ack4, snp1_ack5, snp1_ack6, snp2_ack1, snp2_ack2, snp2_ack3, snp2_ack4, snp2_ack5, snp2_ack6 : std_logic;
 
-  signal gfx_upres1, gfx_upres2, gfx_upres3                   : std_logic_vector(72 downto 0);
+  signal gfx_upres1, gfx_upres2, gfx_upres3                   : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal gfx_upres_ack1, gfx_upres_ack2, gfx_upres_ack3       : std_logic;
-  signal audio_upres1, audio_upres2, audio_upres3             : std_logic_vector(72 downto 0);
+  signal audio_upres1, audio_upres2, audio_upres3             : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal audio_upres_ack1, audio_upres_ack2, audio_upres_ack3 : std_logic;
-  signal usb_upres1, usb_upres2, usb_upres3                   : std_logic_vector(72 downto 0);
+  signal usb_upres1, usb_upres2, usb_upres3                   : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal usb_upres_ack1, usb_upres_ack2, usb_upres_ack3       : std_logic;
-  signal uart_upres1, uart_upres2, uart_upres3                : std_logic_vector(72 downto 0);
+  signal uart_upres1, uart_upres2, uart_upres3                : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal uart_upres_ack1, uart_upres_ack2, uart_upres_ack3    : std_logic;
-  signal gfx_upres4, gfx_upres5, gfx_upres6                   : std_logic_vector(72 downto 0);
+  signal gfx_upres4, gfx_upres5, gfx_upres6                   : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal gfx_upres_ack4, gfx_upres_ack5, gfx_upres_ack6       : std_logic;
-  signal audio_upres4, audio_upres5, audio_upres6             : std_logic_vector(72 downto 0);
+  signal audio_upres4, audio_upres5, audio_upres6             : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal audio_upres_ack4, audio_upres_ack5, audio_upres_ack6 : std_logic;
-  signal usb_upres4, usb_upres5, usb_upres6                   : std_logic_vector(72 downto 0);
+  signal usb_upres4, usb_upres5, usb_upres6                   : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal usb_upres_ack4, usb_upres_ack5, usb_upres_ack6       : std_logic;
-  signal uart_upres4, uart_upres5, uart_upres6                : std_logic_vector(72 downto 0);
+  signal uart_upres4, uart_upres5, uart_upres6                : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal uart_upres_ack4, uart_upres_ack5, uart_upres_ack6    : std_logic;
   
   signal gfx_write1,mem_write1,usb_write1,uart_write1,audio_write1:std_logic_vector(75 downto 0);
@@ -292,7 +296,7 @@ architecture Behavioral of ic is
   signal mem_write_ack2,gfx_write_ack2,usb_write_ack2,uart_write_ack2,audio_write_ack2: std_logic;
   signal mem_write_ack3,gfx_write_ack3,usb_write_ack3,uart_write_ack3,audio_write_ack3: std_logic;
 
-	signal tmp_cache_req1, tmp_cache_req2: std_logic_vector(72 downto 0);
+	signal tmp_cache_req1, tmp_cache_req2: std_logic_vector(DATA_WIDTH - 1 downto 0);
 begin
   wb_fifo1 : entity work.fifo(Behavioral)
     generic map(
@@ -350,13 +354,13 @@ begin
       );
   
   gfx_fifo_handler : process(reset, Clock)
-    variable valid : std_logic_vector(72 downto 0) :=
+    variable valid : std_logic_vector(DATA_WIDTH - 1 downto 0) :=
       '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
   begin
     if reset = '1' then
       we9 <= '0';
     elsif rising_edge(Clock) then
-      if is_valid_msg(gfx_upreq_in) then
+      if is_valid(gfx_upreq_in) then
         gfx_fifo_din <= gfx_upreq_in;
         we9 <= '1';
       else
@@ -457,7 +461,7 @@ begin
         end if;
       elsif st = 1 then -- snd_to_arbiter
         gfx_fifo_re <= '0';
-        if is_valid_msg(gfx_fifo_dout) then
+        if is_valid(gfx_fifo_dout) then
           snp1_2 <= (GFX_ID or "100") & gfx_fifo_dout; -- TODO 'or 100' is a HACK;
                                                        -- check how to make it correct
           st  := 2;
@@ -484,7 +488,7 @@ begin
         end if;
       elsif stage = 1 then
         re13 <= '0';
-        if out13(72 downto 72) = "1" then
+        if is_valid(out13) then
           snp1_3 <= "100" & out13;
           stage  := 2;
         end if;
@@ -600,10 +604,10 @@ begin
         uart_upres1  <= (others => '0');
         audio_upres1 <= (others => '0');
         usb_upres1   <= (others => '0');
-        if tomem_p(72 downto 72) = "1" and tomem_p(71 downto 64) = "10000000" then
+        if is_valid(tomem_p) and tomem_p(71 downto 64) = "10000000" then
           tep_mem := tomem_p;
           state   := 6;
-        elsif tomem_p(72 downto 72) = "1" and tomem_p(71 downto 64) = "01000000" then
+        elsif is_valid(tomem_p) and tomem_p(71 downto 64) = "01000000" then
           if tomem_p(75 downto 73)="001" or tomem_p(75 downto 73)="011"  or tomem_p(75 downto 73)="010"  or tomem_p(75 downto 73)="100" then
             mem_write1<=tomem_p;
             state   := 9;
@@ -750,10 +754,10 @@ begin
         uart_upres2  <= (others => '0');
         audio_upres2 <= (others => '0');
         usb_upres2   <= (others => '0');
-        if togfx_p(72 downto 72) = "1" and togfx_p(71 downto 64) = "10000000" then
+        if is_valid(togfx_p) and togfx_p(71 downto 64) = "10000000" then
           tep_gfx := togfx_p;
           state   := 6;
-        elsif togfx_p(72 downto 72) = "1" and togfx_p(71 downto 64) = "01000000" then
+        elsif is_valid(togfx_p) and togfx_p(71 downto 64) = "01000000" then
           gfx_write1<=togfx_p;
           state   := 9;
         end if;
@@ -865,7 +869,7 @@ begin
         mem_write_ack1<='0';
         mem_write_ack2<='0';
         mem_write_ack3<='0';
-        if mem_write1(72 downto 72)="1" then
+        if is_valid(mem_write1) then
           state := 1;
           tep_mem:=mem_write1;
         elsif mem_write2(552 downto 552)="1" then
@@ -963,7 +967,7 @@ begin
         gfx_write_ack1<='0';
         gfx_write_ack2<='0';
         gfx_write_ack3<='0';
-        if gfx_write1(72 downto 72)="1" then
+        if is_valid(gfx_write1) then
           state := 1;
           tep_gfx:=gfx_write1;
         elsif gfx_write2(552 downto 552)="1" then
@@ -1061,7 +1065,7 @@ begin
         uart_write_ack1<='0';
         uart_write_ack2<='0';
         uart_write_ack3<='0';
-        if uart_write1(72 downto 72)="1" then
+        if is_valid(uart_write1) then
           state := 1;
           tep_uart:=uart_write1;
         elsif uart_write2(552 downto 552)="1" then
@@ -1189,7 +1193,7 @@ begin
         audio_write_ack1<='0';
         audio_write_ack2<='0';
         audio_write_ack3<='0';
-        if audio_write1(72 downto 72)="1" then
+        if is_valid(audio_write1) then
           state := 1;
           tep_audio:=audio_write1;
         elsif audio_write2(552 downto 552)="1" then
@@ -1293,10 +1297,10 @@ begin
         uart_upres4  <= (others => '0');
         audio_upres4 <= (others => '0');
         --usb_upres4 <= (others => '0');
-        if tousb_p(72 downto 72) = "1" and tousb_p(71 downto 64) = "10000000" then
+        if is_valid(tousb_p) and tousb_p(71 downto 64) = "10000000" then
           tep_usb := tousb_p;
           state   := 6;
-        elsif tousb_p(72 downto 72) = "1" and tousb_p(71 downto 64) = "01000000" then
+        elsif is_valid(tousb_p) and tousb_p(71 downto 64) = "01000000" then
           usb_write1<=tousb_p;
           state   := 9;
         end if;
@@ -1407,7 +1411,7 @@ begin
         usb_write_ack1<='0';
         usb_write_ack2<='0';
         usb_write_ack3<='0';
-        if usb_write1(72 downto 72)="1" then
+        if is_valid(usb_write1) then
           state := 1;
           tep_usb:=usb_write1;
         elsif usb_write2(552 downto 552)="1" then
@@ -1525,10 +1529,10 @@ begin
         --uart_upres3 <= (others => '0');
         audio_upres3 <= (others => '0');
         usb_upres3   <= (others => '0');
-        if touart_p(72 downto 72) = "1" and touart_p(71 downto 64) = "10000000" then
+        if is_valid(touart_p) and touart_p(71 downto 64) = "10000000" then
           tep_uart := touart_p;
           state    := 6;
-        elsif touart_p(72 downto 72) = "1" and touart_p(71 downto 64) = "01000000" then
+        elsif is_valid(touart_p) and touart_p(71 downto 64) = "01000000" then
           uart_write1<=touart_p;
           state   := 9;
         end if;
@@ -1853,10 +1857,10 @@ begin
         uart_upres5 <= (others => '0');
         --audio_upres5 <= (others => '0');
         usb_upres5  <= (others => '0');
-        if toaudio_p(72 downto 72) = "1" and toaudio_p(71 downto 64) = "10000000" then
+        if is_valid(toaudio_p) and toaudio_p(71 downto 64) = "10000000" then
           tep_audio := toaudio_p;
           state     := 6;
-        elsif toaudio_p(72 downto 72) = "1" and toaudio_p(71 downto 64) = "01000000" then
+        elsif is_valid(toaudio_p) and toaudio_p(71 downto 64) = "01000000" then
           audio_write1<=toaudio_p;
           state   := 9;
         end if;
@@ -1983,7 +1987,7 @@ begin
     if reset = '1' then
       we2 <= '0';
     elsif rising_edge(Clock) then
-      if snp_res1(72 downto 72) = "1" then
+      if is_valid(snp_res1) then
         if snp_hit1 = '0' then
           in2 <= '0' & snp_res1;
         else
@@ -2031,16 +2035,16 @@ begin
         --it's a hit, return to the source ip
         else
           if out2(75 downto 73) = "001" then
-            gfx_upres2 <= out2(72 downto 0);
+            gfx_upres2 <= out2(DATA_WIDTH - 1 downto 0);
             state      := 9;
           elsif out2(75 downto 73) = "010" then
-            uart_upres3 <= out2(72 downto 0);
+            uart_upres3 <= out2(DATA_WIDTH - 1 downto 0);
             state       := 10;
           elsif out2(75 downto 73) = "011" then
-            usb_upres4 <= out2(72 downto 0);
+            usb_upres4 <= out2(DATA_WIDTH - 1 downto 0);
             state      := 11;
           elsif out2(75 downto 73) = "100" then
-            audio_upres5 <= out2(72 downto 0);
+            audio_upres5 <= out2(DATA_WIDTH - 1 downto 0);
             state        := 12;
           end if;
         end if;
@@ -2287,7 +2291,7 @@ begin
   end process;
 
   cache_req1_handler : process(reset, Clock)
-    variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
+    variable nilreq  : std_logic_vector(DATA_WIDTH - 1 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
@@ -2296,18 +2300,18 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if cache_req1(72 downto 72) = "1" and cache_req1(71 downto 64) = "11111111" then
+        if is_valid(cache_req1) and cache_req1(71 downto 64) = "11111111" then
           ---let's not consider power now, too complicated
           pwr_req1 <= '1' & cache_req1(64 downto 61);
           state    := 4;
-        elsif cache_req1(72 downto 72) = "1" and cache_req1(63 downto 32) = adr_1 then
+        elsif is_valid(cache_req1) and cache_req1(63 downto 32) = adr_1 then
           state      := 3;
           ----should return to cache, let it perform snoop again!!!
           -----
           ----don't forget to fill this up
           -----
           bus_res1_7 <= '1' & "11111111" & nildata;
-        elsif cache_req1(72 downto 72) = "1" then
+        elsif is_valid(cache_req1) then
           adr_0 <= cache_req1(63 downto 32);
 			 tmp_cache_req1 <= cache_req1;
           state := 2;
@@ -2367,7 +2371,7 @@ begin
 
   ---deal with cache request
   cache_req2_handler : process(reset, Clock)
-    variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
+    variable nilreq  : std_logic_vector(DATA_WIDTH - 1 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
@@ -2376,18 +2380,18 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if cache_req2(72 downto 72) = "1" and cache_req2(71 downto 64) = "11111111" then
+        if is_valid(cache_req2) and cache_req2(71 downto 64) = "11111111" then
           ---let's not consider power now, too complicated
           pwr_req2 <= '1' & cache_req2(64 downto 61);
           state    := 4;
-        elsif cache_req2(72 downto 72) = "1" and cache_req2(63 downto 32) = adr_1 then
+        elsif is_valid(cache_req2) and cache_req2(63 downto 32) = adr_1 then
           state      := 3;
           ----should return to cache, let it perform snoop again!!!
           -----
           ----don't forget to fill this up
           -----
           bus_res1_6 <= '1' & "11111111" & nildata;
-        elsif cache_req2(72 downto 72) = "1" then
+        elsif is_valid(cache_req2) then
           ---snp_req2 <= cache_req2;
           adr_0 <= cache_req2(63 downto 32);
           state := 2;
@@ -2446,4 +2450,7 @@ begin
       end if;
     end if;
   end process;
+
+  -- TODO implement pwr_flow test
+
 end Behavioral;
