@@ -1,7 +1,8 @@
 
 all:
 # types and funs
-	ghdl -a type_defs.vhd
+	ghdl -a defs.vhd
+	ghdl -a util.vhd
 	ghdl -a rand.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
 # data structs
 	ghdl -a arbiter.vhd
@@ -13,7 +14,7 @@ all:
 	ghdl -a gfx.vhd
 	ghdl -a pwr.vhd # uses fifo
 	ghdl -a mem.vhd
-	ghdl -a -fexplicit l1_cache.vhd # uses fifo, arbiter2
+	ghdl -a -fexplicit cache.vhd # uses fifo, arbiter2
 	ghdl -a --ieee=synopsys cpu.vhd
 	ghdl -a pwr.vhd
 	ghdl -a arbiter6.vhd

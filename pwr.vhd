@@ -22,8 +22,7 @@ entity pwr is
     constant GFX_ID : std_logic_vector := "00";
     constant AUDIO_ID : std_logic_vector := "01";
     constant USB_ID : std_logic_vector := "10";    
-    constant UART_ID : std_logic_vector := "11"
-    
+    constant UART_ID : std_logic_vector := "11"    
     );
   Port (  Clock: in std_logic;
           reset: in std_logic;

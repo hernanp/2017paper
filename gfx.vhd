@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.type_defs.all;
+use work.defs.all;
 --use work.rand.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -218,7 +218,8 @@ begin
       if pwr_req_in(2 downto 2) = "1" then
         if pwr_req_in(1 downto 0) = "00" then
           poweron <= '0';
-        elsif pwr_req_in(1 downto 0) = "11" or pwr_req_in(1 downto 0) = "10" then
+        elsif (pwr_req_in(1 downto 0) = "11" or
+               pwr_req_in(1 downto 0) = "10") then
           poweron <= '1';
         end if;
         pwr_res_out <= pwr_req_in;
@@ -239,7 +240,11 @@ begin
         when 0 => -- init
           t1_st <= 1;
         when 1 => -- snd up_req 
-          upreq_out <= '1' & READ_CMD & "1000000000000000"& "1000000000000000"& ZEROS32;
+          upreq_out <= '1' &
+                       READ_CMD &
+                       "1000000000000000" &
+                       "1000000000000000" &
+                       ZEROS32;
           t1_st <= 2;
         when 2 => -- done
           upreq_out <= (others => '0');

@@ -66,7 +66,6 @@ begin
         end if; 
       elsif din2(72 downto 72 )  = "1" then
         if s_ack2 = '0' then
-          --assert (din2(72 downto 72)  = "1") report "pbm" severity error;
           dout <= din2;
           s_ack2 <= '1';
         end if; 

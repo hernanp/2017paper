@@ -2,7 +2,7 @@ library ieee;
 use ieee.math_real.all; -- for uniform fun
 use ieee.numeric_std.all; -- for int to std_logic_vect conversion
 use ieee.std_logic_1164.all;
-use work.type_defs.all;
+use work.defs.all;
 
 package rand is
   --+ seeds

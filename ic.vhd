@@ -1,12 +1,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.type_defs.all;
+use work.defs.all;
+use work.util.all;
 
 entity ic is
-  generic (
-    constant DATA_WIDTH : positive := 73
-    );
   Port(
     Clock                                   : in  std_logic;
     reset                                   : in  std_logic;
@@ -206,18 +204,7 @@ architecture Behavioral of ic is
   --fifo has 53 bits
   --3 bits for indicating its source¡
   --50 bits for packet
-
-  function is_valid(msg : std_logic_vector) return boolean is
-    --variable valid_mask : std_logic_vector(DATA_WIDTH - 1 downto 0) :=
-    --  '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
-  begin
-    if msg(DATA_WIDTH -1 downto DATA_WIDTH -1) = "1" then
-    --if (msg and valid_mask) >= valid_mask then
-      return true;
-    end if;
-    return false;
-  end function;
-  
+    
   signal in6, in7, out6, out7 : std_logic_vector(552 downto 0);
 
   signal in2, out2                    : std_logic_vector(76 downto 0);
@@ -465,7 +452,7 @@ begin
       elsif st = 1 then -- snd_to_arbiter
         gfx_fifo_re <= '0';
         if is_valid(gfx_fifo_dout) then
-          snp1_2 <= "001" & gfx_fifo_dout; -- TODO what does 100 mean?
+          snp1_2 <= GFX_ID & gfx_fifo_dout;
           st  := 2;
         end if;
       elsif st = 2 then -- done
@@ -491,7 +478,7 @@ begin
       elsif stage = 1 then
         re13 <= '0';
         if is_valid(out13) then
-          snp1_3 <= "100" & out13;
+          snp1_3 <= AUDIO_ID & out13;
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -519,7 +506,7 @@ begin
       elsif stage = 1 then
         re14 <= '0';
         if out14(50 downto 50) = "1" then
-          snp1_4 <= "011" & out14;
+          snp1_4 <= USB_ID & out14;
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -547,7 +534,7 @@ begin
       elsif stage = 1 then
         re15 <= '0';
         if out15(50 downto 50) = "1" then
-          snp1_5 <= "010" & out15;
+          snp1_5 <= UART_ID & out15;
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -606,11 +593,14 @@ begin
         uart_upres1  <= (others => '0');
         audio_upres1 <= (others => '0');
         usb_upres1   <= (others => '0');
-        if is_valid(tomem_p) and tomem_p(71 downto 64) = "01000000" then
+        if is_valid(tomem_p) and cmd_eq(tomem_p, READ_CMD) then
           tep_mem := tomem_p;
           state   := 16;
-        elsif is_valid(tomem_p) and tomem_p(71 downto 64) = "10000000" then
-          if tomem_p(75 downto 73)="001" or tomem_p(75 downto 73)="011"  or tomem_p(75 downto 73)="010"  or tomem_p(75 downto 73)="100" then
+        elsif is_valid(tomem_p) and cmd_eq(tomem_p, WRITE_CMD) then
+          if (dst_eq(tomem_p, GFX_ID) or
+              dst_eq(tomem_p, USB_ID)  or
+              dst_eq(tomem_p, UART_ID)  or
+              dst_eq(tomem_p, AUDIO_ID)) then
             mem_write1<=tomem_p;
             state   := 9;
           else
@@ -624,7 +614,8 @@ begin
           --mem_ack <= '0';
           rvalid_out <= '1';
           raddr  <= tep_mem(63 downto 32);
-          if (tep_mem(75 downto 73) = "000" or tep_mem(75 downto 73) = "101") then
+          if (dst_eq(tep_mem, CPU0_ID) or
+              dst_eq(tep_mem, CPU1_ID)) then
             rlen <= "00000" & "10000";
           else
             rlen <= "00000" & "00001";
@@ -638,10 +629,11 @@ begin
         state   := 2;
       elsif state = 2 then
         if rdvalid = '1' and rres = "00" then
-          if tep_mem(75 downto 73) = "000" or tep_mem(75 downto 73) = "101" then
-            rdready                            <= '0';
+          if (dst_eq(tep_mem, CPU0_ID) or
+              dst_eq(tep_mem, CPU1_ID)) then
+            rdready <= '0';
             tdata(lp * 32 + 31 downto lp * 32) := rdata;
-            lp                                 := lp + 1;
+            lp := lp + 1;
             if rlast = '1' then
               state := 3;
               lp    := 0;
@@ -657,22 +649,22 @@ begin
         end if;
       elsif state = 3 then
         --mem_ack <= '1';
-        if tep_mem(75 downto 73) = "000" then
+        if dst_eq(tep_mem, CPU0_ID) then
           bus_res1_1 <= tep_mem(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_mem(75 downto 73) = "101" then
+        elsif dst_eq(tep_mem, CPU1_ID) then
           bus_res2_1 <= tep_mem(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_mem(75 downto 73) = "001" then
+        elsif dst_eq(tep_mem, GFX_ID) then
           gfx_upres1 <= tep_mem(72 downto 32) & sdata;
           state      := 5;
-        elsif tep_mem(75 downto 73) = "010" then
+        elsif dst_eq(tep_mem, UART_ID) then
           uart_upres1 <= tep_mem(72 downto 32) & sdata;
           state       := 6;
-        elsif tep_mem(75 downto 73) = "011" then
+        elsif dst_eq(tep_mem, USB_ID) then
           usb_upres1 <= tep_mem(72 downto 32) & sdata;
           state      := 7;
-        elsif tep_mem(75 downto 73) = "100" then
+        elsif dst_eq(tep_mem, AUDIO_ID) then
           audio_upres1 <= tep_mem(72 downto 32) & sdata;
           state        := 8;
         end if;
@@ -760,10 +752,12 @@ begin
         uart_upres2  <= (others => '0');
         audio_upres2 <= (others => '0');
         usb_upres2   <= (others => '0');
-        if togfx_p(72 downto 72)="1" and togfx_p(71 downto 64) = "01000000" then
+        if (is_valid(togfx_p) and
+            cmd_eq(togfx_p, READ_CMD)) then
           tep_gfx := togfx_p;
           state   := 6;
-        elsif togfx_p(72 downto 72)="1" and togfx_p(71 downto 64) = "10000000" then
+        elsif (is_valid(togfx_p) and
+               cmd_eq(togfx_p, WRITE_CMD)) then
           gfx_write1<=togfx_p;
           state   := 9;
         end if;
@@ -772,7 +766,8 @@ begin
           ---gfx_ack <= '0';
           rvalid_gfx <= '1';
           raddr_gfx  <= togfx_p(63 downto 32);
-          if (togfx_p(75 downto 73) = "000" or togfx_p(75 downto 73) = "101") then
+          if (dst_eq(togfx_p, CPU0_ID) or
+              dst_eq(togfx_p, CPU1_ID)) then
             rlen_gfx <= "00001" & "00000";
           else
             rlen_gfx <= "00000" & "00001";
@@ -786,7 +781,8 @@ begin
         state       := 2;
       elsif state = 2 then
         if rdvalid_gfx = '1' and rres_gfx = "00" then
-          if tep_gfx(75 downto 73) = "000" or tep_gfx(75 downto 73) = "101" then
+          if (dst_eq(tep_gfx, CPU0_ID) or
+              dst_eq(tep_gfx, CPU1_ID)) then
             rdready_gfx                        <= '0';
             tdata(lp * 32 + 31 downto lp * 32) := rdata;
             lp                                 := lp + 1;
@@ -804,22 +800,22 @@ begin
         end if;
       elsif state = 3 then
         --gfx_ack <= '1';
-        if tep_gfx(75 downto 73) = "000" then
+        if dst_eq(tep_gfx, CPU0_ID) then
           bus_res1_2 <= tep_gfx(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_gfx(75 downto 73) = "101" then
+        elsif dst_eq(tep_gfx, CPU1_ID) then
           bus_res2_2 <= tep_gfx(72 downto 32) & tdata;
           state      := 4;
         --elsif tep_gfx(75 downto 73)="001" then
         --gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
         --state := 5;
-        elsif tep_gfx(75 downto 73) = "010" then
+        elsif dst_eq(tep_gfx, UART_ID) then
           uart_upres2 <= tep_gfx(72 downto 32) & sdata;
           state       := 6;
-        elsif tep_gfx(75 downto 73) = "011" then
+        elsif dst_eq(tep_gfx, USB_ID) then
           usb_upres2 <= tep_gfx(72 downto 32) & sdata;
           state      := 7;
-        elsif tep_gfx(75 downto 73) = "100" then
+        elsif dst_eq(tep_gfx, AUDIO_ID) then
           audio_upres2 <= tep_gfx(72 downto 32) & sdata;
           state        := 8;
         end if;
@@ -1316,7 +1312,8 @@ begin
           ---usb_ack <= '0';
           rvalid_usb <= '1';
           raddr_usb  <= tousb_p(63 downto 32);
-          if (tousb_p(75 downto 73) = "000" or tousb_p(75 downto 73) = "101") then
+          if (dst_eq(tousb_p, CPU0_ID) or
+              dst_eq(tousb_p, CPU1_ID)) then
             rlen_usb <= "00001" & "00000";
           else
             rlen_usb <= "00000" & "00001";
@@ -1330,7 +1327,8 @@ begin
         state       := 2;
       elsif state = 2 then
         if rdvalid_usb = '1' and rres_usb = "00" then
-          if tep_usb(75 downto 73) = "000" or tep_usb(75 downto 73) = "101" then
+          if (dst_eq(tep_usb, CPU0_ID) or
+              dst_eq(tep_usb, CPU1_ID)) then
             rdready_usb                        <= '0';
             tdata(lp * 32 + 31 downto lp * 32) := rdata;
             lp                                 := lp + 1;
@@ -1348,22 +1346,22 @@ begin
         end if;
       elsif state = 3 then
         --usb_ack <= '1';
-        if tep_usb(75 downto 73) = "000" then
+        if dst_eq(tep_usb, CPU0_ID) then
           bus_res1_4 <= tep_usb(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_usb(75 downto 73) = "101" then
+        elsif dst_eq(tep_usb, CPU1_ID) then
           bus_res2_4 <= tep_usb(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_usb(75 downto 73) = "001" then
+        elsif dst_eq(tep_usb, GFX_ID) then
           gfx_upres4 <= tep_usb(72 downto 32) & sdata;
           state      := 5;
-        elsif tep_usb(75 downto 73) = "010" then
+        elsif dst_eq(tep_usb, UART_ID) then
           uart_upres4 <= tep_usb(72 downto 32) & sdata;
           state       := 6;
         --				elsif tep_usb(75 downto 73)="011" then
         --					usb_upres4<= tep_usb(72 downto 32) & sdata;
         --					state := 7;
-        elsif tep_usb(75 downto 73) = "100" then
+        elsif dst_eq(tep_usb, AUDIO_ID) then
           audio_upres4 <= tep_usb(72 downto 32) & sdata;
           state        := 8;
         end if;
@@ -1549,7 +1547,8 @@ begin
           ---uart_ack <= '0';
           rvalid_uart <= '1';
           raddr_uart  <= touart_p(63 downto 32);
-          if (touart_p(75 downto 73) = "000" or touart_p(75 downto 73) = "101") then
+          if (dst_eq(touart_p, CPU0_ID) or
+              dst_eq(touart_p, CPU1_ID)) then
             rlen_uart <= "00001" & "00000";
           else
             rlen_uart <= "00000" & "00001";
@@ -1563,7 +1562,8 @@ begin
         state        := 2;
       elsif state = 2 then
         if rdvalid_uart = '1' and rres_uart = "00" then
-          if tep_uart(75 downto 73) = "000" or tep_uart(75 downto 73) = "101" then
+          if (dst_eq(tep_uart, CPU0_ID) or
+              dst_eq(tep_uart, CPU1_ID)) then
             rdready_uart                       <= '0';
             tdata(lp * 32 + 31 downto lp * 32) := rdata;
             lp                                 := lp + 1;
@@ -1581,22 +1581,22 @@ begin
         end if;
       elsif state = 3 then
         --uart_ack <= '1';
-        if tep_uart(75 downto 73) = "000" then
+        if dst_eq(tep_uart, CPU0_ID) then
           bus_res1_3 <= tep_uart(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_uart(75 downto 73) = "101" then
+        elsif dst_eq(tep_uart, CPU1_ID) then
           bus_res2_3 <= tep_uart(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_uart(75 downto 73) = "001" then
+        elsif dst_eq(tep_uart, GFX_ID) then
           gfx_upres3 <= tep_uart(72 downto 32) & sdata;
           state      := 5;
         --				elsif tep_uart(75 downto 73)="010" then
         --					uart_upres3<= tep_uart(72 downto 32) & sdata;
         --					state := 6;
-        elsif tep_uart(75 downto 73) = "011" then
+        elsif dst_eq(tep_uart, USB_ID) then
           usb_upres3 <= tep_uart(72 downto 32) & sdata;
           state      := 7;
-        elsif tep_uart(75 downto 73) = "100" then
+        elsif dst_eq(tep_uart, AUDIO_ID) then
           audio_upres3 <= tep_uart(72 downto 32) & sdata;
           state        := 8;
         end if;
@@ -1881,7 +1881,8 @@ begin
           ---audio_ack <= '0';
           rvalid_audio <= '1';
           raddr_audio  <= toaudio_p(63 downto 32);
-          if (toaudio_p(75 downto 73) = "000" or toaudio_p(75 downto 73) = "101") then
+          if (dst_eq(toaudio_p, CPU0_ID) or
+              dst_eq(toaudio_p, CPU1_ID)) then
             rlen_audio <= "00001" & "00000";
           else
             rlen_audio <= "00000" & "00001";
@@ -1895,7 +1896,8 @@ begin
         state         := 2;
       elsif state = 2 then
         if rdvalid_audio = '1' and rres_audio = "00" then
-          if tep_audio(75 downto 73) = "000" or tep_audio(75 downto 73) = "101" then
+          if (dst_eq(tep_audio, CPU0_ID) or
+              dst_eq(tep_audio, CPU1_ID)) then
             rdready_audio                      <= '0';
             tdata(lp * 32 + 31 downto lp * 32) := rdata;
             lp                                 := lp + 1;
@@ -1914,19 +1916,19 @@ begin
         end if;
       elsif state = 3 then
         --audio_ack <= '1';
-        if tep_audio(75 downto 73) = "000" then
+        if dst_eq(tep_audio, CPU0_ID) then
           bus_res1_5 <= tep_audio(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_audio(75 downto 73) = "101" then
+        elsif dst_eq(tep_audio, CPU1_ID) then
           bus_res2_5 <= tep_audio(72 downto 32) & tdata;
           state      := 4;
-        elsif tep_audio(75 downto 73) = "001" then
+        elsif dst_eq(tep_audio, GFX_ID) then
           gfx_upres5 <= tep_audio(72 downto 32) & sdata;
           state      := 5;
-        elsif tep_audio(75 downto 73) = "010" then
+        elsif dst_eq(tep_audio, UART_ID) then
           uart_upres5 <= tep_audio(72 downto 32) & sdata;
           state       := 6;
-        elsif tep_audio(75 downto 73) = "011" then
+        elsif dst_eq(tep_audio, USB_ID) then
           usb_upres5 <= tep_audio(72 downto 32) & sdata;
           state      := 7;
         --				elsif tep_audio(75 downto 73)="100" then
@@ -2047,16 +2049,16 @@ begin
           end if;
         --it's a hit, return to the source ip
         elsif out2(72 downto 72)="1" then
-          if out2(75 downto 73) = "001" then
+          if dst_eq(out2, GFX_ID) then
             gfx_upres2 <= out2(DATA_WIDTH - 1 downto 0);
             state      := 9;
-          elsif out2(75 downto 73) = "010" then
+          elsif dst_eq(out2, UART_ID) then
             uart_upres3 <= out2(DATA_WIDTH - 1 downto 0);
             state       := 10;
-          elsif out2(75 downto 73) = "011" then
+          elsif dst_eq(out2, USB_ID) then
             usb_upres4 <= out2(DATA_WIDTH - 1 downto 0);
             state      := 11;
-          elsif out2(75 downto 73) = "100" then
+          elsif dst_eq(out2, AUDIO_ID) then
             audio_upres5 <= out2(DATA_WIDTH - 1 downto 0);
             state        := 12;
           end if;

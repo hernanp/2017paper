@@ -1,8 +1,9 @@
 library ieee,std;
 use ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
-use work.type_defs.all;
+use work.defs.all;
 use work.rand.all;
+use work.util.all;
 
 use ieee.std_logic_textio.all;
 use std.textio.all;

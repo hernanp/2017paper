@@ -27,7 +27,7 @@ entity memory is
 		 raddr      : in  std_logic_vector(31 downto 0);
 		 rlen       : in  std_logic_vector(9 downto 0);
 		 rsize      : in  std_logic_vector(9 downto 0);
-		 rvalid     : in  std_logic;
+		 rvalid_in  : in  std_logic;
 		 rready     : out std_logic;
 		 ---read data channel
 		 rdata      : out std_logic_vector(31 downto 0);
@@ -35,7 +35,7 @@ entity memory is
 		 rlast      : out std_logic;
 		 rdvalid    : out std_logic;
 		 rdready    : in  std_logic;
-		 rres       : out std_logic_vector(1 downto 0)
+		 rres_out   : out std_logic_vector(1 downto 0)
 	);
 end Memory;
 
@@ -116,7 +116,7 @@ begin
 		elsif (rising_edge(Clock)) then
 			if state = 0 then
 				lp := 0;
-				if rvalid = '1' then
+				if rvalid_in = '1' then
 					rready  <= '0';
 					slot    := to_integer(unsigned(waddr(30 downto 25)));
 					address := to_integer(unsigned(waddr(15 downto 14)));
@@ -138,7 +138,7 @@ begin
 						---rdata <= dt;
 						rdata   <= ROM_array(slot)(address + lp);
 						lp      := lp + 1;
-						rres    <= "00";
+						rres_out <= "00";
 						if lp = len then
 							state := 3;
 							rlast <= '1';

@@ -64,10 +64,8 @@ architecture tb of top is
   signal usb_upreq_full, usb_wb_ack   : std_logic;
 
   signal zero   : std_logic                     := '0';
-  signal zero72 : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0'); --TODO
-                                                                    --replace
-                                                                    --by constant
-  signal zero75 : std_logic_vector(75 downto 0) := (others => '0'); -- TODO idem
+  signal zero72 : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0');
+  signal zero75 : std_logic_vector(75 downto 0) := (others => '0');
   signal uart_b, touart                  : std_logic_vector(75 downto 0);
   signal uart_upreq, uart_upres, uart_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal uart_upreq_full, uart_wb_ack    : std_logic;
@@ -258,25 +256,25 @@ begin
     Clock       => Clock,
     reset       => reset,
 
-    cpu_req_in  => cpu_req1, -- i
-    cpu_res     => cpu_res1, -- o
+    cpu_req_in  => cpu_req1,
+    cpu_res_out => cpu_res1,
     -- o - cpu req fifo full
 
-    snp_req_in     => snp_req1, -- i - snoop req from cache 2
-    snp_hit     => snp_hit1, -- o
-    snp_res_out     => snp_res1, -- o
+    snp_req_in  => snp_req1, -- snoop req from cache 2
+    snp_hit_out => snp_hit1,
+    snp_res_out => snp_res1,
 
-    up_snp_req_in  => up_snp_req, -- i - upstream snoop req 
-    up_snp_hit_out     => up_snp_hit, -- o
-    up_snp_res_out     => up_snp_res, -- o
+    up_snp_req_in  => up_snp_req, -- upstream snoop req 
+    up_snp_hit_out => up_snp_hit,
+    up_snp_res_out => up_snp_res,
 
-    snp_req_out => snp_req2, -- o - TODO diff with cache_req?
-    snp_hit_in => snp_hit2, -- i
-    snp_res_in => snp_res2, -- i
+    snp_req_out => snp_req2, -- fwd snp req to other cache
+    snp_hit_in => snp_hit2,
+    snp_res_in => snp_res2,
 
     ----------------------------------------------------------
-    cache_req   => bus_req1, -- o - TODO snoop req to cache 2
-    bus_res_in     => bus_res1, -- i - TODO snoop resp from cache 2    
+    dn_snp_req_out  => bus_req1, -- snp req to ic
+    dn_snp_res_in   => bus_res1, -- snp resp from ic    
 
     wb_req      => wb_req1, -- TODO what is it doing?
                             -- is it supposed be implemented outside cache?
@@ -285,28 +283,28 @@ begin
     srf_full   => full_srs2, 
     crf_full    => full_c1_u,
 	 
-    full_crq    => full_crq1, -- TODO what are these for?
-    full_wb     => full_wb1,  -- are they not implemented?
+    full_crq    => full_crq1,
+    full_wb     => full_wb1,  -- TODO are these outputs not implemented yet?
     full_srs    => full_srs1
     );
 
   cache2 : entity work.l1_cache(Behavioral) port map(
-    Clock        => Clock,
-    reset        => reset,
+    Clock       => Clock,
+    reset       => reset,
 
-    cpu_req_in      => cpu_req2, -- i
-    cpu_res      => cpu_res2,
+    cpu_req_in  => cpu_req2,
+    cpu_res_out => cpu_res2,
 
-    snp_req_out  => snp_req1, -- o
-    snp_hit_in  => snp_hit1, -- i
-    snp_res_in  => snp_res1, -- i
+    snp_req_out => snp_req1,
+    snp_hit_in  => snp_hit1,
+    snp_res_in  => snp_res1,
     
-    snp_req_in      => snp_req2, -- i
-    snp_hit      => snp_hit2,
-    snp_res_out      => snp_res2,
+    snp_req_in   => snp_req2,
+    snp_hit_out  => snp_hit2,
+    snp_res_out  => snp_res2,
 
-    cache_req    => bus_req2, -- o -- TODO check these connections are correct
-    bus_res_in      => bus_res2,
+    dn_snp_req_out  => bus_req2,
+    dn_snp_res_in   => bus_res2,
 
     up_snp_req_in   => zero75,   -- TODO not implemented yet
     up_snp_res_out   => zero75,
@@ -377,7 +375,7 @@ begin
     raddr            => raddr,
     rlen             => rlen,
     rsize            => rsize,
-    rvalid_out           => rvalid,
+    rvalid_out       => rvalid,
     rready           => rready,
     rdata            => rdata,
     rstrb            => rstrb,
@@ -491,7 +489,7 @@ begin
     wb_req2          => wb_req2,
     bus_res1         => bus_res1,
     bus_res2         => bus_res2,
-    up_snp_req_out   => up_snp_req, -- TODO changed right side from snp_req to up_snp_req
+    up_snp_req_out   => up_snp_req,
     up_snp_res_in    => up_snp_res,
     up_snp_hit_in    => up_snp_hit,
     full_srq1        => full_srq1,
@@ -670,14 +668,14 @@ begin
     raddr      => raddr,
     rlen       => rlen,
     rsize      => rsize,
-    rvalid     => rvalid,
+    rvalid_in  => rvalid,
     rready     => rready,
     rdata      => rdata,
     rstrb      => rstrb,
     rlast      => rlast,
     rdvalid    => rdvalid,
     rdready    => rdready,
-    rres       => rres
+    rres_out   => rres
     );
 
   -- Clock generation, starts at 0
@@ -824,9 +822,30 @@ begin
       write(l, waddr_audio);
       write(l, SEP);
       write(l, wrvalid_audio);
-
+      write(l, SEP);
+      
       ---- pwr
       ---- TODO not yet implemented
+
+      -- upreq and upres
+      write(l, gfx_upreq);
+      write(l, SEP);
+      write(l, gfx_upres);
+      write(l, SEP);
+      
+      write(l, uart_upreq);
+      write(l, SEP);
+      write(l, uart_upres);
+      write(l, SEP);
+      
+      write(l, usb_upreq);
+      write(l, SEP);
+      write(l, usb_upres);
+      write(l, SEP);
+      
+      write(l, audio_upreq);
+      write(l, SEP);
+      write(l, audio_upres);
       
       writeline(trace_file, l); 
     end if;
