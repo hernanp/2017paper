@@ -22,6 +22,9 @@ package defs is
   constant USB_ID   : std_logic_vector(2 downto 0) := "011";
   constant AUDIO_ID : std_logic_vector(2 downto 0) := "100";
   constant CPU1_ID  : std_logic_vector(2 downto 0) := "101";
+
+  constant CACHE0_ID : std_logic_vector(2 downto 0) := "110";
+  constant CACHE1_ID  : std_logic_vector(2 downto 0) := "111";
   
   --constant ZEROS72 : std_logic_vector(72 downto 0) := (others => '0');
   --constant ZEROS75 : std_logic_vector(75 downto 0) := (others => '0');

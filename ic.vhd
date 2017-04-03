@@ -15,8 +15,8 @@ entity ic is
     bus_res1                                : out STD_LOGIC_VECTOR(552 downto 0);
     bus_res2                                : out STD_LOGIC_VECTOR(552 downto 0);
     up_snp_req_out                          : out STD_LOGIC_VECTOR(75 downto 0);
-    up_snp_res_in                                : in  STD_LOGIC_VECTOR(75 downto 0);
-    up_snp_hit_in                                : in  std_logic;
+    up_snp_res_in                           : in  STD_LOGIC_VECTOR(75 downto 0);
+    up_snp_hit_in                           : in  std_logic;
     full_srq1                               : in  std_logic;
     full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
     pwr_req_out                             : out std_logic_vector(4 downto 0);
@@ -2465,10 +2465,11 @@ begin
     end if;
   end process;
 
-  pwr_test : process(clock, reset) -- pwr_req test
+  --* ic sends a power req 
+  ic_pwr_test : process(clock, reset) -- pwr_req test
     variable st : natural := 0;
   begin
-    if RUN_TEST = PWR_T then
+    if RUN_TEST = IC_PWR_GFX_T then
       if reset = '1' then
         pwr_req_out <= (others => '0');
         st := 0;

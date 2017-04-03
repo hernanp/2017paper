@@ -233,7 +233,7 @@ begin
 
   t1 : process(clock, reset) -- up read test
   begin
-    if RUN_TEST = GFX_UP_RD_T then
+    if RUN_TEST = IC_PWR_GFX_T then
       if reset = '1' then
         upreq_out <= (others => '0');
         t1_st <= 0;

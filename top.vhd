@@ -710,7 +710,7 @@ begin
     variable l : line;
     constant SEP : String(1 to 1) := ",";
   begin
-    if GEN_TRACE then
+    if GEN_TRACE1 then
       if rising_edge(tb_clk) then
         ---- cpu
         write(l, cpu_req1);

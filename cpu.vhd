@@ -4,6 +4,7 @@ USE ieee.numeric_std.ALL;
 use work.defs.all;
 use work.rand.all;
 use work.util.all;
+use work.test.all;
 
 use ieee.std_logic_textio.all;
 use std.textio.all;
@@ -39,31 +40,56 @@ architecture Behavioral of cpu is
   --end power;
 
 begin
-  cpu_rand_rd_test : process(reset, Clock)
+  --* CPU1_R_T cpu1 sends a read req msg
+  cpu1_r_test : process(reset, Clock)
     variable st : natural := 0;
   begin
-    if reset = '1' then
-      cpu_req <= (others => '0');
-      st := 0;
-    elsif (rising_edge(Clock)) then
-      if st = 0 then
-        st := 1;
-      elsif st = 1 then
-        -- send a random msg
-        if cpu_id = 1 then
-         --- cpu_req <= rand_req(write);
-          cpu_req<="110000000" &
-                    "10000000000000000000000000000000" &
-                    "00000000000000000000000000000000";
-        elsif cpu_id = 2 then
-          cpu_req<="101000000" &
-                    "10000000000000000000000000000000" &
-                    "00000000000000000000000000000000";
-        end if;
-        st := 2;
-      elsif st = 2 then
-        -- TODO wait for resp
+    if RUN_TEST = CPU1_R_T then
+      if reset = '1' then
+        cpu_req <= (others => '0');
+        st := 0;
+      elsif (rising_edge(Clock)) then
+        if st = 0 then
+          st := 1;
+        elsif st = 1 then
+          -- send a random msg
+          if cpu_id = 1 then
+            --- cpu_req <= rand_req(write);
+            cpu_req <= "110000000" &
+                       "10000000000000000000000000000000" &
+                       "00000000000000000000000000000000";
+          end if;
+          st := 2;
+        elsif st = 2 then
+          -- TODO wait for resp
 		  cpu_req<=(others =>'0');
+        end if;
+      end if;
+    end if;
+  end process;
+
+  --* CPU2_W_T cpu2 sends a write req msg
+  cpu2_w_test : process(reset, Clock)
+    variable st : natural := 0;
+  begin
+    if RUN_TEST = CPU2_W_T then
+      if reset = '1' then
+        cpu_req <= (others => '0');
+        st := 0;
+      elsif (rising_edge(Clock)) then
+        if st = 0 then
+          st := 1;
+        elsif st = 1 then
+          if cpu_id = 2 then
+            cpu_req <= "101000000" &
+                       "10000000000000000000000000000000" &
+                       "00000000000000000000000000000000";
+          end if;
+          st := 2;
+        elsif st = 2 then
+          -- TODO wait for resp
+		  cpu_req<=(others =>'0');
+        end if;
       end if;
     end if;
   end process;
