@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.defs.all;
 use work.util.all;
+use work.test.all;
 
 entity ic is
   Port(
@@ -285,8 +286,6 @@ architecture Behavioral of ic is
 
   signal tmp_cache_req1, tmp_cache_req2: std_logic_vector(DATA_WIDTH - 1 downto 0);
 
-  -- test variables
-  signal t1_st : natural := 0;
 begin
   wb_fifo1 : entity work.fifo(Behavioral)
     generic map(
@@ -1701,7 +1700,7 @@ begin
       ack5  => pwr_ack5,
       din6  => pwr_req6,
       ack6  => pwr_ack6,
-      dout  => pwr_req_out
+      dout  => pwr_req_out -- TODO comment when testing pwr
       );
 
   brs1_arbitor : entity work.arbiter7(Behavioral)
@@ -2466,26 +2465,27 @@ begin
     end if;
   end process;
 
-  ------ TODO this could probably be abstracted into a procedure
-  --t1 : process(clock, reset) -- pwr_req test
-  --begin
-  --  if reset = '1' then
-  --    pwr_req_out <= (others => '0');
-  --    t1_st <= 0;
-  --  elsif(rising_edge(clock)) then
-  --    case t1_st is
-  --      when 0 => -- init
-  --        t1_st <= 1;
-  --      when 1 => -- snd pwr_req 
-  --        pwr_req_out <= "1" & -- valid bit
-  --                       "10" & -- data means "poweron" (see gfx.vhd)
-  --                       "00"; -- gfx id
-  --        t1_st <= 2;
-  --      when 2 => -- done
-  --        pwr_req_out <= (others => '0');
-  --      when others =>
-  --    end case;
-  --  end if;
-  --end process;
+  pwr_test : process(clock, reset) -- pwr_req test
+    variable st : natural := 0;
+  begin
+    if RUN_TEST = PWR_T then
+      if reset = '1' then
+        pwr_req_out <= (others => '0');
+        st := 0;
+      elsif(rising_edge(clock)) then
+      if st = 0 then -- init
+          st := 1;
+        elsif st = 1 then
+          pwr_req_out <= "1" & -- valid bit
+                         "10" & -- data means "poweron" (see gfx.vhd)
+                         "00"; -- gfx id
+          st := 2;
+        elsif st = 2 then
+          pwr_req_out <= (others => '0');
+        else
+        end if;
+      end if;
+    end if;
+  end process;
   
 end Behavioral;

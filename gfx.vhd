@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.defs.all;
+use work.test.all;
 --use work.rand.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -232,24 +233,26 @@ begin
 
   t1 : process(clock, reset) -- up read test
   begin
-    if reset = '1' then
-      upreq_out <= (others => '0');
-      t1_st <= 0;
-    elsif(rising_edge(clock)) then
-      case t1_st is
-        when 0 => -- init
-          t1_st <= 1;
-        when 1 => -- snd up_req 
-          upreq_out <= '1' &
-                       READ_CMD &
-                       "1000000000000000" &
-                       "1000000000000000" &
-                       ZEROS32;
-          t1_st <= 2;
-        when 2 => -- done
-          upreq_out <= (others => '0');
-        when others =>
-      end case;
+    if RUN_TEST = GFX_UP_RD_T then
+      if reset = '1' then
+        upreq_out <= (others => '0');
+        t1_st <= 0;
+      elsif(rising_edge(clock)) then
+        case t1_st is
+          when 0 => -- init
+            t1_st <= 1;
+          when 1 => -- snd up_req 
+            upreq_out <= '1' &
+                         READ_CMD &
+                         "1000000000000000" &
+                         "1000000000000000" &
+                         ZEROS32;
+            t1_st <= 2;
+          when 2 => -- done
+            upreq_out <= (others => '0');
+          when others =>
+        end case;
+      end if;
     end if;
   end process;
   

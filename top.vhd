@@ -6,6 +6,8 @@ use ieee.numeric_std.all;
 use std.textio.all;
 use ieee.std_logic_textio.all;
 
+use work.test.all;
+
 entity top is
   generic (
     constant DATA_WIDTH : positive := 73
@@ -19,8 +21,6 @@ architecture tb of top is
   constant tb_period : time := 10 ps;
   signal tb_clk : std_logic := '0';
   signal tb_sim_ended : std_logic := '0';
-  
-  file trace_file : TEXT open write_mode is "trace1.txt";
 
   signal reset                                                              : std_logic := '1';
   
@@ -682,172 +682,175 @@ begin
   tb_clk <= not tb_clk after tb_period/2 when tb_sim_ended /= '1' else '0';
   Clock <= tb_clk;
 
-  log_up_snp : process(tb_clk)
-    variable l : line;
-    constant SEP : String(1 to 1) := ",";
-    file log_file : TEXT open write_mode is "up_snp.log";
-  begin
-    if rising_edge(tb_clk) then
-      write(l, gfx_upreq);
-      write(l, SEP);
-      write(l, up_snp_req);
-      write(l, SEP);
-      write(l, snp_req2);
-      write(l, SEP);
-      write(l, snp_res2);
-      write(l, SEP);
-      write(l, up_snp_res);
-      write(l, SEP);
-      write(l, rvalid);
-      write(l, SEP);
-      write(l, rres);
-      writeline(log_file, l); 
-    end if;
-  end process;
+  --log_up_snp : process(tb_clk)
+  --  variable l : line;
+  --  constant SEP : String(1 to 1) := ",";
+  --  file log_file : TEXT open write_mode is "up_snp.log";
+  --begin
+  --  if rising_edge(tb_clk) then
+  --    write(l, gfx_upreq);
+  --    write(l, SEP);
+  --    write(l, up_snp_req);
+  --    write(l, SEP);
+  --    write(l, snp_req2);
+  --    write(l, SEP);
+  --    write(l, snp_res2);
+  --    write(l, SEP);
+  --    write(l, up_snp_res);
+  --    write(l, SEP);
+  --    write(l, rvalid);
+  --    write(l, SEP);
+  --    write(l, rres);
+  --    writeline(log_file, l); 
+  --  end if;
+  --end process;
       
   logger : process(tb_clk)
+    file trace_file : TEXT open write_mode is "trace1.txt";
     variable l : line;
     constant SEP : String(1 to 1) := ",";
   begin
-    if rising_edge(tb_clk) then
-      ---- cpu
-      write(l, cpu_req1);
-      write(l, SEP);
-      write(l, cpu_res1);
-      write(l, SEP);
-      write(l, cpu_req2);
-      write(l, SEP);
-      write(l, cpu_res2);
-      write(l, SEP);
+    if GEN_TRACE then
+      if rising_edge(tb_clk) then
+        ---- cpu
+        write(l, cpu_req1);
+        write(l, SEP);
+        write(l, cpu_res1);
+        write(l, SEP);
+        write(l, cpu_req2);
+        write(l, SEP);
+        write(l, cpu_res2);
+        write(l, SEP);
 
-      ---- snp
-      write(l, snp_req1);
-      write(l, SEP);
-      write(l, snp_res1);
-      write(l, SEP);
-      write(l, snp_hit1);
-      write(l, SEP);
+        ---- snp
+        write(l, snp_req1);
+        write(l, SEP);
+        write(l, snp_res1);
+        write(l, SEP);
+        write(l, snp_hit1);
+        write(l, SEP);
 
-      write(l, snp_req2);
-      write(l, SEP);
-      write(l, snp_res2);
-      write(l, SEP);
-      write(l, snp_hit2);
-      write(l, SEP);
+        write(l, snp_req2);
+        write(l, SEP);
+        write(l, snp_res2);
+        write(l, SEP);
+        write(l, snp_hit2);
+        write(l, SEP);
 
-      ---- up_snp
-      write(l, up_snp_req);
-      write(l, SEP);
-      write(l, up_snp_res);
-      write(l, SEP);
-      write(l, up_snp_hit);
-      write(l, SEP);
+        ---- up_snp
+        write(l, up_snp_req);
+        write(l, SEP);
+        write(l, up_snp_res);
+        write(l, SEP);
+        write(l, up_snp_hit);
+        write(l, SEP);
 
-      ---- cache_req
-      write(l, bus_req1);
-      write(l, SEP);
-      write(l, bus_res1);
-      write(l, SEP);
+        ---- cache_req
+        write(l, bus_req1);
+        write(l, SEP);
+        write(l, bus_res1);
+        write(l, SEP);
 
-      write(l, bus_req2);
-      write(l, SEP);
-      write(l, bus_res2);
-      write(l, SEP);
-      
-      ---- ic
-      ---- read
-      write(l, rvalid);
-      write(l, SEP);
-      write(l, rdvalid);
-      write(l, SEP);
-      ---- write
-      write(l, wvalid);
-      write(l, SEP);
-      write(l, waddr);
-      write(l, SEP);
-      write(l, wrvalid);
-      write(l, SEP);
+        write(l, bus_req2);
+        write(l, SEP);
+        write(l, bus_res2);
+        write(l, SEP);
+        
+        ---- ic
+        ---- read
+        write(l, rvalid);
+        write(l, SEP);
+        write(l, rdvalid);
+        write(l, SEP);
+        ---- write
+        write(l, wvalid);
+        write(l, SEP);
+        write(l, waddr);
+        write(l, SEP);
+        write(l, wrvalid);
+        write(l, SEP);
 
-      ---- gfx
-      ---- read
-      write(l, rvalid_gfx);
-      write(l, SEP);
-      write(l, rdvalid_gfx);
-      write(l, SEP);
-      ---- write
-      write(l, wvalid_gfx);
-      write(l, SEP);
-      write(l, waddr_gfx);
-      write(l, SEP);
-      write(l, wrvalid_gfx);
-      write(l, SEP);
+        ---- gfx
+        ---- read
+        write(l, rvalid_gfx);
+        write(l, SEP);
+        write(l, rdvalid_gfx);
+        write(l, SEP);
+        ---- write
+        write(l, wvalid_gfx);
+        write(l, SEP);
+        write(l, waddr_gfx);
+        write(l, SEP);
+        write(l, wrvalid_gfx);
+        write(l, SEP);
 
-      ---- uart
-      ---- read
-      write(l, rvalid_uart);
-      write(l, SEP);
-      write(l, rdvalid_uart);
-      write(l, SEP);
-      ---- write
-      write(l, wvalid_uart);
-      write(l, SEP);
-      write(l, waddr_uart);
-      write(l, SEP);
-      write(l, wrvalid_uart);
-      write(l, SEP);
+        ---- uart
+        ---- read
+        write(l, rvalid_uart);
+        write(l, SEP);
+        write(l, rdvalid_uart);
+        write(l, SEP);
+        ---- write
+        write(l, wvalid_uart);
+        write(l, SEP);
+        write(l, waddr_uart);
+        write(l, SEP);
+        write(l, wrvalid_uart);
+        write(l, SEP);
 
-      ---- usb
-      ---- read
-      write(l, rvalid_usb);
-      write(l, SEP);
-      write(l, rdvalid_usb);
-      write(l, SEP);
-      ---- write
-      write(l, wvalid_usb);
-      write(l, SEP);
-      write(l, waddr_usb);
-      write(l, SEP);
-      write(l, wrvalid_usb);
-      write(l, SEP);
+        ---- usb
+        ---- read
+        write(l, rvalid_usb);
+        write(l, SEP);
+        write(l, rdvalid_usb);
+        write(l, SEP);
+        ---- write
+        write(l, wvalid_usb);
+        write(l, SEP);
+        write(l, waddr_usb);
+        write(l, SEP);
+        write(l, wrvalid_usb);
+        write(l, SEP);
 
-      ---- audio
-      ---- read
-      write(l, rvalid_audio);
-      write(l, SEP);
-      write(l, rdvalid_audio);
-      write(l, SEP);
-      ---- write
-      write(l, wvalid_audio);
-      write(l, SEP);
-      write(l, waddr_audio);
-      write(l, SEP);
-      write(l, wrvalid_audio);
-      write(l, SEP);
-      
-      ---- pwr
-      ---- TODO not yet implemented
+        ---- audio
+        ---- read
+        write(l, rvalid_audio);
+        write(l, SEP);
+        write(l, rdvalid_audio);
+        write(l, SEP);
+        ---- write
+        write(l, wvalid_audio);
+        write(l, SEP);
+        write(l, waddr_audio);
+        write(l, SEP);
+        write(l, wrvalid_audio);
+        write(l, SEP);
+        
+        ---- pwr
+        ---- TODO not yet implemented
 
-      -- upreq and upres
-      write(l, gfx_upreq);
-      write(l, SEP);
-      write(l, gfx_upres);
-      write(l, SEP);
-      
-      write(l, uart_upreq);
-      write(l, SEP);
-      write(l, uart_upres);
-      write(l, SEP);
-      
-      write(l, usb_upreq);
-      write(l, SEP);
-      write(l, usb_upres);
-      write(l, SEP);
-      
-      write(l, audio_upreq);
-      write(l, SEP);
-      write(l, audio_upres);
-      
-      writeline(trace_file, l); 
+        -- upreq and upres
+        write(l, gfx_upreq);
+        write(l, SEP);
+        write(l, gfx_upres);
+        write(l, SEP);
+        
+        write(l, uart_upreq);
+        write(l, SEP);
+        write(l, uart_upres);
+        write(l, SEP);
+        
+        write(l, usb_upreq);
+        write(l, SEP);
+        write(l, usb_upres);
+        write(l, SEP);
+        
+        write(l, audio_upreq);
+        write(l, SEP);
+        write(l, audio_upres);
+        
+        writeline(trace_file, l); 
+      end if;
     end if;
   end process;
   
@@ -857,7 +860,7 @@ begin
     reset <= '1';
     wait for 15 ps;
     reset <= '0';
-		
+    
     wait;
   end process;
 end tb;

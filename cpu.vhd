@@ -39,39 +39,16 @@ architecture Behavioral of cpu is
   --end power;
 
 begin
-  process(reset, Clock)
+  cpu_rand_rd_test : process(reset, Clock)
+    variable st : natural := 0;
   begin
     if reset = '1' then
-     -- cpu_req <= (others => '0');
-      -- st <= init; -- TODO commented out to test up_snp; uncomment when done
-      st <= idle; -- TODO see line above
+      cpu_req <= (others => '0');
+      st := 0;
     elsif (rising_edge(Clock)) then
-      st <= next_st;
-    end if;
-	 
-  end process;
-  
-  transitions : process(st)
-    ---- vars for power messages
-    --variable pwrcmd      : std_logic_vector(1 downto 0);
-    --variable hwlc        : std_logic_vector(1 downto 0);
-  begin
-    --pwrcmd := "00";
-    --hwlc   := "00";
-    ----power(pwrcmd, tmp_req, hwlc);
-    -- TODO why is tmp_req is an empty message (not initialized)?
-    --if cpu_id = 1 then
-    --  write(flag0, tmp_req, one);
-    --elsif cpu_id = 2 then
-    --  read(turn, tmp_req, turn_data);
-    --end if;
-	 
-    case st is
-      when init =>
-        -- output nothing
-        cpu_req <= (others => '0');
-        next_st <= send;
-      when send =>
+      if st = 0 then
+        st := 1;
+      elsif st = 1 then
         -- send a random msg
         if cpu_id = 1 then
          --- cpu_req <= rand_req(write);
@@ -83,11 +60,12 @@ begin
                     "10000000000000000000000000000000" &
                     "00000000000000000000000000000000";
         end if;
-        next_st <= idle;
-      when idle =>
+        st := 2;
+      elsif st = 2 then
         -- TODO wait for resp
 		  cpu_req<=(others =>'0');
-        next_st <= idle;
-    end case;
+      end if;
+    end if;
   end process;
+
 end Behavioral;

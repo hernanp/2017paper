@@ -4,6 +4,7 @@ all:
 	ghdl -a defs.vhd
 	ghdl -a util.vhd
 	ghdl -a rand.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
+	ghdl -a test.vhd # Test configuration
 # data structs
 	ghdl -a arbiter.vhd
 	ghdl -a arbiter2.vhd

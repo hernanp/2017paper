@@ -56,7 +56,7 @@ begin
 	generic map(
       DATA_WIDTH => 5,
       FIFO_DEPTH => 16
-      )
+     )
 	port map(
       CLK=>Clock,
       RST=>reset,
@@ -81,7 +81,10 @@ begin
       end if;
     end if;
   end process;
-  
+
+  --* Forwards req from ic to dev,
+  --*    waits for resp from dev, and
+  --*    forwards res back to ic
   req_handler : process (reset, Clock)
     variable nilreq:std_logic_vector(REQ_WIDTH - 1 downto 0):=(others => '0');
     variable state: integer :=0;
@@ -151,21 +154,6 @@ begin
           res_out <= tmp_req;
           state :=0;
         end if;
-      end if;
-    end if;
-  end process;
-
-  dev_res_handler : process(reset, clock)
-    variable nilreq:std_logic_vector(REQ_WIDTH - 1 downto 0):=(others => '0');
-  begin
-    if (reset = '1') then
-      res_out <= nilreq;
-    elsif rising_edge(Clock) then
-      -- send res to ic
-      if gfx_res_in & gfx_res_in(DATA_WIDTH -1 downto DATA_WIDTH -1) = "1" then
-        res_out <= gfx_res_in & GFX_ID;
-      else
-        -- TODO handle resp from other devs
       end if;
     end if;
   end process;
