@@ -267,7 +267,7 @@ begin
     snp_res_out     => snp_res1, -- o
 
     up_snp_req_in  => up_snp_req, -- i - upstream snoop req 
-    up_snp_hit_out     => c1_up_snp_hit, -- o
+    up_snp_hit_out     => up_snp_hit, -- o
     up_snp_res_out     => up_snp_res, -- o
 
     snp_req_out => snp_req2, -- o - TODO diff with cache_req?
@@ -493,7 +493,7 @@ begin
     bus_res2         => bus_res2,
     up_snp_req_out   => up_snp_req, -- TODO changed right side from snp_req to up_snp_req
     up_snp_res_in    => up_snp_res,
-    up_snp_hit_in    => snp_hit,
+    up_snp_hit_in    => up_snp_hit,
     full_srq1        => full_srq1,
     full_wb1         => full_wb1,
     full_srs1        => full_srs1,

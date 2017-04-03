@@ -465,7 +465,7 @@ begin
       elsif st = 1 then -- snd_to_arbiter
         gfx_fifo_re <= '0';
         if is_valid(gfx_fifo_dout) then
-          snp1_2 <= "100" & gfx_fifo_dout; -- TODO what does 100 mean?
+          snp1_2 <= "001" & gfx_fifo_dout; -- TODO what does 100 mean?
           st  := 2;
         end if;
       elsif st = 2 then -- done
@@ -606,10 +606,10 @@ begin
         uart_upres1  <= (others => '0');
         audio_upres1 <= (others => '0');
         usb_upres1   <= (others => '0');
-        if is_valid(tomem_p) and tomem_p(71 downto 64) = "10000000" then
+        if is_valid(tomem_p) and tomem_p(71 downto 64) = "01000000" then
           tep_mem := tomem_p;
-          state   := 6;
-        elsif is_valid(tomem_p) and tomem_p(71 downto 64) = "01000000" then
+          state   := 16;
+        elsif is_valid(tomem_p) and tomem_p(71 downto 64) = "10000000" then
           if tomem_p(75 downto 73)="001" or tomem_p(75 downto 73)="011"  or tomem_p(75 downto 73)="010"  or tomem_p(75 downto 73)="100" then
             mem_write1<=tomem_p;
             state   := 9;
@@ -619,12 +619,12 @@ begin
           end if;
         end if;
         
-      elsif state = 6 then
+      elsif state = 16 then
         if rready = '1' then
           --mem_ack <= '0';
           rvalid_out <= '1';
-          raddr  <= tomem_p(63 downto 32);
-          if (tomem_p(75 downto 73) = "000" or tomem_p(75 downto 73) = "101") then
+          raddr  <= tep_mem(63 downto 32);
+          if (tep_mem(75 downto 73) = "000" or tep_mem(75 downto 73) = "101") then
             rlen <= "00000" & "10000";
           else
             rlen <= "00000" & "00001";
@@ -651,6 +651,7 @@ begin
             rdready <= '1';
             sdata   := rdata;
             rdready <= '1';
+				state :=3;
           end if;
 
         end if;
@@ -748,18 +749,21 @@ begin
       rvalid_gfx  <= '0';
       rdready_gfx <= '0';
     elsif rising_edge(Clock) then
-    	if state = 0 then
-    		gfx_ack <='0';
+		if state =0 then
+			gfx_ack <='1';
+			state :=20;
+    	elsif state = 20 then
+    	  gfx_ack <='0';
         bus_res1_2   <= nullreq;
         bus_res2_2   <= nullreq;
         --gfx_upres2 <= (others => '0');
         uart_upres2  <= (others => '0');
         audio_upres2 <= (others => '0');
         usb_upres2   <= (others => '0');
-        if is_valid(togfx_p) and togfx_p(71 downto 64) = "10000000" then
+        if togfx_p(72 downto 72)="1" and togfx_p(71 downto 64) = "01000000" then
           tep_gfx := togfx_p;
           state   := 6;
-        elsif is_valid(togfx_p) and togfx_p(71 downto 64) = "01000000" then
+        elsif togfx_p(72 downto 72)="1" and togfx_p(71 downto 64) = "10000000" then
           gfx_write1<=togfx_p;
           state   := 9;
         end if;
@@ -794,7 +798,7 @@ begin
           else
             rdready_gfx <= '1';
             sdata       := rdata;
-            rdready_gfx <= '1';
+            state :=3;
           end if;
 
         end if;
@@ -848,7 +852,7 @@ begin
         if gfx_write_ack1 ='1' then
           gfx_write1<=(others=>'0');
           state := 0;
-          gfx_ack <='1';
+          --gfx_ack <='1';
         end if;
       end if;
     end if;
@@ -969,20 +973,22 @@ begin
         gfx_write_ack1<='0';
         gfx_write_ack2<='0';
         gfx_write_ack3<='0';
-        if is_valid(gfx_write1) then
+        if gfx_write1(72 downto 72)="1" then
           state := 1;
           tep_gfx:=gfx_write1;
+			 gfx_write_ack1<='1';
         elsif gfx_write2(552 downto 552)="1" then
           state := 4;
           tep_gfx_l :=gfx_write2;
-          flag :='1';
+          gfx_write_ack2<='1';
         elsif gfx_write3(552 downto 552)="1" then
           state := 4;
           tep_gfx_l :=gfx_write3;
-          flag :='0';
+          gfx_write_ack3<='1';
         end if;
       elsif state =1 then
-        if wready_gfx = '0' then
+			gfx_write_ack1 <='0';
+        if wready_gfx = '1' then
           wvalid_gfx <= '1';
           waddr_gfx  <= tep_gfx(63 downto 32);
           wlen_gfx   <= "00000" & "10000";
@@ -991,6 +997,7 @@ begin
           state      := 2;
         end if;
       elsif state = 2 then
+		   wvalid_gfx <='0';
         if wdataready_gfx = '1' then
           wdvalid_gfx <= '1';
           wtrb_gfx    <= "1111";
@@ -1004,14 +1011,16 @@ begin
         wrready_gfx <= '1';
         if wrvalid_gfx = '1' then
           if wrsp_gfx = "00" then
-            state := 0;
-            gfx_write_ack1<='1';
+            
           ---this is a successful write back, yayyy
           end if;
           wrready_gfx <= '0';
+			 state := 0;
+			 
         end if;
       elsif state =4 then
-        if wready_gfx = '0' then
+		gfx_write_ack2<='0';gfx_write_ack3<='0';
+        if wready_gfx = '1' then
           wvalid_gfx <= '1';
           waddr_gfx  <= mem_wb(543 downto 512);
           wlen_gfx   <= "00000" & "10000";
@@ -1038,11 +1047,7 @@ begin
           state := 0;
           if wrsp_gfx = "00" then
             ---this is a successful write back, yayyy
-            if flag='1' then
-              gfx_write_ack2<='1';
-            else
-              gfx_write_ack3<='1';
-            end if;
+            
           end if;
           wrready_gfx <= '0';
         end if;
@@ -1070,16 +1075,18 @@ begin
         if is_valid(uart_write1) then
           state := 1;
           tep_uart:=uart_write1;
+			 uart_write_ack1<='1';
         elsif uart_write2(552 downto 552)="1" then
           state := 4;
           tep_uart_l :=uart_write2;
-          flag :='1';
+			 uart_write_ack2<='1';
         elsif uart_write3(552 downto 552)="1" then
           state := 4;
           tep_uart_l :=uart_write3;
-          flag :='0';
+			 uart_write_ack3<='1';
         end if;
       elsif state =1 then
+			uart_write_ack1<='1';
         if wready_uart = '0' then
           wvalid_uart <= '1';
           waddr_uart  <= tep_uart(63 downto 32);
@@ -1101,14 +1108,16 @@ begin
         wdvalid_uart <= '0';
         wrready_uart <= '1';
         if wrvalid_uart = '1' then
+			state := 0;
           if wrsp_uart = "00" then
-            state := 0;
-            uart_write_ack1<='1';
+            
           ---this is a successful write back, yayyy
           end if;
           wrready_uart <= '0';
         end if;
       elsif state =4 then
+		uart_write_ack2<='0';
+		uart_write_ack3<='0';
         if wready_uart = '0' then
           wvalid_uart <= '1';
           waddr_uart  <= mem_wb(543 downto 512);
@@ -1136,11 +1145,7 @@ begin
           state := 0;
           if wrsp_uart = "00" then
             ---this is a successful write back, yayyy
-            if flag='1' then
-              uart_write_ack2<='1';
-            else
-              uart_write_ack3<='1';
-            end if;
+            
           end if;
           wrready_uart <= '0';
         end if;
@@ -1198,16 +1203,18 @@ begin
         if is_valid(audio_write1) then
           state := 1;
           tep_audio:=audio_write1;
+			 audio_write_ack1<='1';
         elsif audio_write2(552 downto 552)="1" then
           state := 4;
           tep_audio_l :=audio_write2;
-          flag :='1';
+          audio_write_ack2<='1';
         elsif audio_write3(552 downto 552)="1" then
           state := 4;
           tep_audio_l :=audio_write3;
-          flag :='0';
+          audio_write_ack3<='1';
         end if;
       elsif state =1 then
+		  audio_write_ack1<='0';
         if wready_audio = '0' then
           wvalid_audio <= '1';
           waddr_audio  <= tep_audio(63 downto 32);
@@ -1230,13 +1237,15 @@ begin
         wrready_audio <= '1';
         if wrvalid_audio = '1' then
           if wrsp_audio = "00" then
-            state := 0;
-            audio_write_ack1<='1';
+            
           ---this is a successful write back, yayyy
           end if;
           wrready_audio <= '0';
+			 state := 0;
         end if;
       elsif state =4 then
+		  audio_write_ack2<='0';
+		  audio_write_ack3<='0';
         if wready_audio = '0' then
           wvalid_audio <= '1';
           waddr_audio  <= mem_wb(543 downto 512);
@@ -1264,11 +1273,7 @@ begin
           state := 0;
           if wrsp_audio = "00" then
             ---this is a successful write back, yayyy
-            if flag='1' then
-              audio_write_ack2<='1';
-            else
-              audio_write_ack3<='1';
-            end if;
+           
           end if;
           wrready_audio <= '0';
         end if;
@@ -1299,10 +1304,10 @@ begin
         uart_upres4  <= (others => '0');
         audio_upres4 <= (others => '0');
         --usb_upres4 <= (others => '0');
-        if is_valid(tousb_p) and tousb_p(71 downto 64) = "10000000" then
+        if is_valid(tousb_p) and tousb_p(71 downto 64) = "01000000" then
           tep_usb := tousb_p;
           state   := 6;
-        elsif is_valid(tousb_p) and tousb_p(71 downto 64) = "01000000" then
+        elsif is_valid(tousb_p) and tousb_p(71 downto 64) = "10000000" then
           usb_write1<=tousb_p;
           state   := 9;
         end if;
@@ -1337,7 +1342,7 @@ begin
           else
             rdready_usb <= '1';
             sdata       := rdata;
-            rdready_usb <= '1';
+            state :=3;
           end if;
 
         end if;
@@ -1416,16 +1421,18 @@ begin
         if is_valid(usb_write1) then
           state := 1;
           tep_usb:=usb_write1;
+			 usb_write_ack1<='1';
         elsif usb_write2(552 downto 552)="1" then
           state := 4;
           tep_usb_l :=usb_write2;
-          flag :='1';
+          usb_write_ack2<='1';
         elsif usb_write3(552 downto 552)="1" then
           state := 4;
           tep_usb_l :=usb_write3;
-          flag :='0';
+          usb_write_ack2<='1';
         end if;
       elsif state =1 then
+		usb_write_ack1<='0';
         if wready_usb = '0' then
           wvalid_usb <= '1';
           waddr_usb  <= tep_usb(63 downto 32);
@@ -1448,13 +1455,14 @@ begin
         wrready_usb <= '1';
         if wrvalid_usb = '1' then
           if wrsp_usb = "00" then
-            state := 0;
-            usb_write_ack1<='1';
+            
           ---this is a successful write back, yayyy
           end if;
+			 state := 0;
           wrready_usb <= '0';
         end if;
       elsif state =4 then
+		usb_write_ack2<='0';usb_write_ack3<='0';
         if wready_usb = '0' then
           wvalid_usb <= '1';
           waddr_usb  <= mem_wb(543 downto 512);
@@ -1482,11 +1490,8 @@ begin
           state := 0;
           if wrsp_usb = "00" then
             ---this is a successful write back, yayyy
-            if flag='1' then
-              usb_write_ack2<='1';
-            else
-              usb_write_ack3<='1';
-            end if;
+            
+            
           end if;
           wrready_usb <= '0';
         end if;
@@ -1523,6 +1528,7 @@ begin
     elsif rising_edge(Clock) then
     	  if state = 0 then
     		uart_ack <= '1';
+			state :=20;
     	elsif state = 20 then
     		uart_ack <='0';
         bus_res1_3   <= nullreq;
@@ -1531,10 +1537,10 @@ begin
         --uart_upres3 <= (others => '0');
         audio_upres3 <= (others => '0');
         usb_upres3   <= (others => '0');
-        if is_valid(touart_p) and touart_p(71 downto 64) = "10000000" then
+        if is_valid(touart_p) and touart_p(71 downto 64) = "01000000" then
           tep_uart := touart_p;
           state    := 6;
-        elsif is_valid(touart_p) and touart_p(71 downto 64) = "01000000" then
+        elsif is_valid(touart_p) and touart_p(71 downto 64) = "10000000" then
           uart_write1<=touart_p;
           state   := 9;
         end if;
@@ -1569,7 +1575,7 @@ begin
           else
             rdready_uart <= '1';
             sdata        := rdata;
-            rdready_uart <= '1';
+            rdready_uart <= '1';state :=3;
           end if;
 
         end if;
@@ -1853,16 +1859,20 @@ begin
       rdready_audio <= '0';
     elsif rising_edge(Clock) then
       if state = 0 then
+			audio_ack <='1';
+			state :=20;
+		elsif state =20 then
+			audio_ack <='0';
         bus_res1_5  <= nullreq;
         bus_res2_5  <= nullreq;
         gfx_upres5  <= (others => '0');
         uart_upres5 <= (others => '0');
         --audio_upres5 <= (others => '0');
         usb_upres5  <= (others => '0');
-        if is_valid(toaudio_p) and toaudio_p(71 downto 64) = "10000000" then
+        if is_valid(toaudio_p) and toaudio_p(71 downto 64) = "01000000" then
           tep_audio := toaudio_p;
           state     := 6;
-        elsif is_valid(toaudio_p) and toaudio_p(71 downto 64) = "01000000" then
+        elsif is_valid(toaudio_p) and toaudio_p(71 downto 64) = "10000000" then
           audio_write1<=toaudio_p;
           state   := 9;
         end if;
@@ -1898,6 +1908,7 @@ begin
             rdready_audio <= '1';
             sdata         := rdata;
             rdready_audio <= '1';
+				state :=3;
           end if;
 
         end if;
@@ -2015,7 +2026,7 @@ begin
         end if;
       elsif state = 1 then
         re2 <= '0';
-        if out2(76 downto 76) = "0" then
+        if out2(72 downto 72)="1" and out2(76 downto 76) = "0" then
           ---now we look at which components it want to go
           if out2(63 downto 63) = "1" then
             ---this belongs to the memory					
@@ -2035,7 +2046,7 @@ begin
             state    := 13;
           end if;
         --it's a hit, return to the source ip
-        else
+        elsif out2(72 downto 72)="1" then
           if out2(75 downto 73) = "001" then
             gfx_upres2 <= out2(DATA_WIDTH - 1 downto 0);
             state      := 9;

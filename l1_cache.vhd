@@ -177,7 +177,7 @@ begin
     if reset = '1' then
       brf_we <= '0';
     elsif rising_edge(Clock) then
-      if (up_snp_req_in(75 downto 75) = "1") then
+      if (up_snp_req_in(72 downto 72) = "1") then
         brf_in <= up_snp_req_in;
         brf_we <= '1';
       else
@@ -424,6 +424,7 @@ begin
                                                              -- (should it be a
                                                              -- variable?)
             up_snp_hit_out <= snp_hit_in;
+				state :=0;
           end if;
         -- TODO do we need to go back to state 0?
         end if;

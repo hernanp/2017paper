@@ -59,33 +59,33 @@ begin
       s_ack4 <= '0';
       s_ack5 <= '0';   
       s_ack6 <= '0'; 
-      if din1(DATA_WIDTH - 1 downto DATA_WIDTH - 1 ) = "1" then
+      if din1(72 downto 72 ) = "1" then
         if s_ack1 = '0' then
           dout <= din1;
           s_ack1 <= '1';
         end if; 
-      elsif din2(DATA_WIDTH - 1 downto DATA_WIDTH - 1)  = "1" then
+      elsif din2(72 downto 72 )  = "1" then
         if s_ack2 = '0' then
           --assert (din2(72 downto 72)  = "1") report "pbm" severity error;
           dout <= din2;
           s_ack2 <= '1';
         end if; 
-      elsif din3(DATA_WIDTH - 1 downto DATA_WIDTH - 1)  = "1" then
+      elsif din3(72 downto 72 )  = "1" then
         if s_ack3 = '0' then
           dout <= din3;
           s_ack3 <= '1';
         end if; 
-      elsif din4(DATA_WIDTH - 1 downto DATA_WIDTH - 1)  = "1" then
+      elsif din4(72 downto 72 )  = "1" then
         if s_ack4 = '0' then
           dout <= din4;
           s_ack4 <= '1';
         end if; 
-      elsif din5(DATA_WIDTH - 1 downto DATA_WIDTH - 1 ) = "1" then
+      elsif din5(72 downto 72 ) = "1" then
         if s_ack5 = '0' then
           dout <= din5;
           s_ack5 <= '1';
         end if; 
-      elsif din6(DATA_WIDTH - 1 downto DATA_WIDTH - 1)  ="1" then
+      elsif din6(72 downto 72 )  ="1" then
         if s_ack6 = '0' then
           dout <= din6;
           s_ack6 <= '1';

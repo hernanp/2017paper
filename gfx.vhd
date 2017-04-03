@@ -239,7 +239,7 @@ begin
         when 0 => -- init
           t1_st <= 1;
         when 1 => -- snd up_req 
-          upreq_out <= '1' & READ_CMD & ZEROS32 & ZEROS32;
+          upreq_out <= '1' & READ_CMD & "1000000000000000"& "1000000000000000"& ZEROS32;
           t1_st <= 2;
         when 2 => -- done
           upreq_out <= (others => '0');
