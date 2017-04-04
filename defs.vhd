@@ -8,7 +8,7 @@ package defs is
   --constant WB_CMD : std_logic_vector(1 downto 0) := "11";
   
   constant DATA_WIDTH : positive := 73;
-  constant EXT_DATA_WIDTH : positive := 75;
+  constant EXT_DATA_WIDTH : positive := 76;
 
   constant READ_CMD  : std_logic_vector(7 downto 0) := "01000000";
   constant WRITE_CMD : std_logic_vector(7 downto 0) := "10000000";

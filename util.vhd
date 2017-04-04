@@ -30,7 +30,7 @@ package body util is
 
   function dst_eq(data, dev_id : std_logic_vector) return boolean is
   begin
-    if data(EXT_DATA_WIDTH - 1 downto EXT_DATA_WIDTH - 4) = dev_id then
+    if data(EXT_DATA_WIDTH - 1 downto EXT_DATA_WIDTH - 3) = dev_id then
       return true;
     end if;
     return false;

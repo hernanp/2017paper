@@ -12,7 +12,7 @@ package rand is
   --* Returns a number between 1 and num.
   function rand_int(constant num:in integer) return integer;
   --* Returns a std_logic_vector of size bits.
-  function rand_vect(constant size:in RAND_RANGE_TYP) return std_logic_vector;
+  function rand_vect(constant size:in integer) return std_logic_vector;
   --* Returns a std_logic_vector of size bits between 1 and num.
   function rand_vect_range(constant num:in integer;
                       constant size:in integer) return std_logic_vector;
@@ -36,8 +36,7 @@ package body rand is
     return (result);
   end rand_int;
 
-  function rand_vect(constant size:in RAND_RANGE_TYP) -- TODO update
-                                               -- to max size
+  function rand_vect(constant size:in integer)
     return std_logic_vector is
     variable s1:integer := SEED1;
     variable s2:integer := SEED2;    
@@ -45,8 +44,7 @@ package body rand is
     variable tmp_real:real;
   begin
     uniform(s1,s2,tmp_real);
-    result := std_logic_vector(to_unsigned(integer(trunc(tmp_real * real (255))), size));
-    -- TODO replace 255 w actual range
+    result := std_logic_vector(to_unsigned(integer(trunc(tmp_real * real (2**size)))+1, size));
     return (result);
   end rand_vect;
   
@@ -82,7 +80,7 @@ package body rand is
     variable addr : std_logic_vector(31 downto 0) :=
       rand_vect(32);
     variable data : std_logic_vector(31 downto 0) :=
-      rand_vect(32); 
+      rand_vect(32);
     constant valid_bit : std_logic := '1';
   begin
     if cmd = read then
