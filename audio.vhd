@@ -44,8 +44,9 @@ entity audio is
        rdvalid    : out std_logic;
        rdready    : in  std_logic;
        rres       : out std_logic_vector(1 downto 0);
-       pwrreq     : in  std_logic_vector(2 downto 0);
-       pwrres     : out std_logic_vector(2 downto 0);
+
+       pwr_req_in  : in  std_logic_vector(2 downto 0);
+       pwr_res_out : out std_logic_vector(2 downto 0);
        
        
        upreq      : out std_logic_vector(72 downto 0);
@@ -216,18 +217,18 @@ begin
   pwr : process(Clock)
   begin
     if reset = '1' then
-      pwrres <= (others => '0');
+      pwr_res_out <= (others => '0');
 
     elsif (rising_edge(Clock)) then
-      if pwrreq(2 downto 2) = "1" then
-        if pwrreq(1 downto 0) = "00" then
+      if pwr_req_in(2 downto 2) = "1" then
+        if pwr_req_in(1 downto 0) = "00" then
           poweron <= '0';
-        elsif pwrreq(1 downto 0) = "11" or pwrreq(1 downto 0) = "10" then
+        elsif pwr_req_in(1 downto 0) = "11" or pwr_req_in(1 downto 0) = "10" then
           poweron <= '1';
         end if;
-        pwrres <= pwrreq;
+        pwr_res_out <= pwr_req_in;
       else
-        pwrres <= "000";
+        pwr_res_out <= "000";
       end if;
 
     end if;
