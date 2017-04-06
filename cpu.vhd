@@ -13,8 +13,8 @@ entity cpu is
   Port(reset   : in  std_logic;
        Clock   : in  std_logic;
        cpu_id   : in  integer;
-       cpu_res : in  std_logic_vector(72 downto 0);
-       cpu_req : out std_logic_vector(72 downto 0);
+       cpu_res_in : in  std_logic_vector(72 downto 0);
+       cpu_req_out : out std_logic_vector(72 downto 0);
        full_c  : in  std_logic -- an input signal from cache, enabled when
                                -- cache is full TODO confirm
        );
@@ -41,55 +41,70 @@ architecture Behavioral of cpu is
 
 begin
   --* CPU1_R_T cpu1 sends a read req msg
-  cpu1_r_test : process(reset, Clock)
-    variable st : natural := 0;
-  begin
-    if RUN_TEST = CPU1_R_T then
-      if reset = '1' then
-        cpu_req <= (others => '0');
-        st := 0;
-      elsif (rising_edge(Clock)) then
-        if st = 0 then
-          st := 1;
-        elsif st = 1 then
-          -- send a random msg
-          if cpu_id = 1 then
-            --- cpu_req <= rand_req(write);
-            cpu_req <= "110000000" &
-                       "10000000000000000000000000000000" &
-                       "00000000000000000000000000000000";
-          end if;
-          st := 2;
-        elsif st = 2 then
-          -- TODO wait for resp
-		  cpu_req<=(others =>'0');
-        end if;
-      end if;
-    end if;
-  end process;
+  --cpu1_r_test : process(reset, Clock)
+  --  variable st : natural := 0;
+  --begin
+  --  if RUN_TEST = CPU1_R_T then
+  --    if reset = '1' then
+  --      cpu_req <= (others => '0');
+  --      st := 0;
+  --    elsif (rising_edge(Clock)) then
+  --      if st = 0 then
+  --        st := 1;
+  --      elsif st = 1 then
+  --        -- send a random msg
+  --        if cpu_id = 1 then
+  --          --- cpu_req <= rand_req(write);
+  --          cpu_req <= "110000000" &
+  --                     "10000000000000000000000000000000" &
+  --                     "00000000000000000000000000000000";
+  --        end if;
+  --        st := 2;
+  --      elsif st = 2 then
+  --        -- TODO wait for resp
+  --  	  cpu_req<=(others =>'0');
+  --      end if;
+  --    end if;
+  --  end if;
+  --end process;
 
   --* CPU2_W_T cpu2 sends a write req msg
-  cpu2_w_test : process(reset, Clock)
+  cpu_test : process(reset, Clock)
     variable st : natural := 0;
+    variable t1: boolean := false;
+    variable t2: boolean := false;
   begin
-    if RUN_TEST = CPU2_W_T then
-      if reset = '1' then
-        cpu_req <= (others => '0');
-        st := 0;
-      elsif (rising_edge(Clock)) then
-        if st = 0 then
-          st := 1;
-        elsif st = 1 then
-          if cpu_id = 2 then
-            cpu_req <= "101000000" &
-                       "10000000000000000000000000000000" &
-                       "00000000000000000000000000000000";
-          end if;
-          st := 2;
-        elsif st = 2 then
-          -- TODO wait for resp
-		  cpu_req<=(others =>'0');
+    if is_tset(CPU1_R_T) then
+      t1 := true;
+    end if;
+    if is_tset(CPU2_W_T) then
+      t2 := true;
+    end if;
+    
+    if reset = '1' then
+      cpu_req_out <= (others => '0');
+      st := 0;
+    elsif (rising_edge(Clock)) then
+      if st = 0 then
+        st := 1;
+      elsif st = 1 then
+        -- send a random msg
+        if t1 and (cpu_id = 1) then
+          report "t1";
+          --- cpu_req <= rand_req(write);
+          cpu_req_out <= "110000000" &
+                     "10000000000000000000000000000000" &
+                     "00000000000000000000000000000000";
+        elsif t2 and (cpu_id = 2) then
+          report "t2";
+          cpu_req_out <= "101000000" &
+                     "10000000000000000000000000000000" &
+                     "00000000000000000000000000000000";            
         end if;
+        st := 2;
+      elsif st = 2 then
+        -- TODO wait for resp
+        cpu_req_out<=(others =>'0');
       end if;
     end if;
   end process;

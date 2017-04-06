@@ -236,8 +236,8 @@ begin
     reset   => reset,
     Clock   => Clock,
     cpu_id  => 1,
-    cpu_res => cpu_res1,
-    cpu_req => cpu_req1,
+    cpu_res_in => cpu_res1,
+    cpu_req_out => cpu_req1,
     full_c  => full_c1_u
    --done    => done1
     );
@@ -246,8 +246,8 @@ begin
     reset   => reset,
     Clock   => Clock,
     cpu_id  => 2,
-    cpu_res => cpu_res2,
-    cpu_req => cpu_req2,
+    cpu_res_in => cpu_res2,
+    cpu_req_out => cpu_req2,
     full_c  => full_c2_u
    --done    => done2
     );
@@ -380,7 +380,7 @@ begin
     rdata            => rdata,
     rstrb            => rstrb,
     rlast            => rlast,
-    rdvalid          => rdvalid,
+    rdvalid_in       => rdvalid,
     rdready          => rdready,
     rres             => rres,
 
@@ -483,12 +483,12 @@ begin
     rres_audio       => rres_audio,
     Clock            => Clock,
     reset            => reset,
-    cache_req1       => bus_req1,
-    cache_req2       => bus_req2,
+    cache1_req_in    => bus_req1,
+    cache2_req_in    => bus_req2,
     wb_req1          => wb_req1,
     wb_req2          => wb_req2,
-    bus_res1         => bus_res1,
-    bus_res2         => bus_res2,
+    bus_res1_out     => bus_res1,
+    bus_res2_out     => bus_res2,
     up_snp_req_out   => up_snp_req,
     up_snp_res_in    => up_snp_res,
     up_snp_hit_in    => up_snp_hit,
@@ -673,7 +673,7 @@ begin
     rdata      => rdata,
     rstrb      => rstrb,
     rlast      => rlast,
-    rdvalid    => rdvalid,
+    rdvalid_out => rdvalid,
     rdready    => rdready,
     rres_out   => rres
     );

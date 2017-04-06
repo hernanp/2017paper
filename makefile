@@ -52,4 +52,5 @@ sm_docs: # generate state machines
 	graph-easy --input=doc/cpu_sm.txt --output=doc/cpu.ascii
 flow_docs:
 	graph-easy --input=doc/pwr_flow.txt --output=doc/pwr_flow.ascii
-	graph-easy --input=doc/up_read_flow.txt --output=doc/up_read_flow.ascii
+	graph-easy --input=doc/up_r_flow.txt --output=doc/up_r_flow.ascii
+	graph-easy --input=doc/dn_r_flow.txt --output=doc/dn_r_flow.ascii

@@ -9,11 +9,11 @@ entity ic is
   Port(
     Clock                                   : in  std_logic;
     reset                                   : in  std_logic;
-    cache_req1                              : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
-    cache_req2                              : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+    cache1_req_in                              : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+    cache2_req_in                              : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
     wb_req1, wb_req2                        : in  std_logic_vector(552 downto 0);
-    bus_res1                                : out STD_LOGIC_VECTOR(552 downto 0);
-    bus_res2                                : out STD_LOGIC_VECTOR(552 downto 0);
+    bus_res1_out                                : out STD_LOGIC_VECTOR(552 downto 0);
+    bus_res2_out                                : out STD_LOGIC_VECTOR(552 downto 0);
     up_snp_req_out                          : out STD_LOGIC_VECTOR(75 downto 0);
     up_snp_res_in                           : in  STD_LOGIC_VECTOR(75 downto 0);
     up_snp_hit_in                           : in  std_logic;
@@ -65,13 +65,13 @@ entity ic is
     raddr                                   : out std_logic_vector(31 downto 0);
     rlen                                    : out std_logic_vector(9 downto 0);
     rsize                                   : out std_logic_vector(9 downto 0);
-    rvalid_out                                  : out std_logic;
+    rvalid_out                              : out std_logic;
     rready                                  : in  std_logic;
     ---read data channel
     rdata                                   : in  std_logic_vector(31 downto 0);
     rstrb                                   : in  std_logic_vector(3 downto 0);
     rlast                                   : in  std_logic;
-    rdvalid                                 : in  std_logic;
+    rdvalid_in                                 : in  std_logic;
     rdready                                 : out std_logic;
     rres                                    : in  std_logic_vector(1 downto 0);
 
@@ -604,11 +604,11 @@ begin
             state   := 9;
           else
             tep_mem := tomem_p;
-            state   := 6;
+            state   := 16;
           end if;
         end if;
         
-      elsif state = 16 then
+      elsif state = 16 then -- send mem req out
         if rready = '1' then
           --mem_ack <= '0';
           rvalid_out <= '1';
@@ -627,7 +627,7 @@ begin
         rdready <= '1';
         state   := 2;
       elsif state = 2 then
-        if rdvalid = '1' and rres = "00" then
+        if rdvalid_in = '1' and rres = "00" then
           if (dst_eq(tep_mem, CPU0_ID) or
               dst_eq(tep_mem, CPU1_ID)) then
             rdready <= '0';
@@ -1648,7 +1648,7 @@ begin
       ack1  => brs2_ack1,
       din2  => bus_res2_2,
       ack2  => brs2_ack2,
-      dout  => bus_res2,
+      dout  => bus_res2_out,
       din3  => bus_res2_3,
       din4  => bus_res2_4,
       ack4  => brs2_ack4,
@@ -1724,7 +1724,7 @@ begin
       ack6  => brs1_ack6,
       din7  => bus_res1_7,
       ack7  => brs1_ack7,
-      dout  => bus_res1
+      dout  => bus_res1_out
       );
 
   gfx_upres_arbitor : entity work.arbiter6(Behavioral)
@@ -2314,28 +2314,28 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache_req1) and cache_req1(71 downto 64) = "11111111" then
+        if is_valid(cache1_req_in) and cache1_req_in(71 downto 64) = "11111111" then
           ---let's not consider power now, too complicated
-          pwr_req1 <= '1' & cache_req1(64 downto 61);
+          pwr_req1 <= '1' & cache1_req_in(64 downto 61);
           state    := 4;
-        elsif is_valid(cache_req1) and cache_req1(63 downto 32) = adr_1 then
+        elsif is_valid(cache1_req_in) and cache1_req_in(63 downto 32) = adr_1 then
           state      := 3;
           ----should return to cache, let it perform snoop again!!!
           -----
           ----don't forget to fill this up
           -----
           bus_res1_7 <= '1' & "11111111" & nildata;
-        elsif is_valid(cache_req1) then
-          adr_0 <= cache_req1(63 downto 32);
-			 tmp_cache_req1 <= cache_req1;
+        elsif is_valid(cache1_req_in) then
+          adr_0 <= cache1_req_in(63 downto 32);
+			 tmp_cache_req1 <= cache1_req_in;
           state := 2;
         else
           state := 0;
         end if;
       elsif state = 2 then
-        if tmp_cache_req1(63 downto 63) = "1" then
+        if tmp_cache_req1(63 downto 63) = "1" then -- mem request
           ---this belongs to the memory					
-          tomem1 <= "000" & tmp_cache_req1;
+          tomem1 <= "000" & tmp_cache_req1; -- TODO hard-coded cpu1 id?
           state  := 5;
         elsif tmp_cache_req1(62 downto 61) = "00" then
           togfx1 <= "000" & tmp_cache_req1;
@@ -2394,22 +2394,22 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache_req2) and cache_req2(71 downto 64) = "11111111" then
+        if is_valid(cache2_req_in) and cache2_req_in(71 downto 64) = "11111111" then
           ---let's not consider power now, too complicated
-          pwr_req2 <= '1' & cache_req2(64 downto 61);
+          pwr_req2 <= '1' & cache2_req_in(64 downto 61);
           state    := 4;
-        elsif is_valid(cache_req2) and cache_req2(63 downto 32) = adr_1 then
+        elsif is_valid(cache2_req_in) and cache2_req_in(63 downto 32) = adr_1 then
           state      := 3;
           ----should return to cache, let it perform snoop again!!!
           -----
           ----don't forget to fill this up
           -----
           bus_res1_6 <= '1' & "11111111" & nildata;
-        elsif is_valid(cache_req2) then
+        elsif is_valid(cache2_req_in) then
           ---snp_req2 <= cache_req2;
-          adr_0 <= cache_req2(63 downto 32);
+          adr_0 <= cache2_req_in(63 downto 32);
           state := 2;
-			 tmp_cache_req2 <= cache_req2;
+			 tmp_cache_req2 <= cache2_req_in;
         else
           ---snp_req2 <= nilreq;
           state := 0;

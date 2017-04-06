@@ -33,8 +33,10 @@ entity memory is
 		 rdata      : out std_logic_vector(31 downto 0);
 		 rstrb      : out std_logic_vector(3 downto 0);
 		 rlast      : out std_logic;
-		 rdvalid    : out std_logic;
-		 rdready    : in  std_logic;
+		 rdvalid_out    : out std_logic; -- sig from mem to ic meaning "here comes
+                                     -- the data"
+		 rdready    : in  std_logic; -- sig from ic to mem meaning "done"
+                                     -- sending data
 		 rres_out   : out std_logic_vector(1 downto 0)
 	);
 end Memory;
@@ -109,7 +111,7 @@ begin
 	begin
 		if reset = '1' then
 			rready  <= '1';
-			rdvalid <= '0';
+			rdvalid_out <= '0';
 			rstrb   <= "1111";
 			rlast   <= '0';
 			address := 0;
@@ -128,7 +130,7 @@ begin
 			elsif state = 2 then
 				if rdready = '1' then
 					if lp < 16 then
-						rdvalid <= '1';
+						rdvalid_out <= '1';
 						---strob here is not considered
 						---left alone , dono how to fix
 						---if ROM_array(address+lp) ="00000000000000000000000000000000" then
@@ -149,7 +151,7 @@ begin
 
 				end if;
 			elsif state = 3 then
-				rdvalid <= '0';
+				rdvalid_out <= '0';
 				rready  <= '1';
 				rlast   <= '0';
 				state   := 0;
