@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.defs.all;
 use work.util.all;
+use work.rand.all;
 use work.test.all;
 
 entity ic is
@@ -2468,22 +2469,29 @@ begin
   --* ic sends a power req 
   ic_pwr_test : process(clock, reset) -- pwr_req test
     variable st : natural := 0;
+    variable ct : natural;
   begin
     if RUN_TEST = IC_PWR_GFX_T then
       if reset = '1' then
         pwr_req_out <= (others => '0');
+        ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
+                       to_integer(unsigned(IC_PWR_GFX_T)));        
         st := 0;
       elsif(rising_edge(clock)) then
-      if st = 0 then -- init
-          st := 1;
-        elsif st = 1 then
+        if st = 0 then -- wait
+          if ct>0 then
+            ct := ct-1;
+          else
+            st := 1;
+          end if;
+        elsif st = 1 then -- send
+          report "ic_pwr_gfx_t @ " & integer'image(time'pos(now));
           pwr_req_out <= "1" & -- valid bit
                          "10" & -- data means "poweron" (see gfx.vhd)
                          "00"; -- gfx id
           st := 2;
-        elsif st = 2 then
+        elsif st = 2 then -- done
           pwr_req_out <= (others => '0');
-        else
         end if;
       end if;
     end if;

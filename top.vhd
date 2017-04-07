@@ -6,6 +6,7 @@ use ieee.numeric_std.all;
 use std.textio.all;
 use ieee.std_logic_textio.all;
 
+use work.rand.all;
 use work.test.all;
 
 entity top is
@@ -704,7 +705,19 @@ begin
   --    writeline(log_file, l); 
   --  end if;
   --end process;
-      
+
+  --rand_template: process(tb_clk)
+  --  variable b : boolean := true;
+  --  variable max : positive := 255;
+  --begin
+  --  if b then
+  --    report integer'image(time'pos(now));
+  --    report integer'image(to_int(max'instance_name));
+  --    report integer'image(rand_int(max,to_int(max'instance_name)));
+  --    b := false;
+  --  end if;
+  --end process;
+  
   logger : process(tb_clk)
     file trace_file : TEXT open write_mode is "trace1.txt";
     variable l : line;

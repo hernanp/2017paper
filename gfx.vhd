@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.defs.all;
 use work.test.all;
+use work.rand.all;
 --use work.rand.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -232,16 +233,23 @@ begin
   end process;
 
   t1 : process(clock, reset) -- up read test
+    variable ct : natural;
   begin
     if is_tset(GFX_R_T) then
       if reset = '1' then
         upreq_out <= (others => '0');
+        ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name), to_integer(unsigned(GFX_R_T)));
         t1_st <= 0;
       elsif(rising_edge(clock)) then
         case t1_st is
-          when 0 => -- init
-            t1_st <= 1;
+          when 0 => -- wait
+            if ct>0 then
+              ct := ct-1;
+            else
+              t1_st <= 1;
+            end if;
           when 1 => -- snd up_req 
+            report "gfx_r_t @ " & integer'image(time'pos(now));
             upreq_out <= '1' &
                          READ_CMD &
                          "1000000000000000" &

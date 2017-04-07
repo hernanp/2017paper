@@ -73,6 +73,7 @@ begin
     variable st : natural := 0;
     variable t1: boolean := false;
     variable t2: boolean := false;
+    variable ct1, ct2 : natural;
   begin
     if is_tset(CPU1_R_T) then
       t1 := true;
@@ -83,26 +84,55 @@ begin
     
     if reset = '1' then
       cpu_req_out <= (others => '0');
+      if t1 and (cpu_id = 1)then
+        ct1 := rand_int(RAND_MAX_DELAY, to_int(ct1'instance_name), to_integer(unsigned(CPU1_R_T)));
+      --report "t1.delay is " & integer'image(ct1);
+      end if;
+      if t2 and (cpu_id = 2) then
+        ct2 := rand_int(RAND_MAX_DELAY, to_int(ct2'instance_name), to_integer(unsigned(CPU2_W_T)));
+      --report "t2.delay is " & integer'image(ct2);
+      end if;
       st := 0;
     elsif (rising_edge(Clock)) then
-      if st = 0 then
-        st := 1;
-      elsif st = 1 then
+      if st = 0 then -- wait
+        if t1 and (cpu_id = 1) then
+          if ct1 > 0 then
+            ct1 := ct1-1;
+          else
+            st := 1;
+          end if;
+        end if;
+        if t2 and (cpu_id = 2) then
+          if ct2 > 0 then
+            ct2 := ct2-1;
+          else
+            st := 1;
+          end if;
+        end if;
+      elsif st = 1 then -- send
         -- send a random msg
         if t1 and (cpu_id = 1) then
-          report "t1";
-          --- cpu_req <= rand_req(write);
-          cpu_req_out <= "110000000" &
-                     "10000000000000000000000000000000" &
-                     "00000000000000000000000000000000";
+          if ct1 > 0 then
+            ct1 := ct1-1;
+          else
+            report "cpu1_r_t @ " & integer'image(time'pos(now));
+            cpu_req_out <= "110000000" &
+                           "10000000000000000000000000000000" &
+                           "00000000000000000000000000000000";
+            st := 2;
+          end if;
         elsif t2 and (cpu_id = 2) then
-          report "t2";
-          cpu_req_out <= "101000000" &
-                     "10000000000000000000000000000000" &
-                     "00000000000000000000000000000000";            
+          if ct2 > 0 then
+            ct2 := ct2-1;
+          else
+            report "cpu2_w_t @ " & integer'image(time'pos(now));
+            cpu_req_out <= "101000000" &
+                           "10000000000000000000000000000000" &
+                           "00000000000000000000000000000000";
+            st := 2;
+          end if;
         end if;
-        st := 2;
-      elsif st = 2 then
+      elsif st = 2 then -- done
         -- TODO wait for resp
         cpu_req_out<=(others =>'0');
       end if;

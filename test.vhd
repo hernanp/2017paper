@@ -18,7 +18,10 @@ package test is
 
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : std_logic_vector(TDW-1 downto 0) := CPU1_R_T or CPU2_W_T;
+  constant RUN_TEST : std_logic_vector(TDW-1 downto 0) := CPU1_R_T or
+                                                          CPU2_W_T or
+                                                          GFX_R_T; -- or
+                                                          --IC_PWR_GFX_T;
 
   --* Checks if test is enabled
   function is_tset(test: std_logic_vector) return boolean;
