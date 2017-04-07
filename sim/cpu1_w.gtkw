@@ -1,0 +1,22 @@
+[*]
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Thu Apr  6 18:16:01 2017
+[*]
+[dumpfile] "/home/hpalombo/oven/soc/top.vcd"
+[dumpfile_mtime] "Thu Apr  6 18:08:37 2017"
+[dumpfile_size] 661660
+[savefile] "/home/hpalombo/oven/soc/cpu2_w.gtkw"
+[timestart] 0
+[size] 1920 1056
+[pos] 1079 -835
+*-13.533218 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 225
+[signals_width] 142
+[sst_expanded] 1
+[sst_vpaned_height] 160
+@28
+clock
+@23
+cpu_req2[72:0]
+[pattern_trace] 1
+[pattern_trace] 0
