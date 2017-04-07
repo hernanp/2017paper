@@ -116,7 +116,7 @@ begin
             ct1 := ct1-1;
           else
             report "cpu1_r_t @ " & integer'image(time'pos(now));
-            cpu_req_out <= "110000000" &
+            cpu_req_out <= "1" & READ_CMD &
                            "10000000000000000000000000000000" &
                            "00000000000000000000000000000000";
             st := 2;
@@ -126,7 +126,7 @@ begin
             ct2 := ct2-1;
           else
             report "cpu2_w_t @ " & integer'image(time'pos(now));
-            cpu_req_out <= "101000000" &
+            cpu_req_out <= "1" & WRITE_CMD &
                            "10000000000000000000000000000000" &
                            "00000000000000000000000000000000";
             st := 2;
