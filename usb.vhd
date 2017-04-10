@@ -138,7 +138,7 @@ begin
 					if lp < len - 1 then
 						wdataready                    <= '0';
 						---strob here is not considered
-						ROM_array(slot)(address + lp) <= wdata(31 downto 0);
+						ROM_array(address + lp) <= wdata(31 downto 0);
 						lp                            := lp + 1;
 						wdataready                    <= '1';
 						if wlast = '1' then
@@ -179,7 +179,7 @@ begin
 				lp := 0;
 				if rvalid_in = '1' then
 					rready  <= '0';
-					slot    := to_integer(unsigned(waddr(30 downto 25)));
+					
 					address := to_integer(unsigned(waddr(15 downto 14)));
 					len     := to_integer(unsigned(rlen));
 					size    := rsize;
@@ -197,7 +197,7 @@ begin
 						---end if;
 						--dt      := selection(2 ** 15 - 1, 32);
 						---rdata <= dt;
-						rdata   <= ROM_array(slot)(address + lp);
+						rdata   <= ROM_array(address + lp);
 						lp      := lp + 1;
 						rres_out <= "00";
 						if lp = len then
