@@ -121,7 +121,7 @@ begin
         wrsp    <= "10";
         if wvalid = '1' then
           wready     <= '0';
-          address    := to_integer(unsigned(waddr));
+          address    := to_integer(unsigned(waddr(31 downto 19)));
           len        := to_integer(unsigned(wlen));
           size       := wsize;
           state      := 2;
@@ -174,7 +174,7 @@ begin
         lp := 0;
         if rvalid = '1' then
           rready  <= '0';
-          address := to_integer(unsigned(raddr(31 downto 4)));
+          address := to_integer(unsigned(raddr(31 downto 29)));
           len     := to_integer(unsigned(rlen));
           size    := rsize;
           state   := 2;

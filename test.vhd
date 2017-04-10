@@ -18,5 +18,5 @@ package test is
 
   constant RUN_TEST : std_logic_vector(TDW-1 downto 0) := IC_PWR_GFX_T; --(others => '0');
   
-  constant GEN_TRACE1 : boolean := false;
+  constant GEN_TRACE1 : boolean := true;
 end test;
