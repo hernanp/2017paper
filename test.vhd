@@ -3,7 +3,9 @@ use ieee.std_logic_1164.all;
 --use work.defs.all;
 
 package test is
-
+  -- enable/disable tracing
+  constant GEN_TRACE1 : boolean := true;
+  
   -- TESTS
   constant TDW : positive := 64;
   constant ZERO_TEST : std_logic_vector(TDW-1 downto 0) := (others => '0');
@@ -25,9 +27,7 @@ package test is
 
   --* Checks if test is enabled
   function is_tset(test: std_logic_vector) return boolean;
-  
-  -- enable/disable tracing
-  constant GEN_TRACE1 : boolean := true;
+
 end test;
 
 package body test is
@@ -37,7 +37,6 @@ package body test is
       return true;
     end if;
     return false;
-  end function;
-    
+  end function;    
 end test;
         

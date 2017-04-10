@@ -28,9 +28,9 @@ package rand is
   ----* Returns a std_logic_vector of size bits.
   --function rand_vect(constant size:in integer) return std_logic_vector;
 
-  ----* Returns a std_logic_vector of size bits between 1 and num.
-  --function rand_vect_range(constant num:in integer;
-  --                    constant size:in integer) return std_logic_vector;
+  --* Returns a std_logic_vector of size bits between 1 and num.
+  function rand_vect_range(constant num:in integer;
+                      constant size:in integer) return std_logic_vector;
 
   ----* Returns random delay between lower and upper.
   --function rand_delay(constant l:in integer;
@@ -94,19 +94,19 @@ package body rand is
   --  return (result);
   --end rand_vect;
   
-  --function rand_vect_range(constant num:in integer;
-  --                     constant size:in integer)
-  --  return std_logic_vector is
-  --  variable s1:integer := SEED1;
-  --  variable s2:integer := SEED2;
-  --  variable result:std_logic_vector(size-1 downto 0);
-  --  variable tmp_real:real;
-  --begin
-  --  uniform(s1,s2,tmp_real);
-  --  result := std_logic_vector(to_signed(integer(trunc(tmp_real * real (num)))
-  --                                    +1,size));
-  --  return (result);
-  --end rand_vect_range;
+  function rand_vect_range(constant num:in integer;
+                       constant size:in integer)
+    return std_logic_vector is
+    variable s1:integer := SEED1;
+    variable s2:integer := SEED2;
+    variable result:std_logic_vector(size-1 downto 0);
+    variable tmp_real:real;
+  begin
+    uniform(s1,s2,tmp_real);
+    result := std_logic_vector(to_signed(integer(trunc(tmp_real * real (num)))
+                                      +1,size));
+    return (result);
+  end rand_vect_range;
 
   --function rand_delay(constant l:in integer;
   --                    constant u:in integer) return time is
