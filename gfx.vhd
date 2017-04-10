@@ -103,113 +103,116 @@ begin
 --
 --	end process;
 --
-  write_req_handler : process(Clock, reset)
-    variable address : integer;
-    variable len     : integer;
-    variable size    : std_logic_vector(9 downto 0);
-    variable state   : integer := 0;
-    variable lp      : integer := 0;
-  begin
-    if reset = '1' then
-      wready     <= '1';
-      wdataready <= '0';
-    elsif (rising_edge(Clock)) then
-      if state = 0 then
-        wrvalid <= '0';
-        wrsp    <= "10";
-        if wvalid = '1' then
-          wready     <= '0';
-          address    := to_integer(unsigned(waddr));
-          len        := to_integer(unsigned(wlen));
-          size       := wsize;
-          state      := 2;
-          wdataready <= '1';
-        end if;
+ write : process(Clock, reset)
+		variable slot    : integer;
+		variable address : integer;
+		variable len     : integer;
+		variable size    : std_logic_vector(9 downto 0);
+		variable state   : integer := 0;
+		variable lp      : integer := 0;
+	begin
+		if reset = '1' then
+			wready     <= '1';
+			wdataready <= '0';
+		elsif (rising_edge(Clock)) then
+			if state = 0 then
+				wrvalid <= '0';
+				wrsp    <= "10";
+				if wvalid = '1' then
+					wready     <= '0';
+					slot       := to_integer(unsigned(waddr(30 downto 15)));
+					address    := to_integer(unsigned(waddr(15 downto 0)));
+					len        := to_integer(unsigned(wlen));
+					size       := wsize;
+					state      := 2;
+					wdataready <= '1';
+				end if;
 
-      elsif state = 2 then
-        if wdvalid = '1' then
-          ---not sure if lengh or length -1
-          if lp < len - 1 then
-            wdataready              <= '0';
-            ---strob here is not considered
-            ROM_array(address + lp) <= wdata(31 downto 0);
-            lp                      := lp + 1;
-            wdataready              <= '1';
-            if wlast = '1' then
-              state := 3;
-            end if;
-          else
-            state := 3;
-          end if;
+			elsif state = 2 then
+				if wdvalid = '1' then
+					---not sure if lengh or length -1
+					if lp < len - 1 then
+						wdataready                    <= '0';
+						---strob here is not considered
+						ROM_array(slot)(address + lp) <= wdata(31 downto 0);
+						lp                            := lp + 1;
+						wdataready                    <= '1';
+						if wlast = '1' then
+							state := 3;
+						end if;
+					else
+						state := 3;
+					end if;
 
-        end if;
-      elsif state = 3 then
-        if wrready = '1' then
-          wrvalid <= '1';
-          wrsp    <= "00";
-          state   := 0;
-        end if;
-      end if;
-    end if;
-  end process;
---
-  read_req_handler : process(Clock, reset)
-    variable address : integer;
-    variable len     : integer;
-    variable size    : std_logic_vector(9 downto 0);
-    variable state   : integer := 0;
-    variable lp      : integer := 0;
-    variable dt      : std_logic_vector(31 downto 0);
-  begin
-    if reset = '1' then
-      rready  <= '1';
-      rdvalid <= '0';
-      rstrb   <= "1111";
-      rlast   <= '0';
-      address := 0;
-    elsif (rising_edge(Clock)) then
-      if state = 0 then
-        lp := 0;
-        if rvalid = '1' then
-          rready  <= '0';
-          address := to_integer(unsigned(raddr(31 downto 4)));
-          len     := to_integer(unsigned(rlen));
-          size    := rsize;
-          state   := 2;
-        end if;
+				end if;
+			elsif state = 3 then
+				if wrready = '1' then
+					wrvalid <= '1';
+					wrsp    <= "00";
+					state   := 0;
+				end if;
+			end if;
+		end if;
+	end process;
 
-      elsif state = 2 then
-        if rdready = '1' then
-          if lp < 16 then
-            rdvalid <= '1';
-            ---strob here is not considered
-            ---left alone , dono how to fix
-            ---if ROM_array(address+lp) ="00000000000000000000000000000000" then
-            ---ROM_array(address+lp) := selection(2**15-1,32);
-            ---end if;
-            --dt      := selection(2 ** 15 - 1, 32);
-            ---rdata <= dt;
-            rdata   <= ROM_array(address);
-            lp      := lp + 1;
-            rres    <= "00";
-            if lp = len then
-              state := 3;
-              rlast <= '1';
-            end if;
-          else
-            state := 3;
-          end if;
+	read : process(Clock, reset)
+		variable slot    : integer;
+		variable address : integer;
+		variable len     : integer;
+		variable size    : std_logic_vector(9 downto 0);
+		variable state   : integer := 0;
+		variable lp      : integer := 0;
+		variable dt      : std_logic_vector(31 downto 0);
+	begin
+		if reset = '1' then
+			rready  <= '1';
+			rdvalid <= '0';
+			rstrb   <= "1111";
+			rlast   <= '0';
+			address := 0;
+		elsif (rising_edge(Clock)) then
+			if state = 0 then
+				lp := 0;
+				if rvalid_in = '1' then
+					rready  <= '0';
+					slot    := to_integer(unsigned(waddr(30 downto 25)));
+					address := to_integer(unsigned(waddr(15 downto 14)));
+					len     := to_integer(unsigned(rlen));
+					size    := rsize;
+					state   := 2;
+				end if;
 
-        end if;
-      elsif state = 3 then
-        rdvalid <= '0';
-        rready  <= '1';
-        rlast   <= '0';
-        state   := 0;
-      end if;
-    end if;
-  end process;
+			elsif state = 2 then
+				if rdready = '1' then
+					if lp < 16 then
+						rdvalid <= '1';
+						---strob here is not considered
+						---left alone , dono how to fix
+						---if ROM_array(address+lp) ="00000000000000000000000000000000" then
+						---ROM_array(address+lp) := selection(2**15-1,32); -- TODO replace all calls "selection" in this file by rand_int, etc...
+						---end if;
+						--dt      := selection(2 ** 15 - 1, 32);
+						---rdata <= dt;
+						rdata   <= ROM_array(slot)(address + lp);
+						lp      := lp + 1;
+						rres_out <= "00";
+						if lp = len then
+							state := 3;
+							rlast <= '1';
+						end if;
+					else
+						state := 3;
+					end if;
 
+				end if;
+			elsif state = 3 then
+				rdvalid <= '0';
+				rready  <= '1';
+				rlast   <= '0';
+				state   := 0;
+			end if;
+		end if;
+	end process;
   pwr_req_handler : process(Clock)
   begin
     if reset = '1' then
