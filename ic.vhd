@@ -733,7 +733,7 @@ begin
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
     variable lp      : integer                        := 0;
-    variable tep_gfx : std_logic_vector(75 downto 0);
+    variable tep_gfx1 : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
   begin
     if reset = '1' then
@@ -751,9 +751,9 @@ begin
         uart_upres2  <= (others => '0');
         audio_upres2 <= (others => '0');
         usb_upres2   <= (others => '0');
-        if (is_valid(togfx_p) and
-            cmd_eq(togfx_p, READ_CMD)) then
-          tep_gfx := togfx_p;
+        if (is_valid(togfx_p) and(
+            cmd_eq(togfx_p, READ_CMD) or togfx_p(75 downto 73)="000" or togfx_p(75 downto 73)="101")) then
+          tep_gfx1 := togfx_p;
           state   := 6;
         elsif (is_valid(togfx_p) and
                cmd_eq(togfx_p, WRITE_CMD)) then
@@ -764,10 +764,10 @@ begin
         if rready_gfx = '1' then
           ---gfx_ack <= '0';
           rvalid_gfx <= '1';
-          raddr_gfx  <= togfx_p(63 downto 32);
-          if (dst_eq(togfx_p, CPU0_ID) or
-              dst_eq(togfx_p, CPU1_ID)) then
-            rlen_gfx <= "00001" & "00000";
+          raddr_gfx  <= tep_gfx1(63 downto 32);
+          if (dst_eq(tep_gfx1, CPU0_ID) or
+              dst_eq(tep_gfx1, CPU1_ID)) then
+            rlen_gfx <= "00000" & "10000";
           else
             rlen_gfx <= "00000" & "00001";
           end if;
@@ -780,10 +780,10 @@ begin
         state       := 2;
       elsif state = 2 then
         if rdvalid_gfx = '1' and rres_gfx = "00" then
-          if (dst_eq(tep_gfx, CPU0_ID) or
-              dst_eq(tep_gfx, CPU1_ID)) then
+          if (dst_eq(tep_gfx1, CPU0_ID) or
+              dst_eq(tep_gfx1, CPU1_ID)) then
             rdready_gfx                        <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata;
+            tdata(lp * 32 + 31 downto lp * 32) := rdata_gfx;
             lp                                 := lp + 1;
             if rlast_gfx = '1' then
               state := 3;
@@ -792,30 +792,30 @@ begin
             rdready_gfx <= '1';
           else
             rdready_gfx <= '1';
-            sdata       := rdata;
+            sdata       := rdata_gfx;
             state :=3;
           end if;
 
         end if;
       elsif state = 3 then
         --gfx_ack <= '1';
-        if dst_eq(tep_gfx, CPU0_ID) then
-          bus_res1_2 <= tep_gfx(72 downto 32) & tdata;
+        if dst_eq(tep_gfx1, CPU0_ID) then
+          bus_res1_2 <= tep_gfx1(72 downto 33)&"1" & tdata;
           state      := 4;
-        elsif dst_eq(tep_gfx, CPU1_ID) then
-          bus_res2_2 <= tep_gfx(72 downto 32) & tdata;
+        elsif dst_eq(tep_gfx1, CPU1_ID) then
+          bus_res2_2 <= tep_gfx1(72 downto 32) & tdata;
           state      := 4;
         --elsif tep_gfx(75 downto 73)="001" then
         --gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
         --state := 5;
-        elsif dst_eq(tep_gfx, UART_ID) then
-          uart_upres2 <= tep_gfx(72 downto 32) & sdata;
+        elsif dst_eq(tep_gfx1, UART_ID) then
+          uart_upres2 <= tep_gfx1(72 downto 32) & sdata;
           state       := 6;
-        elsif dst_eq(tep_gfx, USB_ID) then
-          usb_upres2 <= tep_gfx(72 downto 32) & sdata;
+        elsif dst_eq(tep_gfx1, USB_ID) then
+          usb_upres2 <= tep_gfx1(72 downto 32) & sdata;
           state      := 7;
-        elsif dst_eq(tep_gfx, AUDIO_ID) then
-          audio_upres2 <= tep_gfx(72 downto 32) & sdata;
+        elsif dst_eq(tep_gfx1, AUDIO_ID) then
+          audio_upres2 <= tep_gfx1(72 downto 32) & sdata;
           state        := 8;
         end if;
 
