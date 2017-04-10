@@ -1,4 +1,6 @@
 
+.PHONY: all test clean sim
+
 all:
 # types and funs
 	ghdl -a defs.vhd
@@ -33,15 +35,15 @@ all:
 topnsim:
 	ghdl -a --ieee=synopsys top.vhd
 	ghdl -e --ieee=synopsys top
-	./top --vcd=tb.vcd
+	./top --vcd=top.vcd
 clean:
-	rm *.o
+	rm *.o *.vcd
 showtree:
 	./top --no-run --disp-tree
 sim:
+	./top --stop-time=10000ps --vcd=top.vcd
 # TODO need to adjust parameters here
 # see http://ghdl.readthedocs.io/en/latest/Simulation_and_runtime.html#simulation-and-runtime
-	./top --stop-time=10000ps --vcd=top.vcd
 wave:
 	gtkwave top.vcd
 html_docs:

@@ -1,18 +1,15 @@
 library IEEE;
 use ieee.std_logic_1164.all;
---use iEEE.std_logic_unsigned.all ;
 use ieee.numeric_std.all;
 
 use std.textio.all;
 use ieee.std_logic_textio.all;
 
+use work.defs.all;
 use work.rand.all;
 use work.test.all;
 
 entity top is
-  generic (
-    constant DATA_WIDTH : positive := 73
-    );
 end top;
 
 architecture tb of top is
@@ -23,31 +20,32 @@ architecture tb of top is
   signal tb_clk : std_logic := '0';
   signal tb_sim_ended : std_logic := '0';
 
-  signal reset                                                              : std_logic := '1';
+  signal reset : std_logic := '1';
   
-  signal full_c1_u, full_c2_u, full_b_m                                     : std_logic;
-  signal cpu_res1, cpu_res2, cpu_req1, cpu_req2                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal bus_res1, bus_res2                                                 : std_logic_vector(552 downto 0);
-  signal snp_hit1, snp_hit2                                             : std_logic;
-  signal snp_req1, snp_req2                                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal snp_res1, snp_res2                                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal snp_req                                                          : std_logic_vector(75 downto 0);
+  signal full_c1_u, full_c2_u, full_b_m         : std_logic;
+  signal cpu_res1, cpu_res2, cpu_req1, cpu_req2 : MSG_T;
+  signal bus_res1, bus_res2 : std_logic_vector(552 downto 0);
+  signal snp_hit1, snp_hit2 : std_logic;
+  signal snp_req1, snp_req2 : MSG_T;
+  signal snp_res1, snp_res2 : MSG_T;
+  signal snp_req            : WMSG_T;
   ---this should be DATA_WIDTH - 1
-  signal snp_res                                                          : std_logic_vector(75 downto 0);
-  signal snp_hit                                                          : std_logic;
-  signal bus_req1, bus_req2                                                 : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal memres, tomem                                                      : std_logic_vector(75 downto 0);
-  signal full_crq1, full_srq1, full_brs1, full_wb1, full_srs1, full_crq2,
-    full_brs2, full_wb2, full_srs2                                          : std_logic;
+  signal snp_res : WMSG_T;
+  signal snp_hit : std_logic;
+  signal bus_req1, bus_req2 : MSG_T;
+  signal memres, tomem      : WMSG_T;
+  signal full_crq1, full_srq1, full_brs1,
+         full_wb1, full_srs1, full_crq2,
+         full_brs2, full_wb2, full_srs2 : std_logic;
   ---signal full_mrs: std_logic;
-  signal done1, done2                                                       : std_logic;
-  signal mem_wb, wb_req1, wb_req2                                           : std_logic_vector(552 downto 0);
-  signal wb_ack                                                             : std_logic;
-  signal ic_pwr_req, ic_pwr_res                                             : std_logic_vector(4 downto 0);
-  signal pwr_req_full                                                       : std_logic;
+  signal done1, done2                   : std_logic;
+  signal mem_wb, wb_req1, wb_req2       : std_logic_vector(552 downto 0);
+  signal wb_ack                         : std_logic;
+  signal ic_pwr_req, ic_pwr_res         : std_logic_vector(4 downto 0);
+  signal pwr_req_full                   : std_logic;
 
-  signal gfx_b, togfx                 : std_logic_vector(75 downto 0);
-  signal gfx_upreq, gfx_upres, gfx_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal gfx_b, togfx                 : WMSG_T;
+  signal gfx_upreq, gfx_upres, gfx_wb : MSG_T;
   signal gfx_upreq_full, gfx_wb_ack   : std_logic;
 
   -- pwr
@@ -57,21 +55,22 @@ architecture tb of top is
   signal pwr_uart_req, pwr_uart_res     : std_logic_vector(2 downto 0);
   
   signal audio_b, toaudio                   : std_logic_vector(53 downto 0);
-  signal audio_upreq, audio_upres, audio_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal audio_upreq, audio_upres, audio_wb : MSG_T;
   signal audio_upreq_full, audio_wb_ack     : std_logic;
 
-  signal usb_b, tousb                 : std_logic_vector(75 downto 0);
-  signal usb_upreq, usb_upres, usb_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal usb_b, tousb                 : WMSG_T;
+  signal usb_upreq, usb_upres, usb_wb : MSG_T;
   signal usb_upreq_full, usb_wb_ack   : std_logic;
 
-  signal zero   : std_logic                     := '0';
-  signal zero72 : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0');
-  signal zero75 : std_logic_vector(75 downto 0) := (others => '0');
-  signal uart_b, touart                  : std_logic_vector(75 downto 0);
-  signal uart_upreq, uart_upres, uart_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal zero   : std_logic := '0';
+  signal zero72 : MSG_T := (others => '0');
+  signal zero75 : WMSG_T := (others => '0');
+  
+  signal uart_b, touart                  : WMSG_T;
+  signal uart_upreq, uart_upres, uart_wb : MSG_T;
   signal uart_upreq_full, uart_wb_ack    : std_logic;
 
-  signal up_snp_req, up_snp_res : std_logic_vector(75 downto 0);
+  signal up_snp_req, up_snp_res : WMSG_T;
   signal up_snp_hit           : std_logic;
 
   signal waddr      : std_logic_vector(31 downto 0);
@@ -370,7 +369,7 @@ begin
     wdvalid          => wdvalid,
     wdataready       => wdataready,
     wrready          => wrready,
-    wrvalid_out          => wrvalid,
+    wrvalid_out      => wrvalid,
     wrsp             => wrsp,
     -- read
     raddr            => raddr,
@@ -609,8 +608,9 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwr_req_in     => pwr_usb_req,
-    pwr_res_out     => pwr_usb_res
+
+    pwr_req_in  => pwr_usb_req,
+    pwr_res_out => pwr_usb_res
     );
 
   uart : entity work.uart(Behavioral) port map(

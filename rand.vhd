@@ -37,7 +37,7 @@ package rand is
   --                  constant u:in integer) return time;
   
   ----* Returns a random request with command cmd
-  --function rand_req(cmd:CMD_TYP) return std_logic_vector;
+  --function rand_req(cmd:CMD_T) return std_logic_vector;
 end rand;
 
 package body rand is
@@ -120,7 +120,7 @@ package body rand is
   --  return result;
   --end rand_delay;
 
-  --function rand_req(cmd:CMD_TYP) return std_logic_vector is
+  --function rand_req(cmd:CMD_T) return std_logic_vector is
   --  variable addr : std_logic_vector(31 downto 0) :=
   --    rand_vect(32);
   --  variable data : std_logic_vector(31 downto 0) :=
