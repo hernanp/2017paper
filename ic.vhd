@@ -800,7 +800,7 @@ begin
       elsif state = 3 then
         --gfx_ack <= '1';
         if dst_eq(tep_gfx1, CPU0_ID) then
-          bus_res1_2 <= tep_gfx1(72 downto 33)&"1" & tdata;
+          bus_res1_2 <= tep_gfx1(72 downto 32) & tdata;
           state      := 4;
         elsif dst_eq(tep_gfx1, CPU1_ID) then
           bus_res2_2 <= tep_gfx1(72 downto 32) & tdata;
