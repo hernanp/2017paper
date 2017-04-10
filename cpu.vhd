@@ -21,8 +21,8 @@ entity cpu is
 end cpu;
 
 architecture Behavioral of cpu is
-  type states is (init, send, idle);
-  signal st, next_st : states;
+  --type states is (init, send, idle);
+  --signal st, next_st : states;
   signal addr,data: std_logic_vector(31 downto 0);
     
   ----* TODO is this a fun to create a power_req?
@@ -44,6 +44,8 @@ begin
   --* CPU1_R_T cpu1 sends a read req msg
   cpu1_r_test : process(reset, Clock)
     variable st : natural := 0;
+	 variable total:integer :=0;
+	 variable wt: integer :=0;
   begin
     ---if RUN_TEST = CPU1_R_T then
       if reset = '1' then
@@ -51,23 +53,28 @@ begin
         st := 0;
 		  
       elsif (rising_edge(Clock)) then
-        if st = 0 then
+        if st = 0 and total < 20 then
           st := 1;
 			 addr<=rand_vect_range(2**6-1,7)&"000000000"&"0000000000000000";
 			 data<=rand_vect_range(2**15-1,16)&"0000000000000000";
         elsif st = 1 then
           -- send a random msg
-          if cpu_id = 1 then
+          --if cpu_id = 1 then
             --- cpu_req <= rand_req(write);
             cpu_req <= "110000000"&addr &data;
-          end if;
+				total := total+1;
+          --end if;
           st := 2;
         elsif st = 2 then
           -- TODO wait for resp
 				cpu_req<=(others =>'0');
-				if (cpu_res(72 downto 72)="1") then
+				wt := wt+1;
+				if wt>20 then
+					wt := 0;
+				--if (cpu_res(72 downto 72)="1") then
 					st :=0;
 				end if;
+				--end if;
         end if;
       end if;
    --- end if;
