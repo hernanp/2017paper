@@ -44,11 +44,7 @@ package body rand is
     variable tmp_real:real;
   begin
     uniform(s1,s2,tmp_real);
-<<<<<<< HEAD
     result := std_logic_vector(to_unsigned(integer(trunc(tmp_real * real (2**size)))+1, size));
-=======
-    result := std_logic_vector(to_unsigned(integer(trunc(tmp_real * real (2**size-1))), size));
->>>>>>> parent of 5d264b2... temp fix to range overflow error in rand_vect
     return (result);
   end rand_vect;
   
