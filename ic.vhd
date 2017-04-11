@@ -1313,7 +1313,7 @@ begin
           raddr_usb  <= tep_usb(63 downto 32);
           if (dst_eq(tep_usb, CPU0_ID) or
               dst_eq(tep_usb, CPU1_ID)) then
-            rlen_usb <= "00001" & "00000";
+            rlen_usb <= "00000" & "10000";
           else
             rlen_usb <= "00000" & "00001";
           end if;
@@ -1548,7 +1548,7 @@ begin
           raddr_uart  <= tep_uart(63 downto 32);
           if (dst_eq(tep_uart, CPU0_ID) or
               dst_eq(tep_uart, CPU1_ID)) then
-            rlen_uart <= "00001" & "00000";
+            rlen_uart <= "00000" & "10000";
           else
             rlen_uart <= "00000" & "00001";
           end if;
@@ -1637,7 +1637,7 @@ begin
     end if;
   end process;
 
-  brs2_arbitor : entity work.arbiter6(Behavioral)
+  brs2_arbitor : entity work.arbiter61(Behavioral)
     generic map(
       DATA_WIDTH => 553
       )
@@ -1882,7 +1882,7 @@ begin
           raddr_audio  <= tep_audio(63 downto 32);
           if (dst_eq(tep_audio, CPU0_ID) or
               dst_eq(tep_audio, CPU1_ID)) then
-            rlen_audio <= "00001" & "00000";
+            rlen_audio <= "00000" & "10000";
           else
             rlen_audio <= "00000" & "00001";
           end if;

@@ -68,13 +68,10 @@ begin
         elsif st = 2 then
           -- TODO wait for resp
 				cpu_req<=(others =>'0');
-				wt := wt+1;
-				if wt>20 then
-					wt := 0;
-				--if (cpu_res(72 downto 72)="1") then
+				--wt := wt+1;
+				if (cpu_res(72 downto 72)="1") then
 					st :=0;
 				end if;
-				--end if;
         end if;
       end if;
    --- end if;
