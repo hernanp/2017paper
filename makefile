@@ -3,7 +3,7 @@ all:
 # types and funs
 	ghdl -a defs.vhd
 	ghdl -a util.vhd
-	ghdl -a rand.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
+	ghdl -a --ieee=synopsys rand.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
 	ghdl -a test.vhd # Test configuration
 # data structs
 	ghdl -a arbiter.vhd
@@ -12,7 +12,6 @@ all:
 	ghdl -a arbiter3.vhd
 	ghdl -a fifo.vhd # dependency for [pwr,l1cache,axi].vhd
 # modules
-	ghdl -a gfx.vhd
 	ghdl -a pwr.vhd # uses fifo
 	ghdl -a mem.vhd
 	ghdl -a -fexplicit cache.vhd # uses fifo, arbiter2
@@ -23,7 +22,7 @@ all:
 	ghdl -a arbiter61.vhd
 	ghdl -a arbiter7.vhd
 	ghdl -a ic.vhd # uses fifo, arbiter2,6,61,7
-	ghdl -a gfx.vhd
+	ghdl -a --ieee=synopsys gfx.vhd
 	ghdl -a audio.vhd
 	ghdl -a usb.vhd
 	ghdl -a uart.vhd
