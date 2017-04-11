@@ -18,22 +18,22 @@ entity l1_cache is
   port(
     Clock                : in  std_logic;
     reset                : in  std_logic;
-    cpu_req_in              : in  STD_LOGIC_VECTOR(72 downto 0);
-    snp_req_in              : in  STD_LOGIC_VECTOR(72 downto 0);
+    cpu_req_in              : in  MSG_T;
+    snp_req_in              : in  MSG_T;
     dn_snp_res_in              : in  STD_LOGIC_VECTOR(552 downto 0);
     --01: read response
     --10: write response
     --11: fifo full response
-    cpu_res_out              : out STD_LOGIC_VECTOR(72 downto 0) := (others => '0');
+    cpu_res_out              : out MSG_T := (others => '0');
     --01: read response 
     --10: write response
     --11: fifo full response
     snp_hit_out            : out std_logic;
-    snp_res_out            : out STD_LOGIC_VECTOR(72 downto 0) := (others => '0');
+    snp_res_out            : out MSG_T := (others => '0');
 
     --goes to cache controller ask for data
-    snp_req_out  : out std_logic_vector(72 downto 0);
-    snp_res_in  : in  std_logic_vector(72 downto 0);
+    snp_req_out  : out MSG_T;
+    snp_res_in  : in  MSG_T;
     snp_hit_in  : in  std_logic;
     up_snp_req_in    : in  std_logic_vector(75 downto 0);
     up_snp_res_out   : out std_logic_vector(75 downto 0);
@@ -50,7 +50,7 @@ entity l1_cache is
 
     full_crq, -- TODO what is this? is it not implemented?
     full_wb, full_srs : in  std_logic; -- TODO where are these coming from?
-    dn_snp_req_out : out STD_LOGIC_VECTOR(72 downto 0) :=
+    dn_snp_req_out : out MSG_T :=
       (others => '0') -- a req going to the other cache
 	);
 
@@ -75,12 +75,12 @@ architecture Behavioral of l1_cache is
   -- read_enable signals for FIFO queues
   signal crf_re, srf_re, bsf_re, brf_re, ssf_re : std_logic;
   -- data_in signals
-  signal crf_in, srf_in, ssf_in : std_logic_vector(72 downto 0):=(others => '0');
+  signal crf_in, srf_in, ssf_in : MSG_T:=(others => '0');
   
   -- Outputs from FIFO queues
   -- data_out signals
   signal out1, out3, -- TODO not used?
-    srf_out, ssf_out : std_logic_vector(72 downto 0):=(others => '0');
+    srf_out, ssf_out : MSG_T:=(others => '0');
   signal brf_out, brf_in : std_logic_vector(75 downto 0):=(others => '0');
   -- empty signals
   signal crf_emp, srf_emp, bsf_emp, brf_emp, ssf_emp : std_logic;
@@ -93,10 +93,10 @@ architecture Behavioral of l1_cache is
   -- Naming conventions:
   -- [cpu|snp|usnp]_mem_[req|res|ack] memory (write) request, response, or ack for
   --   cpu, snoop (from cache), or upstream snoop (from bus on behalf of a device)
-  signal cpu_mem_req, snp_mem_req, mcu_write_req  : std_logic_vector(72 downto 0);
+  signal cpu_mem_req, snp_mem_req, mcu_write_req  : MSG_T;
   signal usnp_mem_req, usnp_mem_res : std_logic_vector(75 downto 0):=(others => '0'); -- usnp reqs are longer
   signal usnp_mem_ack : std_logic;
-  signal snp_mem_req_1, snp_mem_req_2 : std_logic_vector(72 downto 0) :=(others => '0');
+  signal snp_mem_req_1, snp_mem_req_2 : MSG_T :=(others => '0');
 
   signal snp_mem_ack1, snp_mem_ack2 : std_logic;
   signal mcu_upd_req, bsf_in : std_logic_vector(552 downto 0):=(others => '0');
@@ -107,22 +107,23 @@ architecture Behavioral of l1_cache is
   -- "done" signals
   signal upd_ack, write_ack, cpu_mem_ack, snp_mem_ack : std_logic;
 
-  signal cpu_res1, cpu_res2             : std_logic_vector(72 downto 0):=(others => '0');
+  signal cpu_res1, cpu_res2             : MSG_T:=(others => '0');
   signal ack1, ack2                     : std_logic;
-  signal snp_c_req1, snp_c_req2         : std_logic_vector(72 downto 0):=(others => '0');
+  signal snp_c_req1, snp_c_req2         : MSG_T:=(others => '0');
   signal snp_c_ack1, snp_c_ack2         : std_logic;
 
   signal prc          : std_logic_vector(1 downto 0);
-  signal tmp_cpu_res1 : std_logic_vector(72 downto 0) := (others => '0');
-  signal tmp_snp_res  : std_logic_vector(72 downto 0):=(others => '0');
+  signal tmp_cpu_res1 : MSG_T := (others => '0');
+  signal tmp_snp_res  : MSG_T:=(others => '0');
   signal tmp_hit      : std_logic;
   signal tmp_mem      : std_logic_vector(40 downto 0):=(others => '0');
   ---this one is important!!!!
   
   signal upreq : std_logic_vector(75 downto 0); -- used only by up_snp_req_handler
-  signal snpreq       : std_logic_vector(72 downto 0); -- used only by cpu_req_handler
+  signal snpreq       : MSG_T; -- used only by cpu_req_handler
   
-  constant DEFAULT_DATA_WIDTH : positive := 73;
+  constant DEFAULT_DATA_WIDTH : positive := MSG_WIDTH;
+  constant DEFAULT_WDATA_WIDTH : positive := WMSG_WIDTH;
   constant DEFAULT_FIFO_DEPTH : positive := 256;
 begin
   cpu_req_fifo : entity work.fifo(Behavioral)
@@ -157,7 +158,7 @@ begin
       );
   up_snp_req_fifo : entity work.fifo(Behavioral) -- req from device
     generic map(
-      DATA_WIDTH => 76, -- TODO why this val?
+      DATA_WIDTH => DEFAULT_WDATA_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
@@ -298,7 +299,7 @@ begin
   --* Process requests from cpu
   cpu_req_handler : process(reset, Clock)
     -- TODO should they be signals instead of variables?
-    variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
+    variable nilreq : MSG_T := (others => '0');
     variable state  : integer                       := 0;
   begin
     if (reset = '1') then
@@ -476,7 +477,7 @@ begin
 
   --* Process snoop response (to snoop request issued by this cache)
   bus_res_handler : process(reset, Clock)
-    variable nilreq : std_logic_vector(72 downto 0) := (others => '0');
+    variable nilreq : MSG_T := (others => '0');
     variable state  : integer                       := 0;
   begin
     if reset = '1' then
@@ -510,7 +511,7 @@ begin
   mem_control_unit : process(reset, Clock)
     variable idx    : integer;
     variable memcont : std_logic_vector(52 downto 0);
-    variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
+    variable nilreq  : MSG_T  := (others => '0');
     variable nilreq2 : std_logic_vector(552 downto 0) := (others => '0');
     variable shifter : boolean                        := false;
   begin

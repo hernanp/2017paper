@@ -1,0 +1,31 @@
+[*]
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Mon Apr  3 13:57:01 2017
+[*]
+[dumpfile] "/home/hpalombo/oven/soc_shared/top.vcd"
+[dumpfile_mtime] "Mon Apr  3 13:53:03 2017"
+[dumpfile_size] 612148
+[savefile] "/home/hpalombo/oven/soc_shared/pwr.gtkw"
+[timestart] 53000
+[size] 1000 600
+[pos] -1 -1
+*-14.664932 103000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] power.
+[sst_width] 225
+[signals_width] 212
+[sst_expanded] 1
+[sst_vpaned_height] 343
+@28
+clock
+reset
+@22
+ic_pwr_req[4:0]
+@28
+pwr_gfx_req[2:0]
+pwr_gfx_res[2:0]
+power.gfx_res_in[2:0]
+@22
+power.res_out[4:0]
+ic_pwr_res[4:0]
+[pattern_trace] 1
+[pattern_trace] 0

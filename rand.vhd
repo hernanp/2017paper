@@ -1,31 +1,57 @@
 library ieee;
 use ieee.math_real.all;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.std_logic_arith.all; -- for conv_std_logic_vector fun
+use std.textio.all;
+use work.defs.all;
 
 package rand is
-  shared variable s1: integer:= 844396720;
-  shared variable s2: integer:= 821616997;
-  -- Returns a number between 1 and num.
- impure function selection(constant num:in integer) return integer;
-  -- Returns a std_logic_vector of size bits between 1 and num.
- impure function rand_vect_range(constant num:in integer;
-                      constant size:in integer) return std_logic_vector;
-  -- Returns random delay between lower and upper.
-  --impure function delay (constant l:in integer;
-     --               constant u:in integer) return time;
+  constant RND_INT_CNT: natural := 1000;
+  constant RND_INT_MAX: natural := 9;  
+  ----+ seeds
+  --constant SEED1: integer:= 844396720;
+  --constant SEED2: integer:= 821616997;
+
+  --constant sd1: positive := 844396720;
+  --constant sd2: positive := 821616997;
+
+  shared variable s1 : integer := 844396720;
+  shared variable s2 : integer := 821616997;
+  
+  type int_array_t is array(0 to RND_INT_CNT) of integer;
+
+  impure function rand_init return int_array_t;
+  
+  --* Returns a number between 0 and RND_INT_MAX.
+  function rand_nat(constant seed:in natural) return natural;
+
+  --* Returns a std_logic_vector of size bits between 1 and num.
+  impure function rand_vect_range(constant num:in integer;
+                                  constant size:in integer) return std_logic_vector;
 end rand;
 package body rand is
-   
-  impure function selection(constant num:in integer) return integer is
-    variable result:integer;
-    variable tmp_real: real;
-   
+  impure function rand_init return int_array_t is
+    file rnd_ints_f : TEXT open read_mode is "rand_ints.txt";
+    variable l : line;
+    variable n : integer;
+    variable i : integer := 0;
+    variable res : int_array_t := (others => 0);
   begin
-    uniform(s1,s2,tmp_real);
-    result := 1 + integer(trunc(tmp_real * real(num)));
-    return (result);
-  end selection;
+    while not endfile(rnd_ints_f) loop
+      readline(rnd_ints_f, l);
+      read(l, n);
+      res(i) := n;
+      i := i+1;
+    end loop;
+    return res;
+  end rand_init;
+
+  constant a : int_array_t := rand_init;
+  
+  function rand_nat(constant seed:in natural) return natural is
+  begin
+    return a((seed + time'pos(now)) mod RND_INT_CNT);
+  end rand_nat;
   
   impure function rand_vect_range(constant num:in integer;
                        constant size:in integer)
@@ -38,14 +64,4 @@ package body rand is
                                       +1,size);
     return (result);
   end rand_vect_range;
---  impure function delay (constant l:in integer;
---                    constant u:in integer) return time is
---   variable result:time;
---   variable tmp : real ;
---   
---    begin
---   uniform(s1,s2,tmp);
---   result:=(((tmp  real(u - 1)) + real(1))  1 ns);
---   return result;
--- end delay;
 end rand;

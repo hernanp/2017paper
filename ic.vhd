@@ -3,19 +3,20 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.defs.all;
 use work.util.all;
+use work.rand.all;
 use work.test.all;
 
 entity ic is
   Port(
     Clock                                   : in  std_logic;
     reset                                   : in  std_logic;
-    cache_req1                              : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
-    cache_req2                              : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+    cache1_req_in                           : in  MSG_T;
+    cache2_req_in                           : in  MSG_T;
     wb_req1, wb_req2                        : in  std_logic_vector(552 downto 0);
-    bus_res1                                : out STD_LOGIC_VECTOR(552 downto 0);
-    bus_res2                                : out STD_LOGIC_VECTOR(552 downto 0);
-    up_snp_req_out                          : out STD_LOGIC_VECTOR(75 downto 0);
-    up_snp_res_in                           : in  STD_LOGIC_VECTOR(75 downto 0);
+    bus_res1_out                            : out STD_LOGIC_VECTOR(552 downto 0);
+    bus_res2_out                            : out STD_LOGIC_VECTOR(552 downto 0);
+    up_snp_req_out                          : out WMSG_T;
+    up_snp_res_in                           : in  WMSG_T;
     up_snp_hit_in                           : in  std_logic;
     full_srq1                               : in  std_logic;
     full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
@@ -31,17 +32,17 @@ entity ic is
     --100 audio
     --101 cpu1
 
-    gfx_upreq_in                            : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
-    gfx_upres_out                           : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+    gfx_upreq_in                            : in  MSG_T;
+    gfx_upres_out                           : out MSG_T;
     gfx_upreq_full                          : out std_logic;
-    audio_upreq                             : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
-    audio_upres                             : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+    audio_upreq                             : in  MSG_T;
+    audio_upres                             : out MSG_T;
     audio_upreq_full                        : out std_logic;
-    usb_upreq                               : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
-    usb_upres                               : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+    usb_upreq                               : in  MSG_T;
+    usb_upres                               : out MSG_T;
     usb_upreq_full                          : out std_logic;
-    uart_upreq                              : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
-    uart_upres                              : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+    uart_upreq                              : in  MSG_T;
+    uart_upres                              : out MSG_T;
     uart_upreq_full                         : out std_logic;
 
     ---write address channel
@@ -65,13 +66,13 @@ entity ic is
     raddr                                   : out std_logic_vector(31 downto 0);
     rlen                                    : out std_logic_vector(9 downto 0);
     rsize                                   : out std_logic_vector(9 downto 0);
-    rvalid_out                                  : out std_logic;
+    rvalid_out                              : out std_logic;
     rready                                  : in  std_logic;
     ---read data channel
     rdata                                   : in  std_logic_vector(31 downto 0);
     rstrb                                   : in  std_logic_vector(3 downto 0);
     rlast                                   : in  std_logic;
-    rdvalid                                 : in  std_logic;
+    rdvalid_in                                 : in  std_logic;
     rdready                                 : out std_logic;
     rres                                    : in  std_logic_vector(1 downto 0);
 
@@ -224,13 +225,13 @@ architecture Behavioral of ic is
   signal gfxpoweron       : std_logic                      := '0';
 
   signal adr_0, adr_1                                   : std_logic_vector(31 downto 0);
-  signal tmp_sp1, tmp_sp2                               : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal tmp_sp1, tmp_sp2                               : MSG_T;
   signal pwr_req1, pwr_req2                             : std_logic_vector(4 downto 0);
   signal pwr_ack1, pwr_ack2                             : std_logic;
   signal mem_wb, gfx_wb, audio_wb, usb_wb, uart_wb      : std_logic_vector(552 downto 0);
   signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(75 downto 0);
 
-  signal gfx_fifo_din, gfx_fifo_dout, in13, out13, in14, out14, in15, out15                                           : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal gfx_fifo_din, gfx_fifo_dout, in13, out13, in14, out14, in15, out15                                           : MSG_T;
   signal in8, out8, in10, out10, in11, out11, in12, out12                                           : std_logic_vector(75 downto 0);
   signal we8, re8, gfx_fifo_re, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
   signal emp8, gfx_fifo_emp, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
@@ -261,21 +262,21 @@ architecture Behavioral of ic is
   signal snp1_1, snp1_2, snp1_3, snp1_4, snp1_5, snp1_6, snp2_1, snp2_2, snp2_3, snp2_4, snp2_5, snp2_6                                     : std_logic_vector(75 downto 0);
   signal snp1_ack1, snp1_ack2, snp1_ack3, snp1_ack4, snp1_ack5, snp1_ack6, snp2_ack1, snp2_ack2, snp2_ack3, snp2_ack4, snp2_ack5, snp2_ack6 : std_logic;
 
-  signal gfx_upres1, gfx_upres2, gfx_upres3                   : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal gfx_upres1, gfx_upres2, gfx_upres3                   : MSG_T;
   signal gfx_upres_ack1, gfx_upres_ack2, gfx_upres_ack3       : std_logic;
-  signal audio_upres1, audio_upres2, audio_upres3             : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal audio_upres1, audio_upres2, audio_upres3             : MSG_T;
   signal audio_upres_ack1, audio_upres_ack2, audio_upres_ack3 : std_logic;
-  signal usb_upres1, usb_upres2, usb_upres3                   : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal usb_upres1, usb_upres2, usb_upres3                   : MSG_T;
   signal usb_upres_ack1, usb_upres_ack2, usb_upres_ack3       : std_logic;
-  signal uart_upres1, uart_upres2, uart_upres3                : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal uart_upres1, uart_upres2, uart_upres3                : MSG_T;
   signal uart_upres_ack1, uart_upres_ack2, uart_upres_ack3    : std_logic;
-  signal gfx_upres4, gfx_upres5, gfx_upres6                   : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal gfx_upres4, gfx_upres5, gfx_upres6                   : MSG_T;
   signal gfx_upres_ack4, gfx_upres_ack5, gfx_upres_ack6       : std_logic;
-  signal audio_upres4, audio_upres5, audio_upres6             : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal audio_upres4, audio_upres5, audio_upres6             : MSG_T;
   signal audio_upres_ack4, audio_upres_ack5, audio_upres_ack6 : std_logic;
-  signal usb_upres4, usb_upres5, usb_upres6                   : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal usb_upres4, usb_upres5, usb_upres6                   : MSG_T;
   signal usb_upres_ack4, usb_upres_ack5, usb_upres_ack6       : std_logic;
-  signal uart_upres4, uart_upres5, uart_upres6                : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal uart_upres4, uart_upres5, uart_upres6                : MSG_T;
   signal uart_upres_ack4, uart_upres_ack5, uart_upres_ack6    : std_logic;
   
   signal gfx_write1,mem_write1,usb_write1,uart_write1,audio_write1:std_logic_vector(75 downto 0);
@@ -284,7 +285,7 @@ architecture Behavioral of ic is
   signal mem_write_ack2,gfx_write_ack2,usb_write_ack2,uart_write_ack2,audio_write_ack2: std_logic;
   signal mem_write_ack3,gfx_write_ack3,usb_write_ack3,uart_write_ack3,audio_write_ack3: std_logic;
 
-  signal tmp_cache_req1, tmp_cache_req2: std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal tmp_cache_req1, tmp_cache_req2: MSG_T;
 
 begin
   wb_fifo1 : entity work.fifo(Behavioral)
@@ -343,7 +344,7 @@ begin
       );
   
   gfx_fifo_handler : process(reset, Clock)
-    variable valid : std_logic_vector(DATA_WIDTH - 1 downto 0) :=
+    variable valid : MSG_T :=
       '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
   begin
     if reset = '1' then
@@ -604,11 +605,11 @@ begin
             state   := 9;
           else
             tep_mem := tomem_p;
-            state   := 6;
+            state   := 16;
           end if;
         end if;
         
-      elsif state = 16 then
+      elsif state = 16 then -- send mem req out
         if rready = '1' then
           --mem_ack <= '0';
           rvalid_out <= '1';
@@ -627,7 +628,7 @@ begin
         rdready <= '1';
         state   := 2;
       elsif state = 2 then
-        if rdvalid = '1' and rres = "00" then
+        if rdvalid_in = '1' and rres = "00" then
           if (dst_eq(tep_mem, CPU0_ID) or
               dst_eq(tep_mem, CPU1_ID)) then
             rdready <= '0';
@@ -1648,7 +1649,7 @@ begin
       ack1  => brs2_ack1,
       din2  => bus_res2_2,
       ack2  => brs2_ack2,
-      dout  => bus_res2,
+      dout  => bus_res2_out,
       din3  => bus_res2_3,
       din4  => bus_res2_4,
       ack4  => brs2_ack4,
@@ -1724,7 +1725,7 @@ begin
       ack6  => brs1_ack6,
       din7  => bus_res1_7,
       ack7  => brs1_ack7,
-      dout  => bus_res1
+      dout  => bus_res1_out
       );
 
   gfx_upres_arbitor : entity work.arbiter6(Behavioral)
@@ -2049,16 +2050,16 @@ begin
         --it's a hit, return to the source ip
         elsif out2(72 downto 72)="1" then
           if dst_eq(out2, GFX_ID) then
-            gfx_upres2 <= out2(DATA_WIDTH - 1 downto 0);
+            gfx_upres2 <= out2(MSG_WIDTH - 1 downto 0);
             state      := 9;
           elsif dst_eq(out2, UART_ID) then
-            uart_upres3 <= out2(DATA_WIDTH - 1 downto 0);
+            uart_upres3 <= out2(MSG_WIDTH - 1 downto 0);
             state       := 10;
           elsif dst_eq(out2, USB_ID) then
-            usb_upres4 <= out2(DATA_WIDTH - 1 downto 0);
+            usb_upres4 <= out2(MSG_WIDTH - 1 downto 0);
             state      := 11;
           elsif dst_eq(out2, AUDIO_ID) then
-            audio_upres5 <= out2(DATA_WIDTH - 1 downto 0);
+            audio_upres5 <= out2(MSG_WIDTH - 1 downto 0);
             state        := 12;
           end if;
         end if;
@@ -2305,7 +2306,7 @@ begin
   end process;
 
   cache_req1_handler : process(reset, Clock)
-    variable nilreq  : std_logic_vector(DATA_WIDTH - 1 downto 0)  := (others => '0');
+    variable nilreq  : MSG_T  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
@@ -2314,28 +2315,28 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache_req1) and cache_req1(71 downto 64) = "11111111" then
+        if is_valid(cache1_req_in) and cache1_req_in(71 downto 64) = "11111111" then
           ---let's not consider power now, too complicated
-          pwr_req1 <= '1' & cache_req1(64 downto 61);
+          pwr_req1 <= '1' & cache1_req_in(64 downto 61);
           state    := 4;
-        elsif is_valid(cache_req1) and cache_req1(63 downto 32) = adr_1 then
+        elsif is_valid(cache1_req_in) and cache1_req_in(63 downto 32) = adr_1 then
           state      := 3;
           ----should return to cache, let it perform snoop again!!!
           -----
           ----don't forget to fill this up
           -----
           bus_res1_7 <= '1' & "11111111" & nildata;
-        elsif is_valid(cache_req1) then
-          adr_0 <= cache_req1(63 downto 32);
-			 tmp_cache_req1 <= cache_req1;
+        elsif is_valid(cache1_req_in) then
+          adr_0 <= cache1_req_in(63 downto 32);
+			 tmp_cache_req1 <= cache1_req_in;
           state := 2;
         else
           state := 0;
         end if;
       elsif state = 2 then
-        if tmp_cache_req1(63 downto 63) = "1" then
+        if tmp_cache_req1(63 downto 63) = "1" then -- mem request
           ---this belongs to the memory					
-          tomem1 <= "000" & tmp_cache_req1;
+          tomem1 <= "000" & tmp_cache_req1; -- TODO hard-coded cpu1 id?
           state  := 5;
         elsif tmp_cache_req1(62 downto 61) = "00" then
           togfx1 <= "000" & tmp_cache_req1;
@@ -2385,7 +2386,7 @@ begin
 
   ---deal with cache request
   cache_req2_handler : process(reset, Clock)
-    variable nilreq  : std_logic_vector(DATA_WIDTH - 1 downto 0)  := (others => '0');
+    variable nilreq  : MSG_T  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
@@ -2394,22 +2395,22 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache_req2) and cache_req2(71 downto 64) = "11111111" then
+        if is_valid(cache2_req_in) and cache2_req_in(71 downto 64) = "11111111" then
           ---let's not consider power now, too complicated
-          pwr_req2 <= '1' & cache_req2(64 downto 61);
+          pwr_req2 <= '1' & cache2_req_in(64 downto 61);
           state    := 4;
-        elsif is_valid(cache_req2) and cache_req2(63 downto 32) = adr_1 then
+        elsif is_valid(cache2_req_in) and cache2_req_in(63 downto 32) = adr_1 then
           state      := 3;
           ----should return to cache, let it perform snoop again!!!
           -----
           ----don't forget to fill this up
           -----
           bus_res1_6 <= '1' & "11111111" & nildata;
-        elsif is_valid(cache_req2) then
+        elsif is_valid(cache2_req_in) then
           ---snp_req2 <= cache_req2;
-          adr_0 <= cache_req2(63 downto 32);
+          adr_0 <= cache2_req_in(63 downto 32);
           state := 2;
-			 tmp_cache_req2 <= cache_req2;
+			 tmp_cache_req2 <= cache2_req_in;
         else
           ---snp_req2 <= nilreq;
           state := 0;
@@ -2468,22 +2469,26 @@ begin
   --* ic sends a power req 
   ic_pwr_test : process(clock, reset) -- pwr_req test
     variable st : natural := 0;
+    variable ct : natural;
   begin
-    if RUN_TEST = IC_PWR_GFX_T then
+    if RUN_TEST = IC_PWR_GFX_TEST then
       if reset = '1' then
         pwr_req_out <= (others => '0');
+        ct := rand_nat(to_integer(unsigned(IC_PWR_GFX_TEST)));
+        --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
+        --               to_integer(unsigned(IC_PWR_GFX_TEST)));        
         st := 0;
       elsif(rising_edge(clock)) then
-      if st = 0 then -- init
-          st := 1;
-        elsif st = 1 then
+        if st = 0 then -- wait
+          delay(ct, st, 1);
+        elsif st = 1 then -- send
+          report "ic_pwr_gfx_t @ " & integer'image(time'pos(now));
           pwr_req_out <= "1" & -- valid bit
                          "10" & -- data means "poweron" (see gfx.vhd)
                          "00"; -- gfx id
           st := 2;
-        elsif st = 2 then
+        elsif st = 2 then -- done
           pwr_req_out <= (others => '0');
-        else
         end if;
       end if;
     end if;

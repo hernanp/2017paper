@@ -1,17 +1,15 @@
 library IEEE;
 use ieee.std_logic_1164.all;
---use iEEE.std_logic_unsigned.all ;
 use ieee.numeric_std.all;
 
 use std.textio.all;
 use ieee.std_logic_textio.all;
 
+use work.defs.all;
+use work.rand.all;
 use work.test.all;
 
 entity top is
-  generic (
-    constant DATA_WIDTH : positive := 73
-    );
 end top;
 
 architecture tb of top is
@@ -22,31 +20,32 @@ architecture tb of top is
   signal tb_clk : std_logic := '0';
   signal tb_sim_ended : std_logic := '0';
 
-  signal reset                                                              : std_logic := '1';
+  signal reset : std_logic := '1';
   
-  signal full_c1_u, full_c2_u, full_b_m                                     : std_logic;
-  signal cpu_res1, cpu_res2, cpu_req1, cpu_req2                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal bus_res1, bus_res2                                                 : std_logic_vector(552 downto 0);
-  signal snp_hit1, snp_hit2                                             : std_logic;
-  signal snp_req1, snp_req2                                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal snp_res1, snp_res2                                             : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal snp_req                                                          : std_logic_vector(75 downto 0);
+  signal full_c1_u, full_c2_u, full_b_m         : std_logic;
+  signal cpu_res1, cpu_res2, cpu_req1, cpu_req2 : MSG_T;
+  signal bus_res1, bus_res2 : std_logic_vector(552 downto 0);
+  signal snp_hit1, snp_hit2 : std_logic;
+  signal snp_req1, snp_req2 : MSG_T;
+  signal snp_res1, snp_res2 : MSG_T;
+  signal snp_req            : WMSG_T;
   ---this should be DATA_WIDTH - 1
-  signal snp_res                                                          : std_logic_vector(75 downto 0);
-  signal snp_hit                                                          : std_logic;
-  signal bus_req1, bus_req2                                                 : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal memres, tomem                                                      : std_logic_vector(75 downto 0);
-  signal full_crq1, full_srq1, full_brs1, full_wb1, full_srs1, full_crq2,
-    full_brs2, full_wb2, full_srs2                                          : std_logic;
+  signal snp_res : WMSG_T;
+  signal snp_hit : std_logic;
+  signal bus_req1, bus_req2 : MSG_T;
+  signal memres, tomem      : WMSG_T;
+  signal full_crq1, full_srq1, full_brs1,
+         full_wb1, full_srs1, full_crq2,
+         full_brs2, full_wb2, full_srs2 : std_logic;
   ---signal full_mrs: std_logic;
-  signal done1, done2                                                       : std_logic;
-  signal mem_wb, wb_req1, wb_req2                                           : std_logic_vector(552 downto 0);
-  signal wb_ack                                                             : std_logic;
-  signal ic_pwr_req, ic_pwr_res                                             : std_logic_vector(4 downto 0);
-  signal pwr_req_full                                                       : std_logic;
+  signal done1, done2                   : std_logic;
+  signal mem_wb, wb_req1, wb_req2       : std_logic_vector(552 downto 0);
+  signal wb_ack                         : std_logic;
+  signal ic_pwr_req, ic_pwr_res         : std_logic_vector(4 downto 0);
+  signal pwr_req_full                   : std_logic;
 
-  signal gfx_b, togfx                 : std_logic_vector(75 downto 0);
-  signal gfx_upreq, gfx_upres, gfx_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal gfx_b, togfx                 : WMSG_T;
+  signal gfx_upreq, gfx_upres, gfx_wb : MSG_T;
   signal gfx_upreq_full, gfx_wb_ack   : std_logic;
 
   -- pwr
@@ -56,21 +55,22 @@ architecture tb of top is
   signal pwr_uart_req, pwr_uart_res     : std_logic_vector(2 downto 0);
   
   signal audio_b, toaudio                   : std_logic_vector(53 downto 0);
-  signal audio_upreq, audio_upres, audio_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal audio_upreq, audio_upres, audio_wb : MSG_T;
   signal audio_upreq_full, audio_wb_ack     : std_logic;
 
-  signal usb_b, tousb                 : std_logic_vector(75 downto 0);
-  signal usb_upreq, usb_upres, usb_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal usb_b, tousb                 : WMSG_T;
+  signal usb_upreq, usb_upres, usb_wb : MSG_T;
   signal usb_upreq_full, usb_wb_ack   : std_logic;
 
-  signal zero   : std_logic                     := '0';
-  signal zero72 : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0');
-  signal zero75 : std_logic_vector(75 downto 0) := (others => '0');
-  signal uart_b, touart                  : std_logic_vector(75 downto 0);
-  signal uart_upreq, uart_upres, uart_wb : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal zero   : std_logic := '0';
+  signal zero72 : MSG_T := (others => '0');
+  signal zero75 : WMSG_T := (others => '0');
+  
+  signal uart_b, touart                  : WMSG_T;
+  signal uart_upreq, uart_upres, uart_wb : MSG_T;
   signal uart_upreq_full, uart_wb_ack    : std_logic;
 
-  signal up_snp_req, up_snp_res : std_logic_vector(75 downto 0);
+  signal up_snp_req, up_snp_res : WMSG_T;
   signal up_snp_hit           : std_logic;
 
   signal waddr      : std_logic_vector(31 downto 0);
@@ -236,8 +236,8 @@ begin
     reset   => reset,
     Clock   => Clock,
     cpu_id  => 1,
-    cpu_res => cpu_res1,
-    cpu_req => cpu_req1,
+    cpu_res_in => cpu_res1,
+    cpu_req_out => cpu_req1,
     full_c  => full_c1_u
    --done    => done1
     );
@@ -246,8 +246,8 @@ begin
     reset   => reset,
     Clock   => Clock,
     cpu_id  => 2,
-    cpu_res => cpu_res2,
-    cpu_req => cpu_req2,
+    cpu_res_in => cpu_res2,
+    cpu_req_out => cpu_req2,
     full_c  => full_c2_u
    --done    => done2
     );
@@ -369,7 +369,7 @@ begin
     wdvalid          => wdvalid,
     wdataready       => wdataready,
     wrready          => wrready,
-    wrvalid_out          => wrvalid,
+    wrvalid_out      => wrvalid,
     wrsp             => wrsp,
     -- read
     raddr            => raddr,
@@ -380,7 +380,7 @@ begin
     rdata            => rdata,
     rstrb            => rstrb,
     rlast            => rlast,
-    rdvalid          => rdvalid,
+    rdvalid_in       => rdvalid,
     rdready          => rdready,
     rres             => rres,
 
@@ -483,12 +483,12 @@ begin
     rres_audio       => rres_audio,
     Clock            => Clock,
     reset            => reset,
-    cache_req1       => bus_req1,
-    cache_req2       => bus_req2,
+    cache1_req_in    => bus_req1,
+    cache2_req_in    => bus_req2,
     wb_req1          => wb_req1,
     wb_req2          => wb_req2,
-    bus_res1         => bus_res1,
-    bus_res2         => bus_res2,
+    bus_res1_out     => bus_res1,
+    bus_res2_out     => bus_res2,
     up_snp_req_out   => up_snp_req,
     up_snp_res_in    => up_snp_res,
     up_snp_hit_in    => up_snp_hit,
@@ -608,8 +608,9 @@ begin
 
     Clock      => Clock,
     reset      => reset,
-    pwr_req_in     => pwr_usb_req,
-    pwr_res_out     => pwr_usb_res
+
+    pwr_req_in  => pwr_usb_req,
+    pwr_res_out => pwr_usb_res
     );
 
   uart : entity work.uart(Behavioral) port map(
@@ -673,7 +674,7 @@ begin
     rdata      => rdata,
     rstrb      => rstrb,
     rlast      => rlast,
-    rdvalid    => rdvalid,
+    rdvalid_out => rdvalid,
     rdready    => rdready,
     rres_out   => rres
     );
@@ -704,7 +705,19 @@ begin
   --    writeline(log_file, l); 
   --  end if;
   --end process;
-      
+
+  --rand_template: process(tb_clk)
+  --  variable b : boolean := true;
+  --  variable max : positive := 255;
+  --begin
+  --  if b then
+  --    report integer'image(time'pos(now));
+  --    report integer'image(to_int(max'instance_name));
+  --    report integer'image(rand_int(max,to_int(max'instance_name)));
+  --    b := false;
+  --  end if;
+  --end process;
+  
   logger : process(tb_clk)
     file trace_file : TEXT open write_mode is "trace1.txt";
     variable l : line;
@@ -852,6 +865,73 @@ begin
         writeline(trace_file, l); 
       end if;
     end if;
+  end process;
+
+  cpu2_w_mon : process
+    variable m, t : time := 0 ps;
+    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+    variable zeros73 : std_logic_vector(72 downto 0) := (others => '0');
+  begin
+    if is_tset(CPU2_W_TEST) then
+      wait until cpu_res2 /= zeros73;
+      report "OK";
+    ---- TODO ... more tests here ...
+      --m := 510 ps;
+      --wait for m - t;
+      --t := m;
+      --assert cpu_res2 /= zeros73 report "cpu2_w_mon, msg 8: cpu_res2 is 0" severity error;
+    end if;
+    wait;
+  end process;
+    
+  cpu1_r_mon : process
+    variable m, t : time := 0 ps;
+    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+    variable zeros73 : std_logic_vector(72 downto 0) := (others => '0');
+  begin
+    if is_tset(CPU1_R_TEST) then
+      m := 70 ps;
+      wait for m - t;
+      t := m;
+      assert cpu_req1 /= zeros73 report "cpu1_r_mon, msg 1: cpu_req1 is 0" severity error;
+      
+      m := 140 ps;
+      wait for m - t;
+      t := m;
+      assert snp_req2 /= zeros73 report "cpu1_r_mon, msg 2: snp_req2 is 0" severity error;
+      
+      m := 220 ps;
+      wait for m - t;
+      t := m;
+      assert snp_res2 /= zeros73 report "cpu1_r_mon, msg 3: snp_res2 is 0" severity error;
+      
+      m := 230 ps;
+      wait for m - t;
+      t := m;
+      assert bus_req1 /= zeros73 report "cpu1_r_mon, msg 4: bus_req1 is 0" severity error;
+      
+      m := 280 ps;
+      wait for m - t;
+      t := m;
+      assert rvalid /= '0' report "cpu1_r_mon, msg 5: rvalid is 0" severity error;
+      
+      m := 300 ps;
+      wait for m - t;
+      t := m;
+      assert rdvalid /= '0' report "cpu1_r_mon, msg 6: rdvalid is 0" severity error;
+      
+      m := 440 ps;
+      wait for m - t;
+      t := m;
+      assert bus_res1 /= zeros73 report "cpu1_r_mon, msg 7: bus_res1 is 0" severity error;
+      
+      m := 550 ps;
+      wait for m - t;
+      t := m;
+      assert cpu_res1 /= zeros73 report "cpu1_r_mon, msg 8: cpu_res1 is 0" severity error;
+    --check_inv(t, 550 ps, cpu_res1 /= zeros73, "cpu1_r_mon, msg 8: cpu_res1 is 0");
+    end if;
+    wait;
   end process;
   
   stimuli : process
