@@ -238,7 +238,9 @@ begin
     if is_tset(GFX_R_TEST) then
       if reset = '1' then
         upreq_out <= (others => '0');
-        ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name), to_integer(unsigned(GFX_R_TEST)));
+        ct := rand_nat(to_integer(unsigned(GFX_R_TEST)));
+        --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
+        --        to_integer(unsigned(GFX_R_TEST)));
         t1_st <= 0;
       elsif(rising_edge(clock)) then
         case t1_st is

@@ -11,6 +11,10 @@ package util is
   function dst_eq(msg, dev_id : std_logic_vector) return boolean;
 
   function get_dat(msg: MSG_T) return DAT_T;
+
+  procedure delay(variable cnt: inout natural;
+                  variable st : inout natural;
+                  constant next_st : in natural);
 end util;
 
 package body util is
@@ -42,5 +46,15 @@ package body util is
   begin
     return msg(MSG_DAT_IDX + DAT_WIDTH - 1 downto MSG_DAT_IDX);
   end function;
-  
+
+  procedure delay(variable cnt: inout natural;
+                  variable st : inout natural;
+                  constant next_st : in natural) is
+  begin
+    if cnt > 0 then
+      cnt := cnt - 1;
+    else
+      st := next_st;
+    end if;
+  end;
 end util;

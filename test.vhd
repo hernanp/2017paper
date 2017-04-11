@@ -11,16 +11,20 @@ package test is
   subtype TEST_T is std_logic_vector(TDW-1 downto 0);
   constant ZERO_TEST : TEST_T := (others => '0');
   --* cpu1 sends a read req
-  constant CPU1_R_TEST : TEST_T := (1=>'1', others=>'0');
+  constant CPU1_R_TEST : TEST_T := (0=>'1', others=>'0');
   --* cpu2 sends a write req
-  constant CPU2_W_TEST : TEST_T := (2=>'1', others => '0');
+  constant CPU2_W_TEST : TEST_T := (1=>'1', others => '0');
+
+  --* cpu 1 and 2 send 20 rand write reqs (each)
+  constant CPU_W20_TEST : TEST_T := (2=>'1', others=>'0');
+  
   -- gfx upstream read req
-  constant GFX_R_TEST : TEST_T := (3=>'1', others => '0');
+  constant GFX_R_TEST : TEST_T := (4=>'1', others => '0');
   --* ic sends a pwr req to power up gfx
-  constant IC_PWR_GFX_TEST : TEST_T := (4=>'1', others => '0');
+  constant IC_PWR_GFX_TEST : TEST_T := (5=>'1', others => '0');
 
   --* cpus 1 and 2 execute petersons algorithm
-  constant PETERSONS_TEST : TEST_T := (4=>'1', others => '0');
+  constant PETERSONS_TEST : TEST_T := (6=>'1', others => '0');
   -- petersons' shared variables
   constant PT_VAR_FLAG0 : ADR_T := (1=>'1', others=>'0'); -- M[1]
   constant PT_VAR_FLAG1 : ADR_T := (2=>'1', others=>'0'); -- M[2]
@@ -29,7 +33,7 @@ package test is
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T := ZERO_TEST;
+  constant RUN_TEST : TEST_T := CPU1_R_TEST; --ZERO_TEST;
                                                           --CPU1_R_TEST or
                                                           --CPU2_W_TEST or
                                                           --GFX_R_TEST; -- or

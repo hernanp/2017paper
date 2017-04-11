@@ -5,16 +5,16 @@ all:
 # types and funs
 	ghdl -a defs.vhd
 	ghdl -a util.vhd
-	ghdl -a rand.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
+	ghdl -a --ieee=synopsys rand.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
 	ghdl -a test.vhd # Test configuration
 # data structs
 	ghdl -a arbiter.vhd
 	ghdl -a arbiter2.vhd
 	ghdl -a arbiter2_ack.vhd
 	ghdl -a arbiter3.vhd
-	ghdl -a fifo.vhd # dependency for [pwr,l1cache,axi].vhd
+	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
 # modules
-	ghdl -a gfx.vhd
+#	ghdl -a gfx.vhd
 	ghdl -a pwr.vhd # uses fifo
 	ghdl -a mem.vhd
 	ghdl -a -fexplicit cache.vhd # uses fifo, arbiter2
@@ -24,8 +24,8 @@ all:
 	ghdl -a arbiter6_ack.vhd
 	ghdl -a arbiter61.vhd
 	ghdl -a arbiter7.vhd
-	ghdl -a ic.vhd # uses fifo, arbiter2,6,61,7
-	ghdl -a gfx.vhd
+	ghdl -a --ieee=synopsys ic.vhd # uses fifo, arbiter2,6,61,7
+	ghdl -a --ieee=synopsys gfx.vhd
 	ghdl -a audio.vhd
 	ghdl -a usb.vhd
 	ghdl -a uart.vhd
@@ -38,6 +38,8 @@ topnsim:
 	./top --vcd=top.vcd
 clean:
 	rm *.o *.vcd
+rand:
+	python rand.py # use opts -n and -c to set count and max
 showtree:
 	./top --no-run --disp-tree
 sim:
@@ -56,3 +58,10 @@ flow_docs:
 	graph-easy --input=doc/pwr_flow.txt --output=doc/pwr_flow.ascii
 	graph-easy --input=doc/up_r_flow.txt --output=doc/up_r_flow.ascii
 	graph-easy --input=doc/dn_r_flow.txt --output=doc/dn_r_flow.ascii
+dep_docs:
+	graph-easy --input=doc/deps.txt --output=doc/deps.ascii
+test_docs:
+	graph-easy --input=doc/cpu1_r_test.txt --output=doc/cpu1_r_test.ascii
+	sed -i.old '1s;^;#cpu1_r_test\n\n;' doc/cpu1_r_test.ascii
+	graph-easy --input=doc/cpu2_w_test.txt --output=doc/cpu2_w_test.ascii
+	sed -i.old '1s;^;#cpu2_w_test\n\n;' doc/cpu2_w_test.ascii

@@ -10,11 +10,11 @@ entity ic is
   Port(
     Clock                                   : in  std_logic;
     reset                                   : in  std_logic;
-    cache1_req_in                              : in  MSG_T;
-    cache2_req_in                              : in  MSG_T;
+    cache1_req_in                           : in  MSG_T;
+    cache2_req_in                           : in  MSG_T;
     wb_req1, wb_req2                        : in  std_logic_vector(552 downto 0);
-    bus_res1_out                                : out STD_LOGIC_VECTOR(552 downto 0);
-    bus_res2_out                                : out STD_LOGIC_VECTOR(552 downto 0);
+    bus_res1_out                            : out STD_LOGIC_VECTOR(552 downto 0);
+    bus_res2_out                            : out STD_LOGIC_VECTOR(552 downto 0);
     up_snp_req_out                          : out WMSG_T;
     up_snp_res_in                           : in  WMSG_T;
     up_snp_hit_in                           : in  std_logic;
@@ -2474,8 +2474,9 @@ begin
     if RUN_TEST = IC_PWR_GFX_TEST then
       if reset = '1' then
         pwr_req_out <= (others => '0');
-        ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
-                       to_integer(unsigned(IC_PWR_GFX_TEST)));        
+        ct := rand_nat(to_integer(unsigned(IC_PWR_GFX_TEST)));
+        --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
+        --               to_integer(unsigned(IC_PWR_GFX_TEST)));        
         st := 0;
       elsif(rising_edge(clock)) then
         if st = 0 then -- wait

@@ -54,10 +54,13 @@ begin
     variable t1: boolean := false;
     variable t2: boolean := false;
     variable t3: boolean := false;
-    variable t1_ct, t2_ct, t3_ct1, t3_ct2: natural;
+    variable t4: boolean := false;
+    
+    variable t1_ct, t2_ct, t3_ct1, t3_ct2, t3_ct3: natural;
     variable t3_adr_me, t3_adr_other: ADR_T; -- flag0 and flag1
     variable t3_dat1 : DAT_T := (0=>'1',others=>'0'); -- to cmp val of data=1 
   begin
+    -- Set up tests
     if is_tset(CPU1_R_TEST) then
       t1 := true;
     end if;
@@ -75,35 +78,32 @@ begin
         t3_adr_other := PT_VAR_FLAG0;
       end if;
     end if;
-    
+    if is_tset(CPU_W20_TEST) then
+      t4 := true;
+    end if;
+      
     if reset = '1' then
       cpu_req_out <= (others => '0');
       if t1 and (cpu_id = 1)then
-        t1_ct := rand_int(RAND_MAX_DELAY, to_int(t1_ct'instance_name),
-                          to_integer(unsigned(CPU1_R_TEST)));
-      --report "t1.delay is " & integer'image(ct1);
+        t1_ct := rand_nat(to_integer(unsigned(CPU1_R_TEST)));
+        --t1_ct := rand_int(RAND_MAX_DELAY, to_int(t1_ct'instance_name),
+        --                  to_integer(unsigned(CPU1_R_TEST)));
+        --report "t1.delay is " & integer'image(t1_ct);
       end if;
       if t2 and (cpu_id = 2) then
-        t2_ct := rand_int(RAND_MAX_DELAY, to_int(t2_ct'instance_name),
-                          to_integer(unsigned(CPU2_W_TEST)));
-      --report "t2.delay is " & integer'image(ct2);
+        t2_ct := rand_nat(to_integer(unsigned(CPU2_W_TEST)));
+        --t2_ct := rand_int(RAND_MAX_DELAY, to_int(t2_ct'instance_name),
+        --                  to_integer(unsigned(CPU2_W_TEST)));
+        --report "t2.delay is " & integer'image(ct2);
       end if;
       st := 0;
     elsif (rising_edge(Clock)) then
       if st = 0 then -- wait
         if t1 and (cpu_id = 1) then
-          if t1_ct > 0 then
-            t1_ct := t1_ct-1;
-          else
-            st := 1;
-          end if;
+          delay(t1_ct, st, 1);
         end if;
         if t2 and (cpu_id = 2) then
-          if t2_ct > 0 then
-            t2_ct := t2_ct-1;
-          else
-            st := 1;
-          end if;
+          delay(t2_ct, st, 1);
         end if;
         if t3 then
           st := 100; -- petersons algorithm starts at state 100
@@ -129,7 +129,7 @@ begin
       -- petersons algorithm starts here
       elsif st = 100 then -- line 1 (for loop)
         if t3_ct1 < 500 then
-          st := 101;
+          st := 101; -- TODO replace with delay(t3_ct3, st, 101)
         else
           st := 2; -- done
         end if;
