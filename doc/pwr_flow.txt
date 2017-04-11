@@ -1,0 +1,11 @@
+# PWR_T
+
+#[] -> [ic],[gfx],[audio],[usb],[uart]
+#[] ----> [pwr]
+
+[cpu1] -- (1) ;\n ;\n --> [ic] # TODO check with Hao if req. should start here or from ic
+[ic]  -- (2) pwr_req_out;\n ic_pwr_req;\n req_in --> [pwr]
+[pwr] -- (3) req_in\[:2\] = GFX_ID / gfx_req_out;\n pwr_gfx_req;\n pwr_req_in --> [gfx]
+[gfx] -- (4) pwr_res_out;\n pwr_gfx_res;\n gfx_res_in --> [pwr]
+[pwr] -- (5) res_out;\n ic_pwr_res;\n pwr_res_in --> [ic]
+[ic] -- (6) ;\n ;\n  --> [cpu1]

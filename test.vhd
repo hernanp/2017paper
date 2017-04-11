@@ -33,7 +33,7 @@ package test is
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T := CPU1_R_TEST; --ZERO_TEST;
+  constant RUN_TEST : TEST_T :=  CPU2_W_TEST; --ZERO_TEST;
                                                           --CPU1_R_TEST or
                                                           --CPU2_W_TEST or
                                                           --GFX_R_TEST; -- or
@@ -42,6 +42,10 @@ package test is
   --* Checks if test is enabled
   function is_tset(test: std_logic_vector) return boolean;
 
+  --procedure check_inv(variable timer : inout time;
+  --                    constant mark : in time;
+  --                    constant cond : in boolean;
+  --                    constant msg : in string);
 end test;
 
 package body test is
@@ -51,6 +55,16 @@ package body test is
       return true;
     end if;
     return false;
-  end function;    
+  end function;
+
+  --procedure check_inv(variable timer : inout time;
+  --                    constant mark : in time;
+  --                    constant cond : in boolean;
+  --                    constant msg : in string) is
+  --begin
+  --  --wait for mark - timer;
+  --  timer := mark;
+  --  assert cond report msg severity error;
+  --end;
 end test;
         

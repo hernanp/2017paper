@@ -866,6 +866,73 @@ begin
       end if;
     end if;
   end process;
+
+  cpu2_w_mon : process
+    variable m, t : time := 0 ps;
+    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+    variable zeros73 : std_logic_vector(72 downto 0) := (others => '0');
+  begin
+    if is_tset(CPU2_W_TEST) then
+      wait until cpu_res2 /= zeros73;
+      report "OK";
+    ---- TODO ... more tests here ...
+      --m := 510 ps;
+      --wait for m - t;
+      --t := m;
+      --assert cpu_res2 /= zeros73 report "cpu2_w_mon, msg 8: cpu_res2 is 0" severity error;
+    end if;
+    wait;
+  end process;
+    
+  cpu1_r_mon : process
+    variable m, t : time := 0 ps;
+    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+    variable zeros73 : std_logic_vector(72 downto 0) := (others => '0');
+  begin
+    if is_tset(CPU1_R_TEST) then
+      m := 70 ps;
+      wait for m - t;
+      t := m;
+      assert cpu_req1 /= zeros73 report "cpu1_r_mon, msg 1: cpu_req1 is 0" severity error;
+      
+      m := 140 ps;
+      wait for m - t;
+      t := m;
+      assert snp_req2 /= zeros73 report "cpu1_r_mon, msg 2: snp_req2 is 0" severity error;
+      
+      m := 220 ps;
+      wait for m - t;
+      t := m;
+      assert snp_res2 /= zeros73 report "cpu1_r_mon, msg 3: snp_res2 is 0" severity error;
+      
+      m := 230 ps;
+      wait for m - t;
+      t := m;
+      assert bus_req1 /= zeros73 report "cpu1_r_mon, msg 4: bus_req1 is 0" severity error;
+      
+      m := 280 ps;
+      wait for m - t;
+      t := m;
+      assert rvalid /= '0' report "cpu1_r_mon, msg 5: rvalid is 0" severity error;
+      
+      m := 300 ps;
+      wait for m - t;
+      t := m;
+      assert rdvalid /= '0' report "cpu1_r_mon, msg 6: rdvalid is 0" severity error;
+      
+      m := 440 ps;
+      wait for m - t;
+      t := m;
+      assert bus_res1 /= zeros73 report "cpu1_r_mon, msg 7: bus_res1 is 0" severity error;
+      
+      m := 550 ps;
+      wait for m - t;
+      t := m;
+      assert cpu_res1 /= zeros73 report "cpu1_r_mon, msg 8: cpu_res1 is 0" severity error;
+    --check_inv(t, 550 ps, cpu_res1 /= zeros73, "cpu1_r_mon, msg 8: cpu_res1 is 0");
+    end if;
+    wait;
+  end process;
   
   stimuli : process
   begin

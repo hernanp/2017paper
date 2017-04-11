@@ -2480,11 +2480,7 @@ begin
         st := 0;
       elsif(rising_edge(clock)) then
         if st = 0 then -- wait
-          if ct>0 then
-            ct := ct-1;
-          else
-            st := 1;
-          end if;
+          delay(ct, st, 1);
         elsif st = 1 then -- send
           report "ic_pwr_gfx_t @ " & integer'image(time'pos(now));
           pwr_req_out <= "1" & -- valid bit

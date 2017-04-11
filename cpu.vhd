@@ -51,14 +51,19 @@ begin
   --* t3: PETERSONS_TEST executes petersons algorithm
   cpu_test : process(reset, Clock)
     variable st : natural := 0;
-    variable t1: boolean := false;
-    variable t2: boolean := false;
-    variable t3: boolean := false;
-    variable t4: boolean := false;
+    variable t1, t2, t3, t4 : boolean := false;
     
-    variable t1_ct, t2_ct, t3_ct1, t3_ct2, t3_ct3: natural;
+    variable t1_ct : natural;
+
+    variable t2_ct : natural;
+    
+    variable t3_ct1, t3_ct2, t3_ct3 : natural;
     variable t3_adr_me, t3_adr_other: ADR_T; -- flag0 and flag1
-    variable t3_dat1 : DAT_T := (0=>'1',others=>'0'); -- to cmp val of data=1 
+    variable t3_dat1 : DAT_T := (0=>'1',others=>'0'); -- to cmp val of data=1
+
+    variable t4_adr : ADR_T;
+    variable t4_dat : DAT_T;
+    variable t4_ct, t4_tot, t4_tot_ct : natural := 0;
   begin
     -- Set up tests
     if is_tset(CPU1_R_TEST) then
@@ -84,6 +89,7 @@ begin
       
     if reset = '1' then
       cpu_req_out <= (others => '0');
+      -- Set initial rnd delays for each test
       if t1 and (cpu_id = 1)then
         t1_ct := rand_nat(to_integer(unsigned(CPU1_R_TEST)));
         --t1_ct := rand_int(RAND_MAX_DELAY, to_int(t1_ct'instance_name),
@@ -92,9 +98,9 @@ begin
       end if;
       if t2 and (cpu_id = 2) then
         t2_ct := rand_nat(to_integer(unsigned(CPU2_W_TEST)));
-        --t2_ct := rand_int(RAND_MAX_DELAY, to_int(t2_ct'instance_name),
-        --                  to_integer(unsigned(CPU2_W_TEST)));
-        --report "t2.delay is " & integer'image(ct2);
+      end if;
+      if t4 then
+        t4_ct := rand_nat(to_integer(unsigned(CPU_W20_TEST))); 
       end if;
       st := 0;
     elsif (rising_edge(Clock)) then
@@ -107,6 +113,9 @@ begin
         end if;
         if t3 then
           st := 100; -- petersons algorithm starts at state 100
+        end if;
+        if t4 then
+          delay(t4_ct, st, 20); -- CPU_W20_TEST starts at state 20
         end if;
       elsif st = 1 then -- send
         -- send a random msg
@@ -126,6 +135,20 @@ begin
       elsif st = 2 then -- done
         -- TODO wait for resp
         cpu_req_out<=(others =>'0');
+      -- CPU_W20_TEST starts here
+      elsif st = 20 then
+        t4_adr := rand_vect_range(2**6-1,7) & "000000000" & "0000000000000000";
+        t4_dat := rand_vect_range(2**15-1,16) & "0000000000000000";
+      elsif st = 21 then
+        if t4_tot_ct < t4_tot then
+          cpu_req_out <= "1" & WRITE_CMD & t4_adr & t4_dat;
+          t4_tot_ct := t4_tot_ct + 1;
+          st := 20;
+        else
+          st := 22;
+        end if;
+      elsif st = 22 then
+        cpu_req_out <= (others => '0');
       -- petersons algorithm starts here
       elsif st = 100 then -- line 1 (for loop)
         if t3_ct1 < 500 then

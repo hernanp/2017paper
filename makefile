@@ -58,10 +58,21 @@ flow_docs:
 	graph-easy --input=doc/pwr_flow.txt --output=doc/pwr_flow.ascii
 	graph-easy --input=doc/up_r_flow.txt --output=doc/up_r_flow.ascii
 	graph-easy --input=doc/dn_r_flow.txt --output=doc/dn_r_flow.ascii
-dep_docs:
+deps_docs:
 	graph-easy --input=doc/deps.txt --output=doc/deps.ascii
 test_docs:
 	graph-easy --input=doc/cpu1_r_test.txt --output=doc/cpu1_r_test.ascii
 	sed -i.old '1s;^;#cpu1_r_test\n\n;' doc/cpu1_r_test.ascii
 	graph-easy --input=doc/cpu2_w_test.txt --output=doc/cpu2_w_test.ascii
 	sed -i.old '1s;^;#cpu2_w_test\n\n;' doc/cpu2_w_test.ascii
+	graph-easy --input=doc/gfx_r_test.txt --output=doc/gfx_r_test.ascii
+	sed -i.old '1s;^;#gfx_r_test\n\n;' doc/gfx_r_test.ascii
+	graph-easy --input=doc/ic_pwr_test.txt --output=doc/ic_pwr_test.ascii
+	sed -i.old '1s;^;#ic_pwr_test\n\n;' doc/ic_pwr_test.ascii
+	rm doc/*.old
+block_docs:
+	graph-easy --input=doc/cpu_block.txt --output=doc/cpu_block.ascii
+	sed -i.old '1s;^;#ic_pwr_test\n\n;' doc/cpu_block.ascii
+	graph-easy --input=doc/top_block.txt --output=doc/top_block.ascii
+	sed -i.old '1s;^;#ic_pwr_test\n\n;' doc/top_block.ascii
+	rm doc/*.old
