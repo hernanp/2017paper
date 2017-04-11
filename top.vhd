@@ -867,14 +867,38 @@ begin
     end if;
   end process;
 
+  ic_pwr_gfx_mon : process
+    variable m, t : time := 0 ps;
+    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+    variable zeros73 : MSG_T := (others => '0');
+  begin
+    if is_tset(IC_PWR_GFX_TEST) then
+      wait until cpu_res1 /= zeros73;
+      report "IC_PWR_GFX_TEST OK";
+    end if;
+    wait;
+  end process;
+  
+  gfx_r_mon : process
+    variable m, t : time := 0 ps;
+    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+    variable zeros73 : MSG_T := (others => '0');
+  begin
+    if is_tset(GFX_R_TEST) then
+      wait until gfx_upres /= zeros73;
+      report "GFX_R_TEST OK";
+    end if;
+    wait;
+  end process;
+  
   cpu2_w_mon : process
     variable m, t : time := 0 ps;
     variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
-    variable zeros73 : std_logic_vector(72 downto 0) := (others => '0');
+    variable zeros73 : MSG_T := (others => '0');
   begin
     if is_tset(CPU2_W_TEST) then
       wait until cpu_res2 /= zeros73;
-      report "OK";
+      report "CPU2_W_TEST OK";
     ---- TODO ... more tests here ...
       --m := 510 ps;
       --wait for m - t;

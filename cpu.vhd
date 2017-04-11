@@ -123,13 +123,13 @@ begin
           report "cpu1_r_test @ " & integer'image(time'pos(now));
           cpu_req_out <= "1" & READ_CMD &
                          "10000000000000000000000000000000" &
-                         "00000000000000000000000000000000";
+                         ZEROS32;
           st := 2;
         elsif t2 and (cpu_id = 2) then
           report "cpu2_w_test @ " & integer'image(time'pos(now));
           cpu_req_out <= "1" & WRITE_CMD &
                          "10000000000000000000000000000000" &
-                         "00000000000000000000000000000000";
+                         ZEROS32;
           st := 2;
         end if;
       elsif st = 2 then -- done
@@ -152,7 +152,7 @@ begin
       -- petersons algorithm starts here
       elsif st = 100 then -- line 1 (for loop)
         if t3_ct1 < 500 then
-          st := 101; -- TODO replace with delay(t3_ct3, st, 101)
+          st := 101; -- TODO* test then replace with delay(t3_ct3, st, 101)
         else
           st := 2; -- done
         end if;
@@ -160,14 +160,14 @@ begin
         cpu_req_out <= "1" & WRITE_CMD &
                    t3_adr_me &
                    t3_dat1; -- flag[me] = 1; (req)
-        st := 102;
+        st := 102; -- TODO*
       elsif st = 102 then -- line 3
         cpu_req_out <= ZERO_MSG;
         if is_valid(cpu_res_in) then -- TODO check if check is ok
           cpu_req_out <= "1" & WRITE_CMD &
                          PT_VAR_TURN &
                          t3_dat1; -- turn = 1; (req)
-          st := 103;
+          st := 103; --TODO*
         end if;
       elsif st = 103 then -- line 4 part 1 (read flag[other] -- 1st cond of while stmt)
         cpu_req_out <= ZERO_MSG;
@@ -175,7 +175,7 @@ begin
           cpu_req_out <= "1" & READ_CMD &
                          t3_adr_other &
                          ZEROS32; -- read flag[other]
-          st := 104;
+          st := 104; --TODO*
         end if;
       elsif st = 104 then -- line 4 part 2 (read turn -- 2nd cond of while stmt)
         if is_valid(cpu_res_in) then
@@ -183,7 +183,7 @@ begin
             cpu_req_out <= "1" & READ_CMD &
                            PT_VAR_TURN &
                            ZEROS32; -- read turn
-            st := 105; 
+            st := 105; --TODO*
           else
             st := 108; -- jump out of loop
           end if;
@@ -191,7 +191,7 @@ begin
       elsif st = 105 then -- line 4 part 3 (get val of turn and jmp)
         if is_valid(cpu_res_in) then
           if (get_dat(cpu_res_in) = t3_dat1) then -- if turn=1
-            st := 106;
+            st := 106; --TODO*
           else
             st := 108; -- jump out of loop
           end if;
@@ -199,67 +199,33 @@ begin
       elsif st = 106 then -- gen rand delay
         st := 107;
       elsif st = 107 then -- line 5 (busy wait)
-        -- TODO
+        -- TODO* delay(t3_ct3, st, 103)
         st := 103;
       elsif st = 108 then -- line 6 (get val of shared)
         cpu_req_out <= "1" & READ_CMD &
                        PT_VAR_SHARED &
                        ZEROS32;
-        st := 109;
+        st := 109; --TODO*
       elsif st = 109 then
         if is_valid(cpu_res_in) then
           cpu_req_out <= "1" & WRITE_CMD &
                          PT_VAR_SHARED &
                          std_logic_vector(unsigned(get_dat(cpu_res_in)) +
                                           unsigned(t3_dat1));
-          st := 110;
+          st := 110; --TODO*
         end if;
       elsif st = 110 then
         if is_valid(cpu_res_in) then
           cpu_req_out <= "1" & WRITE_CMD &
                          t3_adr_other &
                          ZEROS32;
-          st := 111;
+          st := 111; --TODO*
         end if;
       elsif st = 111 then -- jmp to FOR_LOOP_START
         if is_valid(cpu_res_in) then
-          st := 100;
+          st := 100; --TODO*
         end if;
       end if;
     end if;
-  end process;
-    
---=======
---  cpu1_r_test : process(reset, Clock)
---    variable st : natural := 0;
---  begin
---    ---if RUN_TEST = CPU1_R_T then
---      if reset = '1' then
---        cpu_req <= (others => '0');
---        st := 0;
-		  
---      elsif (rising_edge(Clock)) then
---        if st = 0 then
---          st := 1;
---			 addr<=rand_vect_range(2**6-1,7)&"000000000"&"0000000000000000";
---			 data<=rand_vect_range(2**15-1,16)&"0000000000000000";
---        elsif st = 1 then
---          -- send a random msg
---          if cpu_id = 1 then
---            --- cpu_req <= rand_req(write);
---            cpu_req <= "110000000"&addr &data;
---          end if;
---          st := 2;
---        elsif st = 2 then
---          -- TODO wait for resp
---				cpu_req<=(others =>'0');
---				if (cpu_res(72 downto 72)="1") then
---					st :=0;
---				end if;
---        end if;
---      end if;
---   --- end if;
--->>>>>>> upstream/master
---  end process;
-    
+  end process;    
 end Behavioral;
