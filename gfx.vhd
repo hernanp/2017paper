@@ -4,7 +4,15 @@ use ieee.numeric_std.all;
 use work.defs.all;
 use work.test.all;
 use work.rand.all;
-use work.util.all;
+--use work.rand.all;
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
 
 entity gfx is
   Port(Clock      : in  std_logic;
@@ -55,9 +63,13 @@ architecture Behavioral of gfx is
   signal poweron   : std_logic := '1';
 
   signal emp3, emp2 : std_logic := '0';
-  signal tmp_req : std_logic_vector(50 downto 0);
+  signal tmp_req                        : std_logic_vector(50 downto 0);
 
-begin
+
+  -- test signals -- comment out when not in test mode
+  signal t1_st : natural := 0;
+	signal addr,data: std_logic_vector(31 downto 0);
+	begin
   
 --	p1 : process
 --		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
@@ -221,31 +233,31 @@ begin
   end process;
 
   t1 : process(clock, reset) -- up read test
-    variable ct : natural;
-    variable st : natural := 0;
   begin
-    if is_tset(GFX_R_TEST) then
+    if RUN_TEST = IC_PWR_GFX_T then
       if reset = '1' then
         upreq_out <= (others => '0');
-        ct := rand_nat(to_integer(unsigned(GFX_R_TEST)));
-        --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
-        --        to_integer(unsigned(GFX_R_TEST)));
-        st := 0;
+        t1_st <= 0;
       elsif(rising_edge(clock)) then
-        if st = 0 then -- wait
-          delay(ct, st, 1);
-        elsif st = 1 then -- snd up_req 
-          report "gfx_r_test @ " & integer'image(time'pos(now));
-          upreq_out <= '1' &
-                       READ_CMD &
-                       "1000000000000000" &
-                       "1000000000000000" &
-                       ZEROS32;
-          st := 2;
-        elsif st = 2 then -- done
-          upreq_out <= (others => '0');
-        end if;
+        case t1_st is
+          when 0 => -- init
+            t1_st <= 1;
+				addr<="100"&rand_vect_range(2**6-1,7)&"000000"&"0000000000000000";
+				data<=rand_vect_range(2**15-1,16)&"0000000000000000";
+          when 1 => -- snd up_req 
+            upreq_out <= '1' &
+                         WRITE_CMD &
+                         addr &data;
+            t1_st <= 2;
+          when 2 => -- done
+            upreq_out <= (others => '0');
+				if upres_in(72 downto 72)="1" then
+					t1_st <=0;
+				end if;	
+          when others =>
+        end case;
       end if;
     end if;
-  end process;  
+  end process;
+  
 end Behavioral;

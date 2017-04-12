@@ -40,7 +40,7 @@ begin
       dout <=  nilreq;
     elsif rising_edge(clock) then
       if state =0 then
-        cmd:= din1(DATA_WIDTH-1 downto DATA_WIDTH-1) & din2(DATA_WIDTH-1 downto DATA_WIDTH-1);
+        cmd:= din1(72 downto 72) & din2(72 downto 72);
         dout <= nilreq;
         s_ack1 <= '0';
         s_ack2 <= '0';    
