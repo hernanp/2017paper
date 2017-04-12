@@ -883,18 +883,19 @@ begin
           flag :='0';
         end if;
       elsif state =1 then
-        if wready = '0' then
+        if wready = '1' then
           wvalid <= '1';
           waddr  <= tep_mem(63 downto 32);
-          wlen   <= "00000" & "10000";
+          wlen   <= "00000" & "00001";
           wsize  <= "00001" & "00000";
           --wdata_audio := tep_mem(31 downto 0);
           state      := 2;
         end if;
       elsif state = 2 then
+			wvalid <= '0';
         if wdataready = '1' then
           wdvalid <= '1';
-          wtrb    <= "1111";
+          wtrb    <= "0001";
           wdata  <= tep_mem(31 downto 0);
           wlast   <= '1';
           state       := 3;
@@ -912,7 +913,7 @@ begin
           wrready <= '0';
         end if;
       elsif state =4 then
-        if wready = '0' then
+        if wready = '1' then
           wvalid <= '1';
           waddr  <= mem_wb(543 downto 512);
           wlen   <= "00000" & "10000";
@@ -986,7 +987,7 @@ begin
         if wready_gfx = '1' then
           wvalid_gfx <= '1';
           waddr_gfx  <= tep_gfx(63 downto 32);
-          wlen_gfx   <= "00000" & "10000";
+          wlen_gfx   <= "00000" & "00001";
           wsize_gfx  <= "00001" & "00000";
           --wdata_audio := tep_gfx(31 downto 0);
           state      := 2;
@@ -1082,10 +1083,10 @@ begin
         end if;
       elsif state =1 then
 			uart_write_ack1<='1';
-        if wready_uart = '0' then
+        if wready_uart = '1' then
           wvalid_uart <= '1';
           waddr_uart  <= tep_uart(63 downto 32);
-          wlen_uart   <= "00000" & "10000";
+          wlen_uart   <= "00000" & "00001";
           wsize_uart  <= "00001" & "00000";
           --wdata_audio := tep_uart(31 downto 0);
           state      := 2;
@@ -1113,7 +1114,7 @@ begin
       elsif state =4 then
 		uart_write_ack2<='0';
 		uart_write_ack3<='0';
-        if wready_uart = '0' then
+        if wready_uart = '1' then
           wvalid_uart <= '1';
           waddr_uart  <= mem_wb(543 downto 512);
           wlen_uart   <= "00000" & "10000";
@@ -1210,10 +1211,10 @@ begin
         end if;
       elsif state =1 then
 		  audio_write_ack1<='0';
-        if wready_audio = '0' then
+        if wready_audio = '1' then
           wvalid_audio <= '1';
           waddr_audio  <= tep_audio(63 downto 32);
-          wlen_audio   <= "00000" & "10000";
+          wlen_audio   <= "00000" & "00001";
           wsize_audio  <= "00001" & "00000";
           --wdata_audio := tep_audio(31 downto 0);
           state      := 2;
@@ -1241,7 +1242,7 @@ begin
       elsif state =4 then
 		  audio_write_ack2<='0';
 		  audio_write_ack3<='0';
-        if wready_audio = '0' then
+        if wready_audio = '1' then
           wvalid_audio <= '1';
           waddr_audio  <= mem_wb(543 downto 512);
           wlen_audio   <= "00000" & "10000";
@@ -1430,10 +1431,10 @@ begin
         end if;
       elsif state =1 then
 		usb_write_ack1<='0';
-        if wready_usb = '0' then
+        if wready_usb = '1' then
           wvalid_usb <= '1';
           waddr_usb  <= tep_usb(63 downto 32);
-          wlen_usb   <= "00000" & "10000";
+          wlen_usb   <= "00000" & "00001";
           wsize_usb  <= "00001" & "00000";
           --wdata_audio := tep_usb(31 downto 0);
           state      := 2;
@@ -1460,7 +1461,7 @@ begin
         end if;
       elsif state =4 then
 		usb_write_ack2<='0';usb_write_ack3<='0';
-        if wready_usb = '0' then
+        if wready_usb = '1' then
           wvalid_usb <= '1';
           waddr_usb  <= mem_wb(543 downto 512);
           wlen_usb   <= "00000" & "10000";
@@ -2369,12 +2370,17 @@ begin
           state  := 0;
           togfx1 <= (others => '0');
         end if;
-      elsif state = 7 then
+		elsif state = 7 then
+        if uart_ack1 = '1' then
+          state  := 0;
+          touart1 <= (others => '0');
+        end if;
+      elsif state = 8 then
         if usb_ack1 = '1' then
           state  := 0;
           tousb1 <= (others => '0');
         end if;
-      elsif state = 8 then
+      elsif state = 9 then
         if audio_ack1 = '1' then
           state    := 0;
           toaudio1 <= (others => '0');
@@ -2422,6 +2428,7 @@ begin
         elsif tmp_cache_req2(62 downto 61) = "00" then
           togfx2 <= "101" & tmp_cache_req2;
           state  := 6;
+		  
         elsif tmp_cache_req2(62 downto 61) = "01" then
           touart2 <= "101" & tmp_cache_req2;
           state   := 7;
@@ -2451,12 +2458,17 @@ begin
           state  := 0;
           togfx2 <= (others => '0');
         end if;
-      elsif state = 7 then
+		elsif state = 7 then
+        if uart_ack2 = '1' then
+          state  := 0;
+          touart2 <= (others => '0');
+        end if;
+      elsif state = 8 then
         if usb_ack2 = '1' then
           state  := 0;
           tousb2 <= (others => '0');
         end if;
-      elsif state = 8 then
+      elsif state = 9 then
         if audio_ack2 = '1' then
           state    := 0;
           toaudio2 <= (others => '0');

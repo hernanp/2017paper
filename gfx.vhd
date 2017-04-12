@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.defs.all;
 use work.test.all;
+use work.rand.all;
 --use work.rand.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -67,8 +68,8 @@ architecture Behavioral of gfx is
 
   -- test signals -- comment out when not in test mode
   signal t1_st : natural := 0;
-  
-begin
+	signal addr,data: std_logic_vector(31 downto 0);
+	begin
   
 --	p1 : process
 --		variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
@@ -241,15 +242,18 @@ begin
         case t1_st is
           when 0 => -- init
             t1_st <= 1;
+				addr<="100"&rand_vect_range(2**6-1,7)&"000000"&"0000000000000000";
+				data<=rand_vect_range(2**15-1,16)&"0000000000000000";
           when 1 => -- snd up_req 
             upreq_out <= '1' &
-                         READ_CMD &
-                         "1000000000000000" &
-                         "1000000000000000" &
-                         ZEROS32;
+                         WRITE_CMD &
+                         addr &data;
             t1_st <= 2;
           when 2 => -- done
             upreq_out <= (others => '0');
+				if upres_in(72 downto 72)="1" then
+					t1_st <=0;
+				end if;	
           when others =>
         end case;
       end if;

@@ -21,7 +21,7 @@ architecture tb of top is
   constant tb_period : time := 10 ps;
   signal tb_clk : std_logic := '0';
   signal tb_sim_ended : std_logic := '0';
-
+	 signal useless: std_logic :='0';
   signal reset                                                              : std_logic := '1';
   
   signal full_c1_u, full_c2_u, full_b_m                                     : std_logic;

@@ -54,12 +54,12 @@ begin
 		  
       elsif (rising_edge(Clock)) then
         if st = 0 and total < 20 then
-          st := 1;
+          --st := 1;
 			 addr<=rand_vect_range(2**6-1,7)&"000000000"&"0000000000000000";
 			 data<=rand_vect_range(2**15-1,16)&"0000000000000000";
         elsif st = 1 then
           -- send a random msg
-          --if cpu_id = 1 then
+          --if cpu_id = 2 then
             --- cpu_req <= rand_req(write);
             cpu_req <= "110000000"&addr &data;
 				total := total+1;
@@ -74,7 +74,7 @@ begin
 				end if;
         end if;
       end if;
-   --- end if;
+  -- end if;
   end process;
 --
 --  --* CPU2_W_T cpu2 sends a write req msg
