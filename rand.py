@@ -11,5 +11,5 @@ opts, args = parser.parse_args()
 with open("rand_ints.txt","w") as f:
     #f.write(opts.tot + '\n');
     for i in range(int(opts.tot)):
-        f.write(str(randint(0,int(opts.ceil))) + '\n')
+        f.write(str(randint(1,int(opts.ceil))) + '\n')
 

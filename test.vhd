@@ -1,6 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 use work.defs.all;
+use work.util.all;
+use work.rand.all;
 
 package test is
   -- enable/disable tracing
@@ -17,6 +20,9 @@ package test is
 
   --* cpu 1 and 2 send 20 rand write reqs (each)
   constant CPU_W20_TEST : TEST_T := (2=>'1', others=>'0');
+
+  --* CPU1_RW_04_TEST cpu1 writes and reads to mem[0..4]
+  constant CPU1_RW_04_TEST : TEST_T := (3=>'1', others=>'0');
   
   -- gfx upstream read req
   constant GFX_R_TEST : TEST_T := (4=>'1', others => '0');
@@ -25,20 +31,31 @@ package test is
 
   --* cpus 1 and 2 execute petersons algorithm
   constant PETERSONS_TEST : TEST_T := (6=>'1', others => '0');
+
+  constant PT_DELAY_FLAG : boolean := true;
+
+  constant PT_ITERATIONS : natural := 50;
+  
   -- petersons' shared variables
   constant PT_VAR_FLAG0 : ADR_T := (1=>'1', others=>'0'); -- M[1]
   constant PT_VAR_FLAG1 : ADR_T := (2=>'1', others=>'0'); -- M[2]
   constant PT_VAR_TURN : ADR_T := (2=>'1', 1=>'1', others=>'0'); -- M[3]
   constant PT_VAR_SHARED : ADR_T := (3=>'1', others=>'0'); -- M[4]
+
+  procedure pt_delay(variable rndmz_dlay : inout boolean;
+                     variable seed: inout natural;
+                     variable cnt: inout natural;
+                     variable st : inout natural;
+                     constant next_st : in natural);
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T :=  CPU1_R_TEST; --ZERO_TEST;
-                                                          --CPU1_R_TEST or
-                                                          --CPU2_W_TEST or
-                                                          --GFX_R_TEST; -- or
-                                                          --IC_PWR_GFX_TEST;
-
+  constant RUN_TEST : TEST_T :=  PETERSONS_TEST; --ZERO_TEST;
+                                                 --CPU1_R_TEST or
+                                                 --CPU2_W_TEST or
+                                                 --GFX_R_TEST; -- or
+                                                 --IC_PWR_GFX_TEST;
+  
   --* Checks if test is enabled
   function is_tset(test: std_logic_vector) return boolean;
 
@@ -49,6 +66,35 @@ package test is
 end test;
 
 package body test is
+  procedure pt_delay(variable rndmz_dlay : inout boolean;
+                     variable seed : inout natural;
+                     variable cnt: inout natural;
+                     variable st : inout natural;
+                     constant next_st : in natural) is
+  begin
+    if rndmz_dlay and st /= next_st then -- start
+      --report "start";
+      cnt := rand_nat(to_integer(unsigned(PETERSONS_TEST)) + seed);
+      seed := seed + 1;
+      rndmz_dlay := false;
+--      report "pt_delay.cnt" & integer'image(cnt);
+      delay(cnt, st, next_st);
+    elsif (rndmz_dlay = false) then -- count
+      --report "count";
+      delay(cnt, st, next_st);
+    end if;
+    
+    if st = next_st and PT_DELAY_FLAG then -- if done, set flag back to true
+      --report "done";
+      rndmz_dlay := true;
+    end if;
+
+    --report integer'image(cnt) & "," &
+    --  integer'image(st) & "," &
+    --  integer'image(next_st) & "," &
+    --  boolean'image(rndmz_dlay);
+  end;
+
   function is_tset(test: std_logic_vector) return boolean is
   begin
     if (RUN_TEST and test) /= ZERO_TEST then

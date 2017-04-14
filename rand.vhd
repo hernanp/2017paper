@@ -16,7 +16,7 @@ package rand is
 
   constant sd1: positive := 844396720;
   constant sd2: positive := 821616997;
-
+  
   type int_array_t is array(0 to RND_INT_CNT) of integer;
 
   impure function rand_init return int_array_t;
@@ -30,6 +30,7 @@ package rand is
 end rand;
 
 package body rand is
+
   impure function rand_init return int_array_t is
     file rnd_ints_f : TEXT open read_mode is "rand_ints.txt";
     variable l : line;
@@ -50,6 +51,7 @@ package body rand is
   
   function rand_nat(constant seed:in natural) return natural is
   begin
+--    report "rnd[" & integer'image((seed + time'pos(now)) mod RND_INT_CNT) & "]:" & integer'image(a((seed + time'pos(now)) mod RND_INT_CNT));
     return a((seed + time'pos(now)) mod RND_INT_CNT);
   end rand_nat;
   

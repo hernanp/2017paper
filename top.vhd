@@ -682,7 +682,7 @@ begin
   -- Clock generation, starts at 0
   tb_clk <= not tb_clk after tb_period/2 when tb_sim_ended /= '1' else '0';
   Clock <= tb_clk;
-
+  
   --log_up_snp : process(tb_clk)
   --  variable l : line;
   --  constant SEP : String(1 to 1) := ",";

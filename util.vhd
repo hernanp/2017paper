@@ -51,6 +51,7 @@ package body util is
                   variable st : inout natural;
                   constant next_st : in natural) is
   begin
+--    report "delay is " & integer'image(cnt);
     if cnt > 0 then
       cnt := cnt - 1;
     else

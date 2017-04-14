@@ -6,7 +6,7 @@ all:
 	ghdl -a defs.vhd
 	ghdl -a util.vhd
 	ghdl -a --ieee=synopsys rand.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
-	ghdl -a test.vhd # Test configuration
+	ghdl -a --ieee=synopsys test.vhd # Test configuration
 # data structs
 	ghdl -a arbiter.vhd
 	ghdl -a arbiter2.vhd
@@ -43,7 +43,8 @@ rand:
 showtree:
 	./top --no-run --disp-tree
 sim:
-	./top --stop-time=10000ps --vcd=top.vcd
+#	./top --stop-time=100ps --vcd=top.vcd
+	./top --stop-time=100ms --vcd=top.vcd
 # TODO need to adjust parameters here
 # see http://ghdl.readthedocs.io/en/latest/Simulation_and_runtime.html#simulation-and-runtime
 wave:

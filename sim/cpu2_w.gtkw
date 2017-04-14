@@ -1,19 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Fri Apr  7 12:05:53 2017
+[*] Wed Apr 12 18:31:55 2017
 [*]
-[dumpfile] "/home/hpalombo/oven/soc/top.vcd"
-[dumpfile_mtime] "Fri Apr  7 12:00:38 2017"
-[dumpfile_size] 638468
-[savefile] "/home/hpalombo/oven/soc/cpu2_w(2).gtkw"
-[timestart] 56000
-[size] 1920 1056
-[pos] 1079 -835
-*-14.481611 157100 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[dumpfile] "/home/hpalombo/oven/soc_shared/top.vcd"
+[dumpfile_mtime] "Wed Apr 12 18:13:53 2017"
+[dumpfile_size] 657080
+[savefile] "/home/hpalombo/oven/soc/sim/cpu2_w.gtkw"
+[timestart] 0
+[size] 1855 1056
+[pos] 1144 433
+*-16.481611 221400 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 225
 [signals_width] 291
 [sst_expanded] 1
-[sst_vpaned_height] 321
+[sst_vpaned_height] 687
 @28
 clock
 @22
@@ -21,20 +21,41 @@ clock
 +{(2) snp_req1[72:0]} snp_req1[72:0]
 +{(3) snp_res1[72:0]} snp_res1[72:0]
 +{(4) bus_req2[72:0]} bus_req2[72:0]
+[color] 7
++{ic : tmp_cache_req2[72:0]} interconnect.tmp_cache_req2[72:0]
+@23
+[color] 7
+interconnect.tomem_p[75:0]
+@22
+[color] 7
+interconnect.mem_write1[75:0]
 @28
 +{(5) rvalid} rvalid
 @22
 [color] 7
 mem.rdata[31:0]
 @28
++{ic : rvalid_out} interconnect.rvalid_out
 +{(6) rdvalid} rdvalid
 @22
+[color] 7
 +{(7) bus_res2[552:0]} bus_res2[552:0]
-@23
+[color] 7
+cache1.dn_snp_res_in[552:0]
 +{(8) cpu_res2[72:0]} cpu_res2[72:0]
 @200
 -(8) is high at 508600 fs
 @28
 clock
+@22
+interconnect.bus_res2_1[552:0]
+@28
+interconnect.rres[1:0]
++{ic : rready} interconnect.rready
++{ic : rdready} interconnect.rdready
++{mem : rdready} mem.rdready
+@22
+interconnect.tmp_cache_req1[72:0]
+rsize[9:0]
 [pattern_trace] 1
 [pattern_trace] 0
