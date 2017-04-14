@@ -233,31 +233,44 @@ architecture Behavioral of gfx is
   end process;
 
   t1 : process(clock, reset) -- up read test
+  variable count:integer :=0;
+  variable delay:integer :=0;
   begin
     if RUN_TEST = IC_PWR_GFX_T then
       if reset = '1' then
         upreq_out <= (others => '0');
         t1_st <= 0;
       elsif(rising_edge(clock)) then
+		if count<10 then
+		count := count +1;
         case t1_st is
           when 0 => -- init
             t1_st <= 1;
 				addr<="100"&rand_vect_range(2**6-1,7)&"000000"&"0000000000000000";
 				data<=rand_vect_range(2**15-1,16)&"0000000000000000";
           when 1 => -- snd up_req 
+				if data(31 downto 31)="1" then
             upreq_out <= '1' &
                          WRITE_CMD &
                          addr &data;
+				else
+					upreq_out <= '1' &
+                         READ_CMD &
+                         addr &data;
+				end if;
             t1_st <= 2;
           when 2 => -- done
             upreq_out <= (others => '0');
-				if upres_in(72 downto 72)="1" then
+				delay:=delay+1;
+				if delay>20 then
 					t1_st <=0;
+					delay :=0;
 				end if;	
           when others =>
         end case;
       end if;
     end if;
+	end if;
   end process;
   
 end Behavioral;

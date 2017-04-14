@@ -53,7 +53,7 @@ begin
         st := 0;
 		  
       elsif (rising_edge(Clock)) then
-        if st = 0 and total < 20 then
+        if st = 0 and total < 10 then
           st := 1;
 			 addr<=rand_vect_range(2**6-1,7)&"000000000"&"0000000000000000";
 			 data<=rand_vect_range(2**15-1,16)&"0000000000000000";
