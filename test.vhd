@@ -17,7 +17,7 @@ package test is
   constant CPU1_R_TEST : TEST_T := (0=>'1', others=>'0');
   --* cpu2 sends a write req
   constant CPU2_W_TEST : TEST_T := (1=>'1', others => '0');
-
+  
   --* cpu 1 and 2 send 20 rand write reqs (each)
   constant CPU_W20_TEST : TEST_T := (2=>'1', others=>'0');
 
@@ -47,10 +47,14 @@ package test is
                      variable cnt: inout natural;
                      variable st : inout natural;
                      constant next_st : in natural);
+
+  constant RND1_TEST : TEST_T := (7=>'1', others => '0');
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T :=  CPU_W20_TEST; --PETERSONS_TEST; --ZERO_TEST;
+  constant RUN_TEST : TEST_T := RND1_TEST;
+                                        --CPU_W20_TEST;
+                                        --PETERSONS_TEST; --ZERO_TEST;
                                                  --CPU1_R_TEST or
                                                  --CPU2_W_TEST or
                                                  --GFX_R_TEST; -- or

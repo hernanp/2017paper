@@ -29,6 +29,7 @@ all:
 	ghdl -a audio.vhd
 	ghdl -a usb.vhd
 	ghdl -a uart.vhd
+	ghdl -a --ieee=synopsys peripheral.vhd # generic peripheral
 # simulation
 	ghdl -a --ieee=synopsys top.vhd
 	ghdl -e --ieee=synopsys top

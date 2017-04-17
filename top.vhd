@@ -501,7 +501,7 @@ begin
     pwr_req_full     => pwr_req_full
     );
 
-  gfx : entity work.gfx(Behavioral) port map(
+  gfx : entity work.peripheral(Behavioral) port map(
     wrvalid    => wrvalid_gfx,
     wrsp       => wrsp_gfx,
     raddr      => raddr_gfx,
@@ -540,7 +540,7 @@ begin
     pwr_res_out => pwr_gfx_res
     );
 
-  audio : entity work.audio(Behavioral) port map(
+  audio : entity work.peripheral(Behavioral) port map(
     wrvalid    => wrvalid_audio,
     wrsp       => wrsp_audio,
     raddr      => raddr_audio,
@@ -566,8 +566,8 @@ begin
     wdataready => wdataready_audio,
     wdvalid    => wdvalid_audio,
     wrready    => wrready_audio,
-    upres      => audio_upres,
-    upreq      => audio_upreq,
+    upres_in   => audio_upres,
+    upreq_out  => audio_upreq,
     upreq_full => audio_upreq_full,
 
     Clock      => Clock,
@@ -576,7 +576,7 @@ begin
     pwr_res_out => pwr_audio_res
     );
 
-  usb : entity work.usb(Behavioral) port map(
+  usb : entity work.peripheral(Behavioral) port map(
     wrvalid    => wrvalid_usb,
     wrsp       => wrsp_usb,
     raddr      => raddr_usb,
@@ -602,8 +602,8 @@ begin
     wdataready => wdataready_usb,
     wdvalid    => wdvalid_usb,
     wrready    => wrready_usb,
-    upres      => usb_upres,
-    upreq      => usb_upreq,
+    upres_in   => usb_upres,
+    upreq_out  => usb_upreq,
     upreq_full => usb_upreq_full,
 
     Clock      => Clock,
@@ -613,7 +613,7 @@ begin
     pwr_res_out => pwr_usb_res
     );
 
-  uart : entity work.uart(Behavioral) port map(
+  uart : entity work.peripheral(Behavioral) port map(
     wrvalid    => wrvalid_uart,
     wrsp       => wrsp_uart,
     raddr      => raddr_uart,
@@ -639,8 +639,8 @@ begin
     wdataready => wdataready_uart,
     wdvalid    => wdvalid_uart,
     wrready    => wrready_uart,
-    upres      => uart_upres,
-    upreq      => uart_upreq,
+    upres_in   => uart_upres,
+    upreq_out  => uart_upreq,
     upreq_full => uart_upreq_full,
 
     Clock      => Clock,
