@@ -1,0 +1,3 @@
+v0.1 (2017-04-17) :
+     - petersons algorithm runs but no reads or writes are actually returning any valid data
+     - rnd_vect returns same value if requests done at every clock cycle
