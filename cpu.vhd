@@ -82,7 +82,8 @@ begin
     
     variable t4_adr : ADR_T;
     variable t4_dat : DAT_T;
-    variable t4_ct, t4_tot, t4_tot_ct : natural := 0;
+    variable t4_ct, t4_tot_ct : natural := 0;
+    variable t4_tot : natural := 20;
   begin
     -- Set up tests
     if is_tset(CPU1_R_TEST) then
@@ -148,7 +149,8 @@ begin
         --  t3_ct3 := 5;
         --end if;
         if t4 then
-          delay(t4_ct, st, 20); -- CPU_W20_TEST starts at state 20
+          --delay(t4_ct, st, 20); -- CPU_W20_TEST starts at state 20
+          st := 20;
         end if;
         if t5 then
           st := 30; -- CPU1_RW_04_TEST starts at state 30
@@ -179,11 +181,19 @@ begin
         cpu_req_out<=(others =>'0');
       -- CPU_W20_TEST starts here
       elsif st = 20 then
-        t4_adr := rand_vect_range(2**6-1,7) & "000000000" & "0000000000000000";
-        t4_dat := rand_vect_range(2**15-1,16) & "0000000000000000";
+        cpu_req_out <= (others => '0');
+        if t4_tot_ct = 0 or is_valid(cpu_res_in) then
+          t4_adr := rand_vect_range(2**6-1,7) & "000000000" & "0000000000000000";
+          t4_dat := rand_vect_range(2**15-1,16) & "0000000000000000";
+          st := 21;
+        end if;
       elsif st = 21 then
         if t4_tot_ct < t4_tot then
-          cpu_req_out <= "1" & WRITE_CMD & t4_adr & t4_dat;
+          if cpu_id = 1 then
+            cpu_req_out <= "1" & WRITE_CMD & t4_adr & t4_dat;
+          else
+            cpu_req_out <= "1" & READ_CMD & t4_adr & t4_dat;            
+          end if;
           t4_tot_ct := t4_tot_ct + 1;
           st := 20;
         else
@@ -191,6 +201,9 @@ begin
         end if;
       elsif st = 22 then
         cpu_req_out <= (others => '0');
+        --if is_valid(cpu_res_in) then
+          st := 2;
+        --end if;
       elsif st = 30 then -- CPU1_RW_04_TEST starts here
         if(cpu_id = 1) then
           cpu_req_out <= "1" & WRITE_CMD & X"1c000000" & X"00000001";

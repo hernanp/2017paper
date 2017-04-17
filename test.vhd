@@ -50,7 +50,7 @@ package test is
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T :=  PETERSONS_TEST; --ZERO_TEST;
+  constant RUN_TEST : TEST_T :=  CPU_W20_TEST; --PETERSONS_TEST; --ZERO_TEST;
                                                  --CPU1_R_TEST or
                                                  --CPU2_W_TEST or
                                                  --GFX_R_TEST; -- or

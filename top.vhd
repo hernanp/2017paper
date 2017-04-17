@@ -789,12 +789,16 @@ begin
         write(l, SEP);
         write(l, rdvalid_gfx);
         write(l, SEP);
+        write(l, rlast_gfx);
+        write(l, SEP);
         ---- write
         write(l, wvalid_gfx);
         write(l, SEP);
         write(l, waddr_gfx);
         write(l, SEP);
         write(l, wrvalid_gfx);
+        write(l, SEP);
+        write(l, wlast_gfx);
         write(l, SEP);
 
         ---- uart
@@ -803,12 +807,16 @@ begin
         write(l, SEP);
         write(l, rdvalid_uart);
         write(l, SEP);
+        write(l, rlast_uart);
+        write(l, SEP);
         ---- write
         write(l, wvalid_uart);
         write(l, SEP);
         write(l, waddr_uart);
         write(l, SEP);
         write(l, wrvalid_uart);
+        write(l, SEP);
+        write(l, wlast_uart);
         write(l, SEP);
 
         ---- usb
@@ -817,12 +825,16 @@ begin
         write(l, SEP);
         write(l, rdvalid_usb);
         write(l, SEP);
+        write(l, rlast_usb);
+        write(l, SEP);
         ---- write
         write(l, wvalid_usb);
         write(l, SEP);
         write(l, waddr_usb);
         write(l, SEP);
         write(l, wrvalid_usb);
+        write(l, SEP);
+        write(l, wlast_usb);
         write(l, SEP);
 
         ---- audio
@@ -831,12 +843,16 @@ begin
         write(l, SEP);
         write(l, rdvalid_audio);
         write(l, SEP);
+        write(l, rlast_audio);
+        write(l, SEP);
         ---- write
         write(l, wvalid_audio);
         write(l, SEP);
         write(l, waddr_audio);
         write(l, SEP);
         write(l, wrvalid_audio);
+        write(l, SEP);
+        write(l, wlast_audio);
         write(l, SEP);
         
         ---- pwr
