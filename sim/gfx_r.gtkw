@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Tue Apr  4 11:47:56 2017
+[*] Tue Apr 18 14:11:50 2017
 [*]
-[dumpfile] "/home/hpalombo/oven/soc/top.vcd"
-[dumpfile_mtime] "Tue Apr  4 11:47:22 2017"
-[dumpfile_size] 639242
-[savefile] "/home/hpalombo/oven/soc_shared/up_snp.gtkw"
-[timestart] 83200
-[size] 1855 1056
-[pos] 1144 433
-*-16.497541 377200 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[dumpfile] "/home/hernan/oven/soc/top.vcd"
+[dumpfile_mtime] "Tue Apr 18 13:58:31 2017"
+[dumpfile_size] 165616
+[savefile] "/home/hernan/oven/soc/sim/up_snp.gtkw"
+[timestart] 0
+[size] 1219 776
+[pos] -220 -149
+*-15.771711 51600 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] interconnect.gfx_fifo.
 [treeopen] interconnect.snp1_arbitor.
 [sst_width] 225
@@ -36,7 +36,6 @@ interconnect.snp1_arbitor.dout[75:0]
 interconnect.snp1_arbitor.dout[75:0]
 +{(3) snp_req2[72:0]} snp_req2[72:0]
 +{(4) snp_res2[72:0]} snp_res2[72:0]
-@23
 +{(5) up_snp_res[75:0]} up_snp_res[75:0]
 @28
 +{(6) rvalid} rvalid

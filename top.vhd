@@ -232,97 +232,97 @@ architecture tb of top is
   signal rres_audio    : std_logic_vector(1 downto 0);
 
 begin
-  cpu1 : entity work.cpu(Behavioral) port map(
-    reset   => reset,
-    Clock   => Clock,
-    cpu_id  => 1,
-    cpu_res_in => cpu_res1,
-    cpu_req_out => cpu_req1,
-    full_c  => full_c1_u
+  cpu1 : entity work.cpu(rtl) port map(
+    reset     => reset,
+    Clock     => Clock,
+    cpu_id_i  => 1,
+    cpu_res_i => cpu_res1,
+    cpu_req_o => cpu_req1,
+    full_c_i  => full_c1_u
    --done    => done1
     );
 
-  cpu2 : entity work.cpu(Behavioral) port map(
-    reset   => reset,
-    Clock   => Clock,
-    cpu_id  => 2,
-    cpu_res_in => cpu_res2,
-    cpu_req_out => cpu_req2,
-    full_c  => full_c2_u
+  cpu2 : entity work.cpu(rtl) port map(
+    reset     => reset,
+    Clock     => Clock,
+    cpu_id_i  => 2,
+    cpu_res_i => cpu_res2,
+    cpu_req_o => cpu_req2,
+    full_c_i  => full_c2_u
    --done    => done2
     );
 
-  cache1 : entity work.l1_cache(Behavioral) port map(
+  cache1 : entity work.l1_cache(rtl) port map(
     Clock       => Clock,
     reset       => reset,
 
-    cpu_req_in  => cpu_req1,
-    cpu_res_out => cpu_res1,
+    cpu_req_i  => cpu_req1,
+    cpu_res_o => cpu_res1,
     -- o - cpu req fifo full
 
-    snp_req_in  => snp_req1, -- snoop req from cache 2
-    snp_hit_out => snp_hit1,
-    snp_res_out => snp_res1,
+    snp_req_i  => snp_req1, -- snoop req from cache 2
+    snp_hit_o => snp_hit1,
+    snp_res_o => snp_res1,
 
-    up_snp_req_in  => up_snp_req, -- upstream snoop req 
-    up_snp_hit_out => up_snp_hit,
-    up_snp_res_out => up_snp_res,
+    up_snp_req_i  => up_snp_req, -- upstream snoop req 
+    up_snp_hit_o => up_snp_hit,
+    up_snp_res_o => up_snp_res,
 
-    snp_req_out => snp_req2, -- fwd snp req to other cache
-    snp_hit_in => snp_hit2,
-    snp_res_in => snp_res2,
+    snp_req_o => snp_req2, -- fwd snp req to other cache
+    snp_hit_i => snp_hit2,
+    snp_res_i => snp_res2,
 
     ----------------------------------------------------------
-    dn_snp_req_out  => bus_req1, -- snp req to ic
-    dn_snp_res_in   => bus_res1, -- snp resp from ic    
+    dn_snp_req_o  => bus_req1, -- snp req to ic
+    dn_snp_res_i   => bus_res1, -- snp resp from ic    
 
-    wb_req      => wb_req1, -- TODO what is it doing?
+    wb_req_o      => wb_req1, -- TODO what is it doing?
                             -- is it supposed be implemented outside cache?
     
-    bsf_full    => full_brs1, -- bus resp fifo full
-    srf_full   => full_srs2, 
-    crf_full    => full_c1_u,
+    bsf_full_o    => full_brs1, -- bus resp fifo full
+    srf_full_o    => full_srs2, 
+    crf_full_o    => full_c1_u,
 	 
-    full_crq    => full_crq1,
-    full_wb     => full_wb1,  -- TODO are these outputs not implemented yet?
-    full_srs    => full_srs1
+    full_crq_i    => full_crq1,
+    full_wb_i     => full_wb1,  -- TODO are these outputs not implemented yet?
+    full_srs_i    => full_srs1
     );
 
-  cache2 : entity work.l1_cache(Behavioral) port map(
+  cache2 : entity work.l1_cache(rtl) port map(
     Clock       => Clock,
     reset       => reset,
 
-    cpu_req_in  => cpu_req2,
-    cpu_res_out => cpu_res2,
+    cpu_req_i  => cpu_req2,
+    cpu_res_o => cpu_res2,
 
-    snp_req_out => snp_req1,
-    snp_hit_in  => snp_hit1,
-    snp_res_in  => snp_res1,
+    snp_req_o => snp_req1,
+    snp_hit_i  => snp_hit1,
+    snp_res_i  => snp_res1,
     
-    snp_req_in   => snp_req2,
-    snp_hit_out  => snp_hit2,
-    snp_res_out  => snp_res2,
+    snp_req_i   => snp_req2,
+    snp_hit_o  => snp_hit2,
+    snp_res_o  => snp_res2,
 
-    dn_snp_req_out  => bus_req2,
-    dn_snp_res_in   => bus_res2,
+    dn_snp_req_o  => bus_req2,
+    dn_snp_res_i   => bus_res2,
 
-    up_snp_req_in   => zero75,   -- TODO not implemented yet
-    up_snp_res_out   => zero75,
+    up_snp_req_i   => zero75,   -- TODO not implemented yet
+    up_snp_res_o   => zero75,
     --up_snp_hit_out => zero,
 
-    wb_req       => wb_req2,
+    wb_req_o       => wb_req2,
 
     -- full flags of fifo queues
-    crf_full     => full_c2_u, -- o, cpu req fifo full
-    bsf_full     => full_brs2, -- o - bus resp fifo full
-    srf_full     => full_srs1,
+    crf_full_o     => full_c2_u, -- o, cpu req fifo full
+    bsf_full_o     => full_brs2, -- o - bus resp fifo full
+    srf_full_o     => full_srs1,
     --full_srq    => zero,
-    full_crq     => full_crq2,
-    full_wb      => full_wb2,
-    full_srs     => full_srs2
+    full_crq_i     => full_crq2,
+    full_wb_i      => full_wb2,
+    full_srs_i     => full_srs2
     );
 
-  power : entity work.pwr(Behavioral) port map(
+  power : entity work.pwr(rtl) port map(
     Clock     => Clock,
     reset     => reset,
     
@@ -344,7 +344,7 @@ begin
     gfx_res_in    => pwr_gfx_res
     );
 
-  interconnect : entity work.ic(Behavioral) port map(
+  interconnect : entity work.ic(rtl) port map(
     gfx_upreq_in     => gfx_upreq,
     gfx_upres_out    => gfx_upres,
     gfx_upreq_full   => gfx_upreq_full,
@@ -501,156 +501,187 @@ begin
     pwr_req_full     => pwr_req_full
     );
 
-  gfx : entity work.peripheral(Behavioral) port map(
-    wrvalid    => wrvalid_gfx,
-    wrsp       => wrsp_gfx,
-    raddr      => raddr_gfx,
-    rlen       => rlen_gfx,
-    rsize      => rsize_gfx,
-    rvalid     => rvalid_gfx,
-    rready     => rready_gfx,
-    --_gfx-read data channel
-    rdata      => rdata_gfx,
-    rstrb      => rstrb_gfx,
-    rlast      => rlast_gfx,
-    rdvalid    => rdvalid_gfx,
-    rdready    => rdready_gfx,
-    rres       => rres_gfx,
-    -- write
-    waddr      => waddr_gfx,
-    wlen       => wlen_gfx,
-    wsize      => wsize_gfx,
-    wvalid     => wvalid_gfx,
-    wdata      => wdata_gfx,
-    wready     => wready_gfx,
-    wtrb       => wtrb_gfx,
-    wlast      => wlast_gfx,
-    wdataready => wdataready_gfx,
-    wdvalid    => wdvalid_gfx,
-    wrready    => wrready_gfx,
-
-    upres_in   => gfx_upres,
-    upreq_out  => gfx_upreq,
-    upreq_full => gfx_upreq_full,
-
+  gfx : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
-
-    pwr_req_in  => pwr_gfx_req,
-    pwr_res_out => pwr_gfx_res
-    );
-
-  audio : entity work.peripheral(Behavioral) port map(
-    wrvalid    => wrvalid_audio,
-    wrsp       => wrsp_audio,
-    raddr      => raddr_audio,
-    rlen       => rlen_audio,
-    rsize      => rsize_audio,
-    rvalid     => rvalid_audio,
-    rready     => rready_audio,
-    --_audio-read data channel
-    rdata      => rdata_audio,
-    rstrb      => rstrb_audio,
-    rlast      => rlast_audio,
-    rdvalid    => rdvalid_audio,
-    rdready    => rdready_audio,
-    rres       => rres_audio,
-    waddr      => waddr_audio,
-    wlen       => wlen_audio,
-    wsize      => wsize_audio,
-    wvalid     => wvalid_audio,
-    wdata      => wdata_audio,
-    wready     => wready_audio,
-    wtrb       => wtrb_audio,
-    wlast      => wlast_audio,
-    wdataready => wdataready_audio,
-    wdvalid    => wdvalid_audio,
-    wrready    => wrready_audio,
-    upres_in   => audio_upres,
-    upreq_out  => audio_upreq,
-    upreq_full => audio_upreq_full,
-
-    Clock      => Clock,
-    reset      => reset,
-    pwr_req_in  => pwr_audio_req,
-    pwr_res_out => pwr_audio_res
-    );
-
-  usb : entity work.peripheral(Behavioral) port map(
-    wrvalid    => wrvalid_usb,
-    wrsp       => wrsp_usb,
-    raddr      => raddr_usb,
-    rlen       => rlen_usb,
-    rsize      => rsize_usb,
-    rvalid     => rvalid_usb,
-    rready     => rready_usb,
-    --_usb-read data channel
-    rdata      => rdata_usb,
-    rstrb      => rstrb_usb,
-    rlast      => rlast_usb,
-    rdvalid    => rdvalid_usb,
-    rdready    => rdready_usb,
-    rres       => rres_usb,
-    waddr      => waddr_usb,
-    wlen       => wlen_usb,
-    wsize      => wsize_usb,
-    wvalid     => wvalid_usb,
-    wdata      => wdata_usb,
-    wready     => wready_usb,
-    wtrb       => wtrb_usb,
-    wlast      => wlast_usb,
-    wdataready => wdataready_usb,
-    wdvalid    => wdvalid_usb,
-    wrready    => wrready_usb,
-    upres_in   => usb_upres,
-    upreq_out  => usb_upreq,
-    upreq_full => usb_upreq_full,
-
-    Clock      => Clock,
-    reset      => reset,
-
-    pwr_req_in  => pwr_usb_req,
-    pwr_res_out => pwr_usb_res
-    );
-
-  uart : entity work.peripheral(Behavioral) port map(
-    wrvalid    => wrvalid_uart,
-    wrsp       => wrsp_uart,
-    raddr      => raddr_uart,
-    rlen       => rlen_uart,
-    rsize      => rsize_uart,
-    rvalid     => rvalid_uart,
-    rready     => rready_uart,
-    --_uart-read data channel
-    rdata      => rdata_uart,
-    rstrb      => rstrb_uart,
-    rlast      => rlast_uart,
-    rdvalid    => rdvalid_uart,
-    rdready    => rdready_uart,
-    rres       => rres_uart,
-    waddr      => waddr_uart,
-    wlen       => wlen_uart,
-    wsize      => wsize_uart,
-    wvalid     => wvalid_uart,
-    wdata      => wdata_uart,
-    wready     => wready_uart,
-    wtrb       => wtrb_uart,
-    wlast      => wlast_uart,
-    wdataready => wdataready_uart,
-    wdvalid    => wdvalid_uart,
-    wrready    => wrready_uart,
-    upres_in   => uart_upres,
-    upreq_out  => uart_upreq,
-    upreq_full => uart_upreq_full,
-
-    Clock      => Clock,
-    reset      => reset,
     
-    pwr_req_in  => pwr_uart_req,
-    pwr_res_out => pwr_uart_res
+    -- write address channel
+    waddr_i      => waddr_gfx,
+    wlen_i       => wlen_gfx,
+    wsize_i      => wsize_gfx,
+    wvalid_i     => wvalid_gfx,
+    wready_o     => wready_gfx,
+    -- write data channel
+    wdata_i      => wdata_gfx,
+    wtrb_i       => wtrb_gfx,
+    wlast_i      => wlast_gfx,
+    wdvalid_i    => wdvalid_gfx,
+    wdataready_o => wdataready_gfx,
+    -- write response channel
+    wrready_i    => wrready_gfx,
+    wrvalid_o    => wrvalid_gfx,
+    wrsp_o       => wrsp_gfx,
+
+    -- read address channel
+    raddr_i      => raddr_gfx,
+    rlen_i       => rlen_gfx,
+    rsize_i      => rsize_gfx,
+    rvalid_i     => rvalid_gfx,
+    rready_o     => rready_gfx,
+    -- read data channel
+    rdata_o      => rdata_gfx,
+    rstrb_o      => rstrb_gfx,
+    rlast_o      => rlast_gfx,
+    rdvalid_o    => rdvalid_gfx,
+    rdready_i    => rdready_gfx,
+    rres_o       => rres_gfx,
+
+    -- up snp
+    upres_i      => gfx_upres,
+    upreq_o      => gfx_upreq,
+    upreq_full_i => gfx_upreq_full,
+
+    -- power
+    pwr_req_i    => pwr_gfx_req,
+    pwr_res_o    => pwr_gfx_res
     );
 
-  mem : entity work.Memory(Behavioral) port map(
+  audio : entity work.peripheral(rtl) port map(
+    Clock       => Clock,
+    reset       => reset,
+    
+    -- write address channel
+    waddr_i      => waddr_audio,
+    wlen_i       => wlen_audio,
+    wsize_i      => wsize_audio,
+    wvalid_i     => wvalid_audio,
+    wready_o     => wready_audio,
+    -- write data channel
+    wdata_i      => wdata_audio,
+    wtrb_i       => wtrb_audio,
+    wlast_i      => wlast_audio,
+    wdvalid_i    => wdvalid_audio,
+    wdataready_o => wdataready_audio,
+    -- write response channel
+    wrready_i    => wrready_audio,
+    wrvalid_o    => wrvalid_audio,
+    wrsp_o       => wrsp_audio,
+
+    -- read address channel
+    raddr_i      => raddr_audio,
+    rlen_i       => rlen_audio,
+    rsize_i      => rsize_audio,
+    rvalid_i     => rvalid_audio,
+    rready_o     => rready_audio,
+    -- read data channel
+    rdata_o      => rdata_audio,
+    rstrb_o      => rstrb_audio,
+    rlast_o      => rlast_audio,
+    rdvalid_o    => rdvalid_audio,
+    rdready_i    => rdready_audio,
+    rres_o       => rres_audio,
+
+    -- up snp
+    upres_i      => audio_upres,
+    upreq_o      => audio_upreq,
+    upreq_full_i => audio_upreq_full,
+
+    -- power
+    pwr_req_i    => pwr_audio_req,
+    pwr_res_o    => pwr_audio_res
+    );
+
+  usb : entity work.peripheral(rtl) port map(
+    Clock       => Clock,
+    reset       => reset,
+    
+    -- write address channel
+    waddr_i      => waddr_usb,
+    wlen_i       => wlen_usb,
+    wsize_i      => wsize_usb,
+    wvalid_i     => wvalid_usb,
+    wready_o     => wready_usb,
+    -- write data channel
+    wdata_i      => wdata_usb,
+    wtrb_i       => wtrb_usb,
+    wlast_i      => wlast_usb,
+    wdvalid_i    => wdvalid_usb,
+    wdataready_o => wdataready_usb,
+    -- write response channel
+    wrready_i    => wrready_usb,
+    wrvalid_o    => wrvalid_usb,
+    wrsp_o       => wrsp_usb,
+
+    -- read address channel
+    raddr_i      => raddr_usb,
+    rlen_i       => rlen_usb,
+    rsize_i      => rsize_usb,
+    rvalid_i     => rvalid_usb,
+    rready_o     => rready_usb,
+    -- read data channel
+    rdata_o      => rdata_usb,
+    rstrb_o      => rstrb_usb,
+    rlast_o      => rlast_usb,
+    rdvalid_o    => rdvalid_usb,
+    rdready_i    => rdready_usb,
+    rres_o       => rres_usb,
+
+    -- up snp
+    upres_i      => usb_upres,
+    upreq_o      => usb_upreq,
+    upreq_full_i => usb_upreq_full,
+
+    -- power
+    pwr_req_i    => pwr_usb_req,
+    pwr_res_o    => pwr_usb_res
+    );
+
+  uart : entity work.peripheral(rtl) port map(
+    Clock       => Clock,
+    reset       => reset,
+    
+    -- write address channel
+    waddr_i      => waddr_uart,
+    wlen_i       => wlen_uart,
+    wsize_i      => wsize_uart,
+    wvalid_i     => wvalid_uart,
+    wready_o     => wready_uart,
+    -- write data channel
+    wdata_i      => wdata_uart,
+    wtrb_i       => wtrb_uart,
+    wlast_i      => wlast_uart,
+    wdvalid_i    => wdvalid_uart,
+    wdataready_o => wdataready_uart,
+    -- write response channel
+    wrready_i    => wrready_uart,
+    wrvalid_o    => wrvalid_uart,
+    wrsp_o       => wrsp_uart,
+
+    -- read address channel
+    raddr_i      => raddr_uart,
+    rlen_i       => rlen_uart,
+    rsize_i      => rsize_uart,
+    rvalid_i     => rvalid_uart,
+    rready_o     => rready_uart,
+    -- read data channel
+    rdata_o      => rdata_uart,
+    rstrb_o      => rstrb_uart,
+    rlast_o      => rlast_uart,
+    rdvalid_o    => rdvalid_uart,
+    rdready_i    => rdready_uart,
+    rres_o       => rres_uart,
+
+    -- up snp
+    upres_i      => uart_upres,
+    upreq_o      => uart_upreq,
+    upreq_full_i => uart_upreq_full,
+
+    -- power
+    pwr_req_i    => pwr_uart_req,
+    pwr_res_o    => pwr_uart_res
+    );
+
+  mem : entity work.Memory(rtl) port map(
     Clock      => Clock,
     reset      => reset,
     waddr      => waddr,

@@ -4,59 +4,51 @@ use ieee.std_logic_1164.ALL;
 use ieee.numeric_std.ALL;
 use work.defs.all;
 use work.util.all;
---use IEEE.STD_LOGIC_ARITH.ALL;
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 entity l1_cache is
   port(
     Clock                : in  std_logic;
     reset                : in  std_logic;
-    cpu_req_in              : in  MSG_T;
-    snp_req_in              : in  MSG_T;
-    dn_snp_res_in              : in  STD_LOGIC_VECTOR(552 downto 0);
+    cpu_req_i              : in  MSG_T;
+    snp_req_i              : in  MSG_T;
+    dn_snp_res_i              : in  STD_LOGIC_VECTOR(552 downto 0);
     --01: read response
     --10: write response
     --11: fifo full response
-    cpu_res_out              : out MSG_T := (others => '0');
+    cpu_res_o              : out MSG_T := (others => '0');
     --01: read response 
     --10: write response
     --11: fifo full response
-    snp_hit_out            : out std_logic;
-    snp_res_out            : out MSG_T := (others => '0');
+    snp_hit_o            : out std_logic;
+    snp_res_o            : out MSG_T := (others => '0');
 
     --goes to cache controller ask for data
-    snp_req_out  : out MSG_T;
-    snp_res_in  : in  MSG_T;
-    snp_hit_in  : in  std_logic;
-    up_snp_req_in    : in  std_logic_vector(75 downto 0);
-    up_snp_res_out   : out std_logic_vector(75 downto 0);
-    up_snp_hit_out   : out std_logic;
-    wb_req           : out std_logic_vector(552 downto 0);
+    snp_req_o  : out MSG_T;
+    snp_res_i  : in  MSG_T;
+    snp_hit_i  : in  std_logic;
+    up_snp_req_i    : in  std_logic_vector(75 downto 0);
+    up_snp_res_o   : out std_logic_vector(75 downto 0);
+    up_snp_hit_o   : out std_logic;
+    wb_req_o           : out std_logic_vector(552 downto 0);
     --01: read request
     --10: write request
     --10,11: write back function
 
     -- FIFO flags
-    crf_full : out std_logic := '0'; -- Full flag from cpu_req FIFO
-    srf_full : out std_logic := '0'; -- Full flag from snp_req FIFO
-    bsf_full : out std_logic := '0'; -- Full flag from bus_req FIFO
+    crf_full_o : out std_logic := '0'; -- Full flag from cpu_req FIFO
+    srf_full_o : out std_logic := '0'; -- Full flag from snp_req FIFO
+    bsf_full_o : out std_logic := '0'; -- Full flag from bus_req FIFO
 
-    full_crq, -- TODO what is this? is it not implemented?
-    full_wb, full_srs : in  std_logic; -- TODO where are these coming from?
-    dn_snp_req_out : out MSG_T :=
+    full_crq_i   : in  std_logic; --TODO what is this? not implemented?
+    full_wb_i    : in  std_logic;
+    full_srs_i   : in  std_logic; --TODO where is this coming from? not implemented?
+    dn_snp_req_o : out MSG_T :=
       (others => '0') -- a req going to the other cache
 	);
 
 end l1_cache;
 
-architecture Behavioral of l1_cache is
+architecture rtl of l1_cache is
   --IMB cache 1
   --3 lsb: dirty bit, valid bit, exclusive bit
   --cache hold valid bit ,dirty bit, exclusive bit, 6 bits tag, 32 bits data,
@@ -126,7 +118,7 @@ architecture Behavioral of l1_cache is
   constant DEFAULT_WDATA_WIDTH : positive := WMSG_WIDTH;
   constant DEFAULT_FIFO_DEPTH : positive := 256;
 begin
-  cpu_req_fifo : entity work.fifo(Behavioral)
+  cpu_req_fifo : entity work.fifo(rtl)
     generic map(
       DATA_WIDTH => DEFAULT_DATA_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -138,10 +130,10 @@ begin
       WriteEn => crf_we,
       ReadEn  => crf_re,
       DataOut => cpu_mem_req,
-      Full    => crf_full,
+      Full    => crf_full_o,
       Empty   => crf_emp
       );
-  snp_res_fifo : entity work.fifo(Behavioral)
+  snp_res_fifo : entity work.fifo(rtl)
     generic map(
       DATA_WIDTH => DEFAULT_DATA_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -156,7 +148,7 @@ begin
       Full    => ssf_full,
       Empty   => ssf_emp
       );
-  up_snp_req_fifo : entity work.fifo(Behavioral) -- req from device
+  up_snp_req_fifo : entity work.fifo(rtl) -- req from device
     generic map(
       DATA_WIDTH => DEFAULT_WDATA_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -178,8 +170,8 @@ begin
     if reset = '1' then
       brf_we <= '0';
     elsif rising_edge(Clock) then
-      if is_valid(up_snp_req_in) then
-        brf_in <= up_snp_req_in;
+      if is_valid(up_snp_req_i) then
+        brf_in <= up_snp_req_i;
         brf_we <= '1';
       else
         brf_we <= '0';
@@ -187,7 +179,7 @@ begin
     end if;
   end process;
   
-  snp_req_fifo : entity work.fifo(Behavioral)
+  snp_req_fifo : entity work.fifo(rtl)
     generic map(
       DATA_WIDTH => DEFAULT_DATA_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -199,10 +191,10 @@ begin
       WriteEn => srf_we,
       ReadEn  => srf_re,
       DataOut => srf_out,
-      Full    => srf_full,
+      Full    => srf_full_o,
       Empty   => srf_emp
       );
-  bus_res_fifo : entity work.fifo(Behavioral)
+  bus_res_fifo : entity work.fifo(rtl)
     generic map(
       DATA_WIDTH => 553, -- TODO why this val?
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
@@ -214,10 +206,10 @@ begin
       WriteEn => bsf_we,
       ReadEn  => bsf_re,
       DataOut => mcu_upd_req,
-      Full    => bsf_full,
+      Full    => bsf_full_o,
       Empty   => bsf_emp
       );
-  cpu_res_arbiter : entity work.arbiter2(Behavioral)
+  cpu_res_arbiter : entity work.arbiter2(rtl)
     port map(
       clock => Clock,
       reset => reset,
@@ -225,9 +217,9 @@ begin
       ack1  => ack1,
       din2  => cpu_res2,
       ack2  => ack2, -- o
-      dout  => cpu_res_out
+      dout  => cpu_res_o
       );
-  snp_c_req_arbiter : entity work.arbiter2(Behavioral)
+  snp_c_req_arbiter : entity work.arbiter2(rtl)
     port map(
       clock => Clock,
       reset => reset,
@@ -235,10 +227,10 @@ begin
       ack1  => snp_c_ack1,
       din2  => snp_c_req2,
       ack2  => snp_c_ack2,
-      dout  => snp_req_out
+      dout  => snp_req_o
       );
 
-  snp_mem_req_arbiter : entity work.arbiter2(Behavioral)
+  snp_mem_req_arbiter : entity work.arbiter2(rtl)
     port map(
       clock => Clock,
       reset => reset,
@@ -255,8 +247,8 @@ begin
     if reset = '1' then
       crf_we <= '0';
     elsif rising_edge(Clock) then
-      if is_valid(cpu_req_in) then -- if req is valid
-        crf_in <= cpu_req_in;
+      if is_valid(cpu_req_i) then -- if req is valid
+        crf_in <= cpu_req_i;
         crf_we <= '1';
       else
         crf_we <= '0';
@@ -271,8 +263,8 @@ begin
       srf_we <= '0';
 
     elsif rising_edge(Clock) then
-      if is_valid(snp_req_in) then
-        srf_in <= snp_req_in;
+      if is_valid(snp_req_i) then
+        srf_in <= snp_req_i;
         srf_we <= '1';
       else
         srf_we <= '0';
@@ -287,8 +279,8 @@ begin
       bsf_we <= '0';
 
     elsif rising_edge(Clock) then
-      if (dn_snp_res_in(552 downto 552) = "1") then
-        bsf_in <= dn_snp_res_in;
+      if (dn_snp_res_i(552 downto 552) = "1") then
+        bsf_in <= dn_snp_res_i;
         bsf_we <= '1';
       else
         bsf_we <= '0';
@@ -306,13 +298,13 @@ begin
       -- reset signals
       cpu_res1  <= nilreq;
       mcu_write_req <= nilreq;
-      dn_snp_req_out <= nilreq;
+      dn_snp_req_o <= nilreq;
 		crf_re <='0';
 		snp_c_req1 <=(others =>'0');
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
-        dn_snp_req_out <= nilreq;
+        dn_snp_req_o <= nilreq;
 
         if crf_re = '0' and crf_emp = '0' then
           crf_re   <= '1';
@@ -356,14 +348,14 @@ begin
         end if;
       --now we wait for the snoop response
       elsif state = 6 then -- get_snp_resp
-        if is_valid(snp_res_in) then
+        if is_valid(snp_res_i) then
           --if we get a snoop response  and the address is the same  => 
-          if snp_res_in(63 downto 32) = snpreq(63 downto 32) then
-            if snp_hit_in = '1' then
+          if snp_res_i(63 downto 32) = snpreq(63 downto 32) then
+            if snp_hit_i = '1' then
               state    := 4;
-              cpu_res1 <= snp_res_in;
+              cpu_res1 <= snp_res_i;
             else
-              dn_snp_req_out <= snp_res_in;
+              dn_snp_req_o <= snp_res_i;
               state     := 0;
             end if;
           end if;
@@ -383,14 +375,14 @@ begin
   begin
     if (reset = '1') then
       state := 0;
-      up_snp_res_out <= (others => '0');
-      up_snp_hit_out <= '1'; -- TODO should it be 0?
+      up_snp_res_o <= (others => '0');
+      up_snp_hit_o <= '1'; -- TODO should it be 0?
       brf_re <= '0';
       snp_c_req2 <= (others => '0');
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
-        up_snp_res_out <= (others => '0');
-        up_snp_hit_out <= '0';
+        up_snp_res_o <= (others => '0');
+        up_snp_hit_o <= '0';
         if brf_re = '0' and brf_emp = '0' then
           brf_re <= '1';
           state := 1;
@@ -399,8 +391,8 @@ begin
         brf_re <= '0';
         if usnp_mem_ack = '1' then -- if hit
           if usnp_mem_hit = '1' then
-            up_snp_res_out <= usnp_mem_res;
-            up_snp_hit_out <= '1';
+            up_snp_res_o <= usnp_mem_res;
+            up_snp_hit_o <= '1';
             state        := 0;
           else -- it's a miss
             snp_c_req2 <= usnp_mem_res(72 downto 0);
@@ -414,17 +406,17 @@ begin
           state      := 3;
         end if;
       elsif state = 3 then -- output_resp
-        if is_valid(snp_res_in) then
+        if is_valid(snp_res_i) then
           --if we get a snoop response and the address is the same  => 
-          if snp_res_in(63 downto 32) = upreq(63 downto 32) then
-            up_snp_res_out <= upreq(75 downto 73) & snp_res_in; -- TODO upreq is
+          if snp_res_i(63 downto 32) = upreq(63 downto 32) then
+            up_snp_res_o <= upreq(75 downto 73) & snp_res_i; -- TODO upreq is
                                                              -- updated after
                                                              -- pcs is
                                                              -- finished. Is
                                                              -- this a problem?
                                                              -- (should it be a
                                                              -- variable?)
-            up_snp_hit_out <= snp_hit_in;
+            up_snp_hit_o <= snp_hit_i;
 				state :=0;
           end if;
         -- TODO do we need to go back to state 0?
@@ -442,13 +434,13 @@ begin
   begin
     if (reset = '1') then
       -- reset signals
-      snp_res_out <= (others => '0');
-      snp_hit_out <= '0';
+      snp_res_o <= (others => '0');
+      snp_hit_o <= '0';
 		srf_re <='0';
 		snp_mem_req_1 <=(others => '0');
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
-        snp_res_out <= (others => '0');
+        snp_res_o <= (others => '0');
         if srf_re = '0' and srf_emp = '0' then
           srf_re   <= '1';
           state := 1;
@@ -467,8 +459,8 @@ begin
         end if;
       elsif state = 4 then -- TODO should states 4 and 2 be merged?
         if snp_mem_ack = '1' and snp_mem_res(63 downto 32) = addr then
-          snp_res_out <= '1' & snp_mem_res;
-          snp_hit_out     <= snp_mem_hit;
+          snp_res_o <= '1' & snp_mem_res;
+          snp_hit_o     <= snp_mem_hit;
           state       := 0;
         end if;
       end if;
@@ -526,7 +518,7 @@ begin
       snp_mem_res  <= nilreq(71 downto 0);
       write_ack <= '0';
       upd_ack   <= '0';
-      wb_req    <= nilreq2;
+      wb_req_o    <= nilreq2;
 
       -- cpu memory request
       if is_valid(cpu_mem_req) then
@@ -644,8 +636,8 @@ begin
         if memcont(52 downto 52) = "1" and
           memcont(51 downto 51) = "1" and
           memcont(49 downto 32) /= mcu_upd_req(63 downto 46) and
-          full_wb /= '1' then
-          wb_req <= "110000000" & mcu_upd_req(63 downto 32) &
+          full_wb_i /= '1' then
+          wb_req_o <= "110000000" & mcu_upd_req(63 downto 32) &
                     memcont(31 downto 0) &
                     ROM_array(idx + 1)(31 downto 0) &
                     ROM_array(idx + 2)(31 downto 0) &
@@ -703,8 +695,8 @@ begin
         if memcont(52 downto 52) = "1" and
           memcont(51 downto 51) = "1" and
           memcont(49 downto 32) /= mcu_upd_req(63 downto 46) and
-          full_wb /= '1' then
-          wb_req <= "110000000" & mcu_upd_req(63 downto 32) &
+          full_wb_i /= '1' then
+          wb_req_o <= "110000000" & mcu_upd_req(63 downto 32) &
                     memcont(31 downto 0) &
                     ROM_array(idx + 1)(31 downto 0) &
                     ROM_array(idx + 2)(31 downto 0) &
@@ -748,4 +740,4 @@ begin
     end if;
   end process;
 
-end Behavioral;
+end rtl;

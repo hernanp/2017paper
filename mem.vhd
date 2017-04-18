@@ -41,7 +41,7 @@ entity memory is
 	);
 end Memory;
 
-architecture Behavioral of Memory is
+architecture rtl of Memory is
 	--type rom_type is array (2**32-1 downto 0) of std_logic_vector (31 downto 0);
 	type ram_type is array (0 to natural(2 ** 5 - 1) - 1) of std_logic_vector(wdata'range);
 	type ram_type1 is array (0 to natural(2 ** 2 - 1) - 1) of ram_type;
@@ -159,4 +159,4 @@ begin
 		end if;
 	end process;
 
-end Behavioral;
+end rtl;

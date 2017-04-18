@@ -202,7 +202,7 @@ entity ic is
 	);
 end ic;
 
-architecture Behavioral of ic is
+architecture rtl of ic is
   --fifo has 53 bits
   --3 bits for indicating its source¡
   --50 bits for packet
@@ -288,7 +288,7 @@ architecture Behavioral of ic is
   signal tmp_cache_req1, tmp_cache_req2: MSG_T;
 
 begin
-  wb_fifo1 : entity work.fifo(Behavioral)
+  wb_fifo1 : entity work.fifo(rtl)
     generic map(
       DATA_WIDTH => 553
       )
@@ -302,7 +302,7 @@ begin
       Full    => full_wb1,
       Empty   => emp6
       );
-  wb_fifo2 : entity work.fifo(Behavioral)
+  wb_fifo2 : entity work.fifo(rtl)
     generic map(
       DATA_WIDTH => 553
       )
@@ -317,7 +317,7 @@ begin
       Empty   => emp7
       );
 
-  gfx_fifo : entity work.fifo(Behavioral) port map(
+  gfx_fifo : entity work.fifo(rtl) port map(
     CLK     => Clock,
     RST     => reset,
     DataIn  => gfx_fifo_din,
@@ -328,7 +328,7 @@ begin
     Empty   => gfx_fifo_emp
     );
   
-  snp_res_fifo : entity work.fifo(Behavioral)
+  snp_res_fifo : entity work.fifo(rtl)
     generic map(
       DATA_WIDTH => 77
       )
@@ -358,7 +358,7 @@ begin
       end if;
     end if;
   end process;
-  audio_fifo : entity work.fifo(Behavioral) port map(
+  audio_fifo : entity work.fifo(rtl) port map(
     CLK     => Clock,
     RST     => reset,
     DataIn  => in13,
@@ -382,7 +382,7 @@ begin
       end if;
     end if;
   end process;
-  usb_fif : entity work.fifo(Behavioral) port map(
+  usb_fif : entity work.fifo(rtl) port map(
     CLK     => Clock,
     RST     => reset,
     DataIn  => in14,
@@ -407,7 +407,7 @@ begin
     end if;
   end process;
   
-  uart_fifo : entity work.fifo(Behavioral) port map(
+  uart_fifo : entity work.fifo(rtl) port map(
     CLK     => Clock,
     RST     => reset,
     DataIn  => in15,
@@ -546,7 +546,7 @@ begin
     end if;
   end process;
 
-  tomem_arbitor : entity work.arbiter6_ack(Behavioral)
+  tomem_arbitor : entity work.arbiter6_ack(rtl)
     generic map(
       DATA_WIDTH => 76
       )
@@ -707,7 +707,7 @@ begin
     end if;
   end process;
 
-  togfx_arbitor : entity work.arbiter6_ack(Behavioral)
+  togfx_arbitor : entity work.arbiter6_ack(rtl)
     generic map(
       DATA_WIDTH => 76
       )
@@ -1150,7 +1150,7 @@ begin
     end if;
   end process;
 
-  toaudio_arbitor : entity work.arbiter2_ack(Behavioral)
+  toaudio_arbitor : entity work.arbiter2_ack(rtl)
     generic map(
       DATA_WIDTH => 76
       )
@@ -1165,7 +1165,7 @@ begin
       ack 	=> audio_ack
       );
 
-  tousb_arbitor : entity work.arbiter2_ack(Behavioral)
+  tousb_arbitor : entity work.arbiter2_ack(rtl)
     generic map(
       DATA_WIDTH => 76
       )
@@ -1498,7 +1498,7 @@ begin
     end if;
   end process;
 
-  touart_arbitor : entity work.arbiter2_ack(Behavioral)
+  touart_arbitor : entity work.arbiter2_ack(rtl)
     generic map(
       DATA_WIDTH => 76
       )
@@ -1639,7 +1639,7 @@ begin
     end if;
   end process;
 
-  brs2_arbitor : entity work.arbiter61(Behavioral)
+  brs2_arbitor : entity work.arbiter61(rtl)
     generic map(
       DATA_WIDTH => 553
       )
@@ -1661,7 +1661,7 @@ begin
       ack3  => brs2_ack3
       );
 
-  snp1_arbitor : entity work.arbiter6(Behavioral)
+  snp1_arbitor : entity work.arbiter6(rtl)
     generic map(
       DATA_WIDTH => 76 -- TODO check if correct size; look for HACK in gfx_upreq_handler 
       )
@@ -1683,7 +1683,7 @@ begin
       dout  => up_snp_req_out
       );
 
-  pwr_arbitor : entity work.arbiter61(Behavioral)
+  pwr_arbitor : entity work.arbiter61(rtl)
     generic map(
       DATA_WIDTH => 5
       )
@@ -1705,7 +1705,7 @@ begin
       dout  => pwr_req_out -- TODO comment when testing pwr
       );
 
-  brs1_arbitor : entity work.arbiter7(Behavioral)
+  brs1_arbitor : entity work.arbiter7(rtl)
     generic map(
       DATA_WIDTH => 553
       )
@@ -1729,7 +1729,7 @@ begin
       dout  => bus_res1_out
       );
 
-  gfx_upres_arbitor : entity work.arbiter6(Behavioral)
+  gfx_upres_arbitor : entity work.arbiter6(rtl)
     generic map(
       DATA_WIDTH => 73
       ) port map(
@@ -1750,7 +1750,7 @@ begin
         dout => gfx_upres_out
 		);
 
-  audio_upres_arbitor : entity work.arbiter6(Behavioral)
+  audio_upres_arbitor : entity work.arbiter6(rtl)
     generic map(
       DATA_WIDTH => 73
       )
@@ -1772,7 +1772,7 @@ begin
       dout  => audio_upres
       );
 
-  usb_upres_arbitor : entity work.arbiter6(Behavioral) port map(
+  usb_upres_arbitor : entity work.arbiter6(rtl) port map(
     clock => Clock,
     reset => reset,
     din1  => usb_upres1,
@@ -1790,7 +1790,7 @@ begin
     dout  => usb_upres
     );
 
-  uart_upres_arbitor : entity work.arbiter6(Behavioral) port map(
+  uart_upres_arbitor : entity work.arbiter6(rtl) port map(
     clock => Clock,
     reset => reset,
     din1  => uart_upres1,
@@ -1808,7 +1808,7 @@ begin
     dout  => uart_upres
     );
 
-  wb_arbitor : entity work.arbiter2(Behavioral)
+  wb_arbitor : entity work.arbiter2(rtl)
     generic map(
       DATA_WIDTH => 553
       )
@@ -1822,7 +1822,7 @@ begin
       dout  => mem_wb
       );
 
-  gfx_wb_arbitor : entity work.arbiter2(Behavioral)
+  gfx_wb_arbitor : entity work.arbiter2(rtl)
     generic map(
       DATA_WIDTH => 553
       ) port map(
@@ -1835,7 +1835,7 @@ begin
         dout => gfx_wb
 		);
 
-  audio_wb_arbitor : entity work.arbiter2(Behavioral) generic map(
+  audio_wb_arbitor : entity work.arbiter2(rtl) generic map(
     DATA_WIDTH => 553
     ) port map(
       clock => Clock,
@@ -1974,7 +1974,7 @@ begin
     end if;
   end process;
 
-  usb_wb_arbitor : entity work.arbiter2(Behavioral) generic map(
+  usb_wb_arbitor : entity work.arbiter2(rtl) generic map(
     DATA_WIDTH => 553
     ) port map(
       clock => Clock,
@@ -1986,7 +1986,7 @@ begin
       dout => usb_wb
       );
 
-  uart_wb_arbitor : entity work.arbiter2(Behavioral) generic map(
+  uart_wb_arbitor : entity work.arbiter2(rtl) generic map(
     DATA_WIDTH => 553
     ) port map(
       clock => Clock,
@@ -2505,4 +2505,4 @@ begin
     end if;
   end process;
   
-end Behavioral;
+end rtl;

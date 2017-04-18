@@ -33,7 +33,7 @@ entity arbiter61 is
 end arbiter61;
 
 -- version 2
-architecture Behavioral of arbiter61 is
+architecture rtl of arbiter61 is
 
     signal s_ack1, s_ack2,s_ack3,s_ack4, s_ack5,s_ack6 : std_logic;
     signal s_token : integer :=0;
@@ -98,4 +98,4 @@ begin
         ack5 <= s_ack5;
         ack6 <= s_ack6;
     end process;
-end architecture Behavioral;   
+end architecture rtl;   

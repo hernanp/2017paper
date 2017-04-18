@@ -1,5 +1,8 @@
 
-.PHONY: all test clean sim
+.PHONY: all test clean sim list
+
+list:
+	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | xargs
 
 all:
 # types and funs
@@ -11,7 +14,7 @@ all:
 	ghdl -a arbiter.vhd
 	ghdl -a arbiter2.vhd
 	ghdl -a arbiter2_ack.vhd
-	ghdl -a arbiter3.vhd
+#	ghdl -a arbiter3.vhd # not used
 	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
 # modules
 #	ghdl -a gfx.vhd

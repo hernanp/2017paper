@@ -56,7 +56,7 @@ entity usb is
        );
 end usb;
 
-architecture Behavioral of usb is
+architecture rtl of usb is
   type ram_type is
     array (0 to natural(2 ** 5 - 1) - 1) of std_logic_vector(wdata'range);
   signal ROM_array : ram_type  := (others => (others => '0'));
@@ -235,4 +235,4 @@ begin
     end if;
   end process;
 
-end Behavioral;
+end rtl;

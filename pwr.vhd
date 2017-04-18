@@ -45,14 +45,14 @@ entity pwr is
           );            
 end pwr;
 
-architecture Behavioral of pwr is
+architecture rtl of pwr is
   signal tmp_req: std_logic_vector(REQ_WIDTH - 1 downto 0);
   signal in1,out1 : std_logic_vector(REQ_WIDTH - 1 downto 0);
   signal in2,out2 : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal we1,re1,emp1,we2,re2,emp2 : std_logic:='0';
 begin
 
-  pwr_req_fifo: entity work.fifo(Behavioral) 
+  pwr_req_fifo: entity work.fifo(rtl) 
 	generic map(
       DATA_WIDTH => 5,
       FIFO_DEPTH => 16
@@ -158,4 +158,4 @@ begin
     end if;
   end process;
   
-end Behavioral;
+end rtl;

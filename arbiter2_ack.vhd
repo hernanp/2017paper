@@ -22,7 +22,7 @@ entity arbiter2_ack is
 end arbiter2_ack;
 
 -- version 2
-architecture Behavioral of arbiter2_ack is
+architecture rtl of arbiter2_ack is
 
   signal s_ack1, s_ack2 : std_logic;
   signal s_token : std_logic;
@@ -85,4 +85,4 @@ begin
     ack1 <= s_ack1;
     ack2 <= s_ack2;
   end process;
-end architecture Behavioral;
+end architecture rtl;

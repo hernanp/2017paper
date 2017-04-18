@@ -21,7 +21,7 @@ entity arbiter2 is
 end arbiter2;
 
 -- version 2
-architecture Behavioral of arbiter2 is
+architecture rtl of arbiter2 is
 
   signal s_ack1, s_ack2 : std_logic;
   signal wb_flag : std_logic;
@@ -68,4 +68,4 @@ begin
     ack1 <= s_ack1;
     ack2 <= s_ack2;
   end process;
-end architecture Behavioral;   
+end architecture rtl;   

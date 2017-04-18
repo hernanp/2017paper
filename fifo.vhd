@@ -19,7 +19,7 @@ entity fifo is
 	);
 end fifo;
 
-architecture Behavioral of fifo is
+architecture rtl of fifo is
 
 begin
 
@@ -91,4 +91,4 @@ begin
     end if;
   end process;
   
-end Behavioral;
+end rtl;
