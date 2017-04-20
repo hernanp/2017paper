@@ -107,6 +107,6 @@ begin
         ack4 <= s_ack4;
         ack5 <= s_ack5;
         ack6 <= s_ack6;
-		  ack7 <= s_ack7;
+        ack7 <= s_ack7;
     end process;
 end architecture rtl;   

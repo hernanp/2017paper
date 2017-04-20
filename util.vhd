@@ -12,6 +12,10 @@ package util is
 
   function get_dat(msg: MSG_T) return DAT_T;
 
+  function get_cmd(msg: MSG_T) return CMD_T;
+
+  function is_pwr_cmd(msg : std_logic_vector) return boolean;
+
   procedure delay(variable cnt: inout natural;
                   variable st : inout natural;
                   constant next_st : in natural);
@@ -47,6 +51,11 @@ package body util is
     return msg(MSG_DAT_IDX + DAT_WIDTH - 1 downto MSG_DAT_IDX);
   end function;
 
+  function get_cmd(msg: MSG_T) return CMD_T is
+  begin
+    return msg(MSG_CMD_IDX + CMD_WIDTH - 1 downto MSG_CMD_IDX);
+  end function;
+  
   procedure delay(variable cnt: inout natural;
                   variable st : inout natural;
                   constant next_st : in natural) is
@@ -57,5 +66,14 @@ package body util is
     else
       st := next_st;
     end if;
+  end;
+
+  function is_pwr_cmd(msg : std_logic_vector) return boolean is
+  begin
+    if ((get_cmd(msg) and PWRUP_CMD_MASK) /= ZEROS_CMD) or
+      ((get_cmd(msg) and PWRDN_CMD_MASK) /= ZEROS_CMD) then
+      return true;
+    end if;
+    return false;
   end;
 end util;

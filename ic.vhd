@@ -46,13 +46,13 @@ entity ic is
     uart_upreq_full                         : out std_logic;
 
     ---write address channel
-    waddr                                   : out std_logic_vector(31 downto 0);
+    waddr                                   : out ADR_T;
     wlen                                    : out std_logic_vector(9 downto 0);
     wsize                                   : out std_logic_vector(9 downto 0);
     wvalid                                  : out std_logic;
     wready                                  : in  std_logic;
     ---write data channel
-    wdata                                   : out std_logic_vector(31 downto 0);
+    wdata                                   : out DAT_T;
     wtrb                                    : out std_logic_vector(3 downto 0);
     wlast                                   : out std_logic;
     wdvalid                                 : out std_logic;
@@ -63,13 +63,13 @@ entity ic is
     wrsp                                    : in  std_logic_vector(1 downto 0);
 
     ---read address channel
-    raddr                                   : out std_logic_vector(31 downto 0);
+    raddr                                   : out ADR_T;
     rlen                                    : out std_logic_vector(9 downto 0);
     rsize                                   : out std_logic_vector(9 downto 0);
     rvalid_out                              : out std_logic;
     rready                                  : in  std_logic;
     ---read data channel
-    rdata                                   : in  std_logic_vector(31 downto 0);
+    rdata                                   : in  DAT_T;
     rstrb                                   : in  std_logic_vector(3 downto 0);
     rlast                                   : in  std_logic;
     rdvalid_in                                 : in  std_logic;
@@ -77,13 +77,13 @@ entity ic is
     rres                                    : in  std_logic_vector(1 downto 0);
 
     ---usb write address channel
-    waddr_usb                               : out std_logic_vector(31 downto 0);
+    waddr_usb                               : out ADR_T;
     wlen_usb                                : out std_logic_vector(9 downto 0);
     wsize_usb                               : out std_logic_vector(9 downto 0);
     wvalid_usb                              : out std_logic;
     wready_usb                              : in  std_logic;
     --_usb-write data channel
-    wdata_usb                               : out std_logic_vector(31 downto 0);
+    wdata_usb                               : out DAT_T;
     wtrb_usb                                : out std_logic_vector(3 downto 0);
     wlast_usb                               : out std_logic;
     wdvalid_usb                             : out std_logic;
@@ -94,13 +94,13 @@ entity ic is
     wrsp_usb                                : in  std_logic_vector(1 downto 0);
 
     --_usb-read address channel
-    raddr_usb                               : out std_logic_vector(31 downto 0);
+    raddr_usb                               : out ADR_T;
     rlen_usb                                : out std_logic_vector(9 downto 0);
     rsize_usb                               : out std_logic_vector(9 downto 0);
     rvalid_usb                              : out std_logic;
     rready_usb                              : in  std_logic;
     --_usb-read data channel
-    rdata_usb                               : in  std_logic_vector(31 downto 0);
+    rdata_usb                               : in  DAT_T;
     rstrb_usb                               : in  std_logic_vector(3 downto 0);
     rlast_usb                               : in  std_logic;
     rdvalid_usb                             : in  std_logic;
@@ -108,13 +108,13 @@ entity ic is
     rres_usb                                : in  std_logic_vector(1 downto 0);
 
     ---gfx write address channel
-    waddr_gfx                               : out std_logic_vector(31 downto 0);
+    waddr_gfx                               : out ADR_T;
     wlen_gfx                                : out std_logic_vector(9 downto 0);
     wsize_gfx                               : out std_logic_vector(9 downto 0);
     wvalid_gfx                              : out std_logic;
     wready_gfx                              : in  std_logic;
     --_gfx-write data channel
-    wdata_gfx                               : out std_logic_vector(31 downto 0);
+    wdata_gfx                               : out DAT_T;
     wtrb_gfx                                : out std_logic_vector(3 downto 0);
     wlast_gfx                               : out std_logic;
     wdvalid_gfx                             : out std_logic;
@@ -125,13 +125,13 @@ entity ic is
     wrsp_gfx                                : in  std_logic_vector(1 downto 0);
 
     --_gfx-read address channel
-    raddr_gfx                               : out std_logic_vector(31 downto 0);
+    raddr_gfx                               : out ADR_T;
     rlen_gfx                                : out std_logic_vector(9 downto 0);
     rsize_gfx                               : out std_logic_vector(9 downto 0);
     rvalid_gfx                              : out std_logic;
     rready_gfx                              : in  std_logic;
     --_gfx-read data channel
-    rdata_gfx                               : in  std_logic_vector(31 downto 0);
+    rdata_gfx                               : in  DAT_T;
     rstrb_gfx                               : in  std_logic_vector(3 downto 0);
     rlast_gfx                               : in  std_logic;
     rdvalid_gfx                             : in  std_logic;
@@ -139,13 +139,13 @@ entity ic is
     rres_gfx                                : in  std_logic_vector(1 downto 0);
 
     ---uart write address channel
-    waddr_uart                              : out std_logic_vector(31 downto 0);
+    waddr_uart                              : out ADR_T;
     wlen_uart                               : out std_logic_vector(9 downto 0);
     wsize_uart                              : out std_logic_vector(9 downto 0);
     wvalid_uart                             : out std_logic;
     wready_uart                             : in  std_logic;
     --_uart-write data channel
-    wdata_uart                              : out std_logic_vector(31 downto 0);
+    wdata_uart                              : out DAT_T;
     wtrb_uart                               : out std_logic_vector(3 downto 0);
     wlast_uart                              : out std_logic;
     wdvalid_uart                            : out std_logic;
@@ -156,13 +156,13 @@ entity ic is
     wrsp_uart                               : in  std_logic_vector(1 downto 0);
 
     --_uart-read address channel
-    raddr_uart                              : out std_logic_vector(31 downto 0);
+    raddr_uart                              : out ADR_T;
     rlen_uart                               : out std_logic_vector(9 downto 0);
     rsize_uart                              : out std_logic_vector(9 downto 0);
     rvalid_uart                             : out std_logic;
     rready_uart                             : in  std_logic;
     --_uart-read data channel
-    rdata_uart                              : in  std_logic_vector(31 downto 0);
+    rdata_uart                              : in  DAT_T;
     rstrb_uart                              : in  std_logic_vector(3 downto 0);
     rlast_uart                              : in  std_logic;
     rdvalid_uart                            : in  std_logic;
@@ -170,13 +170,13 @@ entity ic is
     rres_uart                               : in  std_logic_vector(1 downto 0);
 
     ---audio write address channel
-    waddr_audio                             : out std_logic_vector(31 downto 0);
+    waddr_audio                             : out ADR_T;
     wlen_audio                              : out std_logic_vector(9 downto 0);
     wsize_audio                             : out std_logic_vector(9 downto 0);
     wvalid_audio                            : out std_logic;
     wready_audio                            : in  std_logic;
     --_audio-write data channel
-    wdata_audio                             : out std_logic_vector(31 downto 0);
+    wdata_audio                             : out DAT_T;
     wtrb_audio                              : out std_logic_vector(3 downto 0);
     wlast_audio                             : out std_logic;
     wdvalid_audio                           : out std_logic;
@@ -187,13 +187,13 @@ entity ic is
     wrsp_audio                              : in  std_logic_vector(1 downto 0);
 
     --_audio-read address channel
-    raddr_audio                             : out std_logic_vector(31 downto 0);
+    raddr_audio                             : out ADR_T;
     rlen_audio                              : out std_logic_vector(9 downto 0);
     rsize_audio                             : out std_logic_vector(9 downto 0);
     rvalid_audio                            : out std_logic;
     rready_audio                            : in  std_logic;
     --_audio-read data channel
-    rdata_audio                             : in  std_logic_vector(31 downto 0);
+    rdata_audio                             : in  DAT_T;
     rstrb_audio                             : in  std_logic_vector(3 downto 0);
     rlast_audio                             : in  std_logic;
     rdvalid_audio                           : in  std_logic;
@@ -1683,9 +1683,9 @@ begin
       dout  => up_snp_req_out
       );
 
-  pwr_arbitor : entity work.arbiter61(rtl)
+  pwr_arbitor : entity work.arbiter61(rtl) --TODO replace with arbiter6
     generic map(
-      DATA_WIDTH => 5
+      DATA_WIDTH => CMD_WIDTH + 1 -- cmd width + valid bit
       )
     port map(
       clock => Clock,
@@ -1694,15 +1694,12 @@ begin
       ack1  => pwr_ack1,
       din2  => pwr_req2,
       ack2  => pwr_ack2,
-      din3  => pwr_req3,
-      ack3  => pwr_ack3,
-      din4  => pwr_req4,
-      ack4  => pwr_ack4,
-      din5  => pwr_req5,
-      ack5  => pwr_ack5,
-      din6  => pwr_req6,
-      ack6  => pwr_ack6,
-      dout  => pwr_req_out -- TODO comment when testing pwr
+      -- 3-6 are not used
+      din3  => '0' & ZEROS_CMD,
+      din4  => '0' & ZEROS_CMD,
+      din5  => '0' & ZEROS_CMD,
+      din6  => '0' & ZEROS_CMD,
+      dout  => pwr_req_out
       );
 
   brs1_arbitor : entity work.arbiter7(rtl)
@@ -1998,7 +1995,7 @@ begin
       dout => uart_wb
       );
 
-  snp_res1_fifo : process(reset, Clock)
+  snp_res1_fifo_handler : process(reset, Clock)
   begin
     if reset = '1' then
       we2 <= '0';
@@ -2316,9 +2313,9 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache1_req_in) and cache1_req_in(71 downto 64) = "11111111" then
+        if is_valid(cache1_req_in) and is_pwr_cmd(cache1_req_in) then
           ---let's not consider power now, too complicated
-          pwr_req1 <= '1' & cache1_req_in(64 downto 61);
+          pwr_req1 <= '1' & get_cmd(cache1_req_in);
           state    := 4;
         elsif is_valid(cache1_req_in) and cache1_req_in(63 downto 32) = adr_1 then
           state      := 3;
@@ -2356,9 +2353,9 @@ begin
         if brs1_ack5 = '1' then
           bus_res1_7 <= (others => '0');
         end if;
-      elsif state = 4 then
+      elsif state = 4 then -- wait until pwr_arbiter handles request
         if pwr_ack1 = '1' then
-          ---pwr_req1<= "00000";
+          pwr_req1<= "00000";
           state := 0;
         end if;
       elsif state = 5 then
@@ -2401,9 +2398,8 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache2_req_in) and cache2_req_in(71 downto 64) = "11111111" then
-          ---let's not consider power now, too complicated
-          pwr_req2 <= '1' & cache2_req_in(64 downto 61);
+        if is_valid(cache2_req_in) and is_pwr_cmd(cache2_req_in) then
+          pwr_req2 <= '1' & get_cmd(cache2_req_in);
           state    := 4;
         elsif is_valid(cache2_req_in) and cache2_req_in(63 downto 32) = adr_1 then
           state      := 3;

@@ -15,7 +15,7 @@ entity cpu is
        cpu_id_i   : in  integer;
        cpu_res_i : in  std_logic_vector(72 downto 0);
        cpu_req_o : out std_logic_vector(72 downto 0);
-       full_c_i  : in  std_logic -- an input signal from cache, enabled when
+       full_c_i  : in  std_logic-- an input signal from cache, enabled when
        -- cache is full TODO confirm
        --TODO not implemented?
        );

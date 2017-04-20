@@ -92,7 +92,7 @@ architecture rtl of l1_cache is
 
   signal snp_mem_ack1, snp_mem_ack2 : std_logic;
   signal mcu_upd_req, bsf_in : std_logic_vector(552 downto 0):=(others => '0');
-  signal cpu_mem_res, wt_res, upd_res : std_logic_vector(71 downto 0):=(others => '0');
+  signal cpu_mem_res, write_res, upd_res : std_logic_vector(71 downto 0):=(others => '0');
   signal snp_mem_res : std_logic_vector(71 downto 0):=(others => '0');
   -- hit signals
   signal cpu_mem_hit, snp_mem_hit, usnp_mem_hit : std_logic;
@@ -164,7 +164,8 @@ begin
       Empty   => brf_emp
       );
 
-  --* Store up snoop requests into fifo	
+  --* Stores up snoop requests into fifo
+  --* up_snp_req_i;; -> ;brf_in, brf_we;
   up_snp_req_fifo_handler : process(Clock)
   begin
     if reset = '1' then
@@ -241,7 +242,8 @@ begin
       dout  => snp_mem_req
       );
   
-  --* Store cpu requests into fifo	
+  --* Stores cpu requests into fifo
+  --* cpu_req_i;; -> ;crf_in, crf_we;
   cpu_req_fifo_handler : process(Clock)
   begin
     if reset = '1' then
@@ -256,7 +258,8 @@ begin
     end if;
   end process;
 
-  --* Store snoop requests into fifo	
+  --* Stores snoop requests into fifo
+  --* snp_req_i;; -> ;srf_in, srf_we;
   snp_req_fifo_handler : process(Clock)
   begin
     if reset = '1' then
@@ -272,7 +275,8 @@ begin
     end if;
   end process;
   
-  --* Store bus requests into fifo	
+  --* Stores bus response into fifo
+  --* dn_snp_res_i;; -> ;bsf_in, bsf_we;
   bus_res_fifo_handler : process(Clock)
   begin
     if reset = '1' then
@@ -289,10 +293,14 @@ begin
   end process;
 
   --* Process requests from cpu
+  --* snp_res_i,snp_hit_i;cpu_mem_res;
+  --*  -> ;cpu_res1, mcu_write_req, crf_re, snp_c_req1, cpu_mem_ack, cpu_mem_hit,
+  --*      tmp_cpu_res1, cpu_res1, snp_req, snp_c_ack1;
+  --*     dn_snp_req_o
   cpu_req_handler : process(reset, Clock)
     -- TODO should they be signals instead of variables?
     variable nilreq : MSG_T := (others => '0');
-    variable state  : integer                       := 0;
+    variable st  : integer := 0;
   begin
     if (reset = '1') then
       -- reset signals
@@ -303,60 +311,60 @@ begin
 		snp_c_req1 <=(others =>'0');
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
-      if state = 0 then -- wait_fifo
+      if st = 0 then -- wait_fifo
         dn_snp_req_o <= nilreq;
 
         if crf_re = '0' and crf_emp = '0' then
           crf_re   <= '1';
-          state := 1;
+          st := 1;
         end if;
 
-      elsif state = 1 then -- access
+      elsif st = 1 then -- access
         crf_re <= '0';
         if cpu_mem_ack = '1' then
           if cpu_mem_hit = '1' then
             if cpu_mem_res(71 downto 64) = WRITE_CMD then
               mcu_write_req    <= '1' & cpu_mem_res;
               tmp_cpu_res1 <= '1' & cpu_mem_res;
-              state        := 3;
+              st        := 3;
             else -- read cmd
               cpu_res1 <= '1' & cpu_mem_res;
-              state    := 4;
+              st    := 4;
             end if;
           else -- it's a miss
             snp_c_req1 <= '1' & cpu_mem_res;
             snpreq     <= '1' & cpu_mem_res;
-            state      := 5;
+            st      := 5;
           end if;
         end if;
 
-      elsif state = 3 then -- get_resp_from_mcu
+      elsif st = 3 then -- get_resp_from_mcu
         if write_ack = '1' then
           mcu_write_req <= nilreq;
           cpu_res1  <= tmp_cpu_res1;
-          state     := 4;
+          st     := 4;
         end if;
-      elsif state = 4 then -- output_resp
+      elsif st = 4 then -- output_resp
         if ack1 = '1' then
           cpu_res1 <= nilreq;
-          state    := 0;
+          st    := 0;
         end if;
-      elsif state = 5 then -- get_snp_req_ack
+      elsif st = 5 then -- get_snp_req_ack
         if snp_c_ack1 = '1' then
           snp_c_req1 <= (others => '0');
-          state      := 6;
+          st      := 6;
         end if;
       --now we wait for the snoop response
-      elsif state = 6 then -- get_snp_resp
+      elsif st = 6 then -- get_snp_resp
         if is_valid(snp_res_i) then
           --if we get a snoop response  and the address is the same  => 
           if snp_res_i(63 downto 32) = snpreq(63 downto 32) then
             if snp_hit_i = '1' then
-              state    := 4;
+              st    := 4;
               cpu_res1 <= snp_res_i;
             else
               dn_snp_req_o <= snp_res_i;
-              state     := 0;
+              st     := 0;
             end if;
           end if;
         end if;
@@ -364,9 +372,50 @@ begin
     end if;
   end process;
 
+  --* Process snoop requests (from another cache)
+  snp_req_handler : process(reset, Clock)
+    variable nilreq1 : std_logic_vector(552 downto 0) := (others => '0');
+    variable addr    : std_logic_vector(31 downto 0);
+    variable state   : integer                        := 0;
+  begin
+    if (reset = '1') then
+      -- reset signals
+      snp_res_o <= (others => '0');
+      snp_hit_o <= '0';
+		srf_re <='0';
+		snp_mem_req_1 <=(others => '0');
+    elsif rising_edge(Clock) then
+      if state = 0 then -- wait_fifo
+        snp_res_o <= (others => '0');
+        if srf_re = '0' and srf_emp = '0' then
+          srf_re   <= '1';
+          state := 1;
+        end if;
+      elsif state = 1 then -- gen_snp_mem_req (and send to arbiter)
+        srf_re <= '0';
+        if is_valid(srf_out) then
+          snp_mem_req_1 <= srf_out;
+          addr       := srf_out(63 downto 32);
+          state      := 3;
+        end if;
+      elsif state = 3 then -- get_ack
+        if snp_mem_ack1 = '1' then
+          snp_mem_req_1 <= (others => '0');
+          state      := 4;
+        end if;
+      elsif state = 4 then -- TODO should states 4 and 2 be merged?
+        if snp_mem_ack = '1' and snp_mem_res(63 downto 32) = addr then
+          snp_res_o <= '1' & snp_mem_res;
+          snp_hit_o     <= snp_mem_hit;
+          state       := 0;
+        end if;
+      end if;
+    end if;
+  end process;
+
   --* Process upstream snoop requests (from bus on behalf of devices)
-  --the difference is that when it's  uprequest snoop, once it fails (a miss),
-  --it will go to the other cache snoop
+  --the difference --with snp_req-- is that when it's  uprequest snoop, once it
+  --fails (a miss), it will go to the other cache snoop
   --also when found, the write will be operated here directly, and return
   --nothing
   --if it's read, then the data will be returned to request source
@@ -423,48 +472,6 @@ begin
         end if;
       end if;
     end if;
-
-  end process;
-
-  --* Process snoop requests (from another cache)
-  snp_req_handler : process(reset, Clock)
-    variable nilreq1 : std_logic_vector(552 downto 0) := (others => '0');
-    variable addr    : std_logic_vector(31 downto 0);
-    variable state   : integer                        := 0;
-  begin
-    if (reset = '1') then
-      -- reset signals
-      snp_res_o <= (others => '0');
-      snp_hit_o <= '0';
-		srf_re <='0';
-		snp_mem_req_1 <=(others => '0');
-    elsif rising_edge(Clock) then
-      if state = 0 then -- wait_fifo
-        snp_res_o <= (others => '0');
-        if srf_re = '0' and srf_emp = '0' then
-          srf_re   <= '1';
-          state := 1;
-        end if;
-      elsif state = 1 then -- gen_snp_mem_req (and send to arbiter)
-        srf_re <= '0';
-        if is_valid(srf_out) then
-          snp_mem_req_1 <= srf_out;
-          addr       := srf_out(63 downto 32);
-          state      := 3;
-        end if;
-      elsif state = 3 then -- get_ack
-        if snp_mem_ack1 = '1' then
-          snp_mem_req_1 <= (others => '0');
-          state      := 4;
-        end if;
-      elsif state = 4 then -- TODO should states 4 and 2 be merged?
-        if snp_mem_ack = '1' and snp_mem_res(63 downto 32) = addr then
-          snp_res_o <= '1' & snp_mem_res;
-          snp_hit_o     <= snp_mem_hit;
-          state       := 0;
-        end if;
-      end if;
-    end if;
   end process;
 
   --* Process snoop response (to snoop request issued by this cache)
@@ -499,7 +506,16 @@ begin
     end if;
   end process;
 
-  --* Deal with cache memory
+  --* Deals with cache memory
+  --* full_wb_i;
+  --* cpu_mem_req, snp_mem_req, usnp_mem_req,
+  --*   mcu_write_req, mcu_upd_req, ;
+  --*   -> ;
+  --*      ROM_array, write_ack, write_res, upd_ack, upd_res
+  --*        cpu_mem_ack, cpu_mem_hit, cpu_mem_res,
+  --*        snp_mem_ack, snp_mem_hit, snp_mem_res,
+  --*        usnp_mem_ack, usnp_mem_hit, usnp_mem_res;
+  --*      wb_req_o
   mem_control_unit : process(reset, Clock)
     variable idx    : integer;
     variable memcont : std_logic_vector(52 downto 0);
@@ -622,7 +638,7 @@ begin
                            mcu_write_req(31 downto 0);
         write_ack       <= '1';
         upd_ack         <= '0';
-        wt_res          <= mcu_write_req(71 downto 0);
+        write_res          <= mcu_write_req(71 downto 0);
 
       -- Handling update request from bus (when there's no mcu_write_req from
       -- cpu_req_handler)
@@ -683,7 +699,7 @@ begin
                            mcu_write_req(31 downto 0);
         write_ack       <= '1';
         upd_ack         <= '0';
-        wt_res          <= mcu_write_req(71 downto 0);
+        write_res       <= mcu_write_req(71 downto 0);
 
           
         else
@@ -735,7 +751,6 @@ begin
         write_ack       <= '0';
       -- case valid request
         end if;
-
       end if;
     end if;
   end process;

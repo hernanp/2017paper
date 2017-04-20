@@ -77,7 +77,11 @@ test_docs:
 	rm doc/*.old
 block_docs:
 	graph-easy --input=doc/cpu_block.txt --output=doc/cpu_block.ascii
-	sed -i.old '1s;^;#ic_pwr_test\n\n;' doc/cpu_block.ascii
+	sed -i.old '1s;^;#cpu_block\n\n;' doc/cpu_block.ascii
 	graph-easy --input=doc/top_block.txt --output=doc/top_block.ascii
-	sed -i.old '1s;^;#ic_pwr_test\n\n;' doc/top_block.ascii
+	sed -i.old '1s;^;#top_block\n\n;' doc/top_block.ascii
+	graph-easy --input=doc/cache_block.txt --output=doc/cache_block.ascii
+	sed -i.old '1s;^;#cache_block\n\n;' doc/cache_block.ascii
+	graph-easy --input=doc/ic_block.txt --output=doc/ic_block.ascii
+	sed -i.old '1s;^;#ic_block\n\n;' doc/ic_block.ascii
 	rm doc/*.old
