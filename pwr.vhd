@@ -27,21 +27,21 @@ entity pwr is
   Port (  Clock: in std_logic;
           reset: in std_logic;
           
-          req_in   : in STD_LOGIC_VECTOR(REQ_WIDTH - 1 downto 0);
-          res_out  : out STD_LOGIC_VECTOR(REQ_WIDTH - 1 downto 0);
+          req_i   : in STD_LOGIC_VECTOR(REQ_WIDTH - 1 downto 0);
+          res_o  : out STD_LOGIC_VECTOR(REQ_WIDTH - 1 downto 0);
           full_preq: out std_logic:='0';
           
-          gfx_res_in  : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
-          gfx_req_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          gfx_res_i  : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          gfx_req_o : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
 
-          uart_res_in : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
-          uart_req_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          uart_res_i : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          uart_req_o : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
           
-          usb_res_in : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
-          usb_req_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          usb_res_i : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          usb_req_o : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
 
-          audio_res_in : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
-          audio_req_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0)
+          audio_res_i : in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+          audio_req_o : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0)
           );            
 end pwr;
 
@@ -73,8 +73,8 @@ begin
     if reset='1' then
       we1<='0';
     elsif rising_edge(Clock) then
-      if req_in(REQ_WIDTH - 1 downto REQ_WIDTH - 1)="1" then
-        in1 <= req_in;
+      if req_i(REQ_WIDTH - 1 downto REQ_WIDTH - 1)="1" then
+        in1 <= req_i;
         we1 <= '1';
       else
         we1 <= '0';
@@ -90,15 +90,15 @@ begin
     variable state: integer :=0;
   begin
     if (reset = '1') then
-      gfx_req_out<= nilreq(DATA_WIDTH - 1 downto 0);
+      gfx_req_o<= nilreq(DATA_WIDTH - 1 downto 0);
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
-      res_out <= "00000";
+      res_o <= "00000";
       if state =0 then
-        gfx_req_out <= nilreq(DATA_WIDTH - 1 downto 0);
-        audio_req_out <= nilreq(DATA_WIDTH - 1 downto 0);
-        usb_req_out <= nilreq(DATA_WIDTH - 1 downto 0);
-        uart_req_out <= nilreq(DATA_WIDTH - 1 downto 0);
+        gfx_req_o <= nilreq(DATA_WIDTH - 1 downto 0);
+        audio_req_o <= nilreq(DATA_WIDTH - 1 downto 0);
+        usb_req_o <= nilreq(DATA_WIDTH - 1 downto 0);
+        uart_req_o <= nilreq(DATA_WIDTH - 1 downto 0);
         if re1 = '0' and emp1 ='0' then
           re1 <= '1';
           state := 1;
@@ -119,39 +119,39 @@ begin
           end if;
         end if;
       elsif state = 2 then
-        gfx_req_out<=tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
+        gfx_req_o<=tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
         state := 6;
       elsif state = 3 then
-        audio_req_out <= tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
+        audio_req_o <= tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
         state := 7;
       elsif state = 4 then
-        usb_req_out <= tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
+        usb_req_o <= tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
         state := 8;
       elsif state = 5 then
-        uart_req_out<=tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
+        uart_req_o<=tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
         state := 9;
       elsif state = 6 then
-        gfx_req_out <= (others => '0');
-        if gfx_res_in(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
-          res_out <= tmp_req;
+        gfx_req_o <= (others => '0');
+        if gfx_res_i(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
+          res_o <= tmp_req;
           state :=0;
         end if;
       elsif state = 7 then
-        audio_req_out <= (others => '0');
-        if audio_res_in(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
-          res_out <= tmp_req;
+        audio_req_o <= (others => '0');
+        if audio_res_i(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
+          res_o <= tmp_req;
           state :=0;
         end if;
       elsif state = 8 then
-        usb_req_out <= (others => '0');
-        if usb_res_in(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
-          res_out <= tmp_req;
+        usb_req_o <= (others => '0');
+        if usb_res_i(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
+          res_o <= tmp_req;
           state :=0;
         end if;
       elsif state = 9 then
-        uart_req_out <= (others => '0');
-        if uart_res_in(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
-          res_out <= tmp_req;
+        uart_req_o <= (others => '0');
+        if uart_res_i(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
+          res_o <= tmp_req;
           state :=0;
         end if;
       end if;

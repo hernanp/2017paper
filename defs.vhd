@@ -8,7 +8,8 @@ package defs is
   
   constant MSG_WIDTH : positive := 73;
   constant WMSG_WIDTH : positive := 76;
-
+  constant BMSG_WIDTH : positive := 553;
+  
   constant CMD_WIDTH : positive := 8;
   constant ADR_WIDTH : positive := 32;
   constant DAT_WIDTH : positive := 32;
@@ -19,6 +20,7 @@ package defs is
   subtype DAT_T is std_logic_vector(DAT_WIDTH-1 downto 0);
 
   subtype WMSG_T is std_logic_vector(WMSG_WIDTH-1 downto 0);
+  subtype BMSG_T is std_logic_vector(BMSG_WIDTH-1 downto 0); -- bus message
   subtype DEST_T is std_logic_vector(2 downto 0);
 
   constant ZERO_MSG : MSG_T := (others => '0');

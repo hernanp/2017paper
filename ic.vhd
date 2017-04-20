@@ -10,19 +10,19 @@ entity ic is
   Port(
     Clock                                   : in  std_logic;
     reset                                   : in  std_logic;
-    cache1_req_in                           : in  MSG_T;
-    cache2_req_in                           : in  MSG_T;
+    cache1_req_i                           : in  MSG_T;
+    cache2_req_i                           : in  MSG_T;
     wb_req1, wb_req2                        : in  std_logic_vector(552 downto 0);
-    bus_res1_out                            : out STD_LOGIC_VECTOR(552 downto 0);
-    bus_res2_out                            : out STD_LOGIC_VECTOR(552 downto 0);
-    up_snp_req_out                          : out WMSG_T;
-    up_snp_res_in                           : in  WMSG_T;
-    up_snp_hit_in                           : in  std_logic;
+    bus_res1_o                            : out STD_LOGIC_VECTOR(552 downto 0);
+    bus_res2_o                            : out STD_LOGIC_VECTOR(552 downto 0);
+    up_snp_req_o                          : out WMSG_T;
+    up_snp_res_i                           : in  WMSG_T;
+    up_snp_hit_i                           : in  std_logic;
     full_srq1                               : in  std_logic;
     full_wb1, full_srs1, full_wb2, full_mrs : out std_logic;
-    pwr_req_out                             : out std_logic_vector(4 downto 0);
+    pwr_req_o                             : out std_logic_vector(4 downto 0);
     pwr_req_full                            : in  std_logic;
-    pwr_res_in                              : in  std_logic_vector(4 downto 0);
+    pwr_res_i                              : in  std_logic_vector(4 downto 0);
 
     --add 3 bits in snoop request to indicate the source
     --000 cpu0
@@ -32,8 +32,8 @@ entity ic is
     --100 audio
     --101 cpu1
 
-    gfx_upreq_in                            : in  MSG_T;
-    gfx_upres_out                           : out MSG_T;
+    gfx_upreq_i                            : in  MSG_T;
+    gfx_upres_o                           : out MSG_T;
     gfx_upreq_full                          : out std_logic;
     audio_upreq                             : in  MSG_T;
     audio_upres                             : out MSG_T;
@@ -59,20 +59,20 @@ entity ic is
     wdataready                              : in  std_logic;
     ---write response channel
     wrready                                 : out std_logic;
-    wrvalid_out                                 : in  std_logic;
+    wrvalid_o                                 : in  std_logic;
     wrsp                                    : in  std_logic_vector(1 downto 0);
 
     ---read address channel
     raddr                                   : out ADR_T;
     rlen                                    : out std_logic_vector(9 downto 0);
     rsize                                   : out std_logic_vector(9 downto 0);
-    rvalid_out                              : out std_logic;
+    rvalid_o                              : out std_logic;
     rready                                  : in  std_logic;
     ---read data channel
     rdata                                   : in  DAT_T;
     rstrb                                   : in  std_logic_vector(3 downto 0);
     rlast                                   : in  std_logic;
-    rdvalid_in                                 : in  std_logic;
+    rdvalid_i                                 : in  std_logic;
     rdready                                 : out std_logic;
     rres                                    : in  std_logic_vector(1 downto 0);
 
@@ -350,8 +350,8 @@ begin
     if reset = '1' then
       we9 <= '0';
     elsif rising_edge(Clock) then
-      if is_valid(gfx_upreq_in) then
-        gfx_fifo_din <= gfx_upreq_in;
+      if is_valid(gfx_upreq_i) then
+        gfx_fifo_din <= gfx_upreq_i;
         we9 <= '1';
       else
         we9 <= '0';
@@ -441,7 +441,7 @@ begin
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---up_snp_req_out <= "000"&nilreq;
+    ---up_snp_req_o <= "000"&nilreq;
     ---pwr_req1 <= "00000";
     elsif rising_edge(Clock) then
       if st = 0 then -- init
@@ -468,7 +468,7 @@ begin
     variable stage : integer := 0;
   begin
     if reset = '1' then
-    ---up_snp_req_out <= "000"&nilreq;
+    ---up_snp_req_o <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re13 = '0' and emp13 = '0' then
@@ -496,7 +496,7 @@ begin
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---up_snp_req_out <= "000"&nilreq;
+    ---up_snp_req_o <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re14 = '0' and emp14 = '0' then
@@ -524,7 +524,7 @@ begin
   ---variable count: integer:=0;
   begin
     if reset = '1' then
-    ---up_snp_req_out <= "000"&nilreq;
+    ---up_snp_req_o <= "000"&nilreq;
     elsif rising_edge(Clock) then
       if stage = 0 then
         if re15 = '0' and emp15 = '0' then
@@ -578,7 +578,7 @@ begin
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
   begin
     if reset = '1' then
-      rvalid_out  <= '0';
+      rvalid_o  <= '0';
       rdready <= '0';
 		state :=0;
     elsif rising_edge(Clock) then
@@ -612,7 +612,7 @@ begin
       elsif state = 16 then -- send mem req out
         if rready = '1' then
           --mem_ack <= '0';
-          rvalid_out <= '1';
+          rvalid_o <= '1';
           raddr  <= tep_mem(63 downto 32);
           if (dst_eq(tep_mem, CPU0_ID) or
               dst_eq(tep_mem, CPU1_ID)) then
@@ -624,11 +624,11 @@ begin
           state := 1;
         end if;
       elsif state = 1 then
-        rvalid_out  <= '0';
+        rvalid_o  <= '0';
         rdready <= '1';
         state   := 2;
       elsif state = 2 then
-        if rdvalid_in = '1' and rres = "00" then
+        if rdvalid_i = '1' and rres = "00" then
           if (dst_eq(tep_mem, CPU0_ID) or
               dst_eq(tep_mem, CPU1_ID)) then
             rdready <= '0';
@@ -905,7 +905,7 @@ begin
       elsif state = 3 then
         wdvalid <= '0';
         wrready <= '1';
-        if wrvalid_out = '1' then
+        if wrvalid_o = '1' then
           if wrsp = "00" then
             state := 0;
             mem_write_ack1<='1';
@@ -937,7 +937,7 @@ begin
       elsif state = 6 then
         wdvalid <= '0';
         wrready <= '1';
-        if wrvalid_out = '1' then
+        if wrvalid_o = '1' then
           state := 0;
           if wrsp = "00" then
             ---this is a successful write back, yayyy
@@ -1650,7 +1650,7 @@ begin
       ack1  => brs2_ack1,
       din2  => bus_res2_2,
       ack2  => brs2_ack2,
-      dout  => bus_res2_out,
+      dout  => bus_res2_o,
       din3  => bus_res2_3,
       din4  => bus_res2_4,
       ack4  => brs2_ack4,
@@ -1680,7 +1680,7 @@ begin
       ack5  => snp1_ack5,
       din6  => snp1_6,
       ack6  => snp1_ack6,
-      dout  => up_snp_req_out
+      dout  => up_snp_req_o
       );
 
   pwr_arbitor : entity work.arbiter61(rtl) --TODO replace with arbiter6
@@ -1699,7 +1699,7 @@ begin
       din4  => '0' & ZEROS_CMD,
       din5  => '0' & ZEROS_CMD,
       din6  => '0' & ZEROS_CMD,
-      dout  => pwr_req_out
+      dout  => pwr_req_o
       );
 
   brs1_arbitor : entity work.arbiter7(rtl)
@@ -1723,7 +1723,7 @@ begin
       ack6  => brs1_ack6,
       din7  => bus_res1_7,
       ack7  => brs1_ack7,
-      dout  => bus_res1_out
+      dout  => bus_res1_o
       );
 
   gfx_upres_arbitor : entity work.arbiter6(rtl)
@@ -1744,7 +1744,7 @@ begin
         ack5 => gfx_upres_ack5,
         din6 => gfx_upres6,
         ack6 => gfx_upres_ack6,
-        dout => gfx_upres_out
+        dout => gfx_upres_o
 		);
 
   audio_upres_arbitor : entity work.arbiter6(rtl)
@@ -2000,11 +2000,11 @@ begin
     if reset = '1' then
       we2 <= '0';
     elsif rising_edge(Clock) then
-      if is_valid(up_snp_res_in) then
-        if up_snp_hit_in = '0' then
-          in2 <= '0' & up_snp_res_in;
+      if is_valid(up_snp_res_i) then
+        if up_snp_hit_i = '0' then
+          in2 <= '0' & up_snp_res_i;
         else
-          in2 <= '1' & up_snp_res_in;
+          in2 <= '1' & up_snp_res_i;
         end if;
         we2 <= '1';
       else
@@ -2144,25 +2144,25 @@ begin
   begin
     if reset = '1' then
     elsif rising_edge(Clock) then
-      if pwr_res_in(4 downto 4) = "1" then
-        if pwr_res_in(3 downto 2) = "00" then
-          if pwr_res_in(1 downto 0) = "00" then
+      if pwr_res_i(4 downto 4) = "1" then
+        if pwr_res_i(3 downto 2) = "00" then
+          if pwr_res_i(1 downto 0) = "00" then
             gfxpoweron <= '0';
-          elsif pwr_res_in(1 downto 0) = "01" then
+          elsif pwr_res_i(1 downto 0) = "01" then
             audiopoweron <= '0';
-          elsif pwr_res_in(1 downto 0) = "10" then
+          elsif pwr_res_i(1 downto 0) = "10" then
             usbpoweron <= '0';
-          elsif pwr_res_in(1 downto 0) = "11" then
+          elsif pwr_res_i(1 downto 0) = "11" then
             uartpoweron <= '0';
           end if;
-        elsif pwr_res_in(3 downto 2) = "10" then
-          if pwr_res_in(1 downto 0) = "00" then
+        elsif pwr_res_i(3 downto 2) = "10" then
+          if pwr_res_i(1 downto 0) = "00" then
             gfxpoweron <= '1';
-          elsif pwr_res_in(1 downto 0) = "01" then
+          elsif pwr_res_i(1 downto 0) = "01" then
             audiopoweron <= '1';
-          elsif pwr_res_in(1 downto 0) = "10" then
+          elsif pwr_res_i(1 downto 0) = "10" then
             usbpoweron <= '1';
-          elsif pwr_res_in(1 downto 0) = "11" then
+          elsif pwr_res_i(1 downto 0) = "11" then
             uartpoweron <= '1';
           end if;
         end if;
@@ -2313,20 +2313,20 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache1_req_in) and is_pwr_cmd(cache1_req_in) then
+        if is_valid(cache1_req_i) and is_pwr_cmd(cache1_req_i) then
           ---let's not consider power now, too complicated
-          pwr_req1 <= '1' & get_cmd(cache1_req_in);
+          pwr_req1 <= '1' & get_cmd(cache1_req_i);
           state    := 4;
-        elsif is_valid(cache1_req_in) and cache1_req_in(63 downto 32) = adr_1 then
+        elsif is_valid(cache1_req_i) and cache1_req_i(63 downto 32) = adr_1 then
           state      := 3;
           ----should return to cache, let it perform snoop again!!!
           -----
           ----don't forget to fill this up
           -----
           bus_res1_7 <= '1' & "11111111" & nildata;
-        elsif is_valid(cache1_req_in) then
-          adr_0 <= cache1_req_in(63 downto 32);
-			 tmp_cache_req1 <= cache1_req_in;
+        elsif is_valid(cache1_req_i) then
+          adr_0 <= cache1_req_i(63 downto 32);
+			 tmp_cache_req1 <= cache1_req_i;
           state := 2;
         else
           state := 0;
@@ -2398,21 +2398,21 @@ begin
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache2_req_in) and is_pwr_cmd(cache2_req_in) then
-          pwr_req2 <= '1' & get_cmd(cache2_req_in);
+        if is_valid(cache2_req_i) and is_pwr_cmd(cache2_req_i) then
+          pwr_req2 <= '1' & get_cmd(cache2_req_i);
           state    := 4;
-        elsif is_valid(cache2_req_in) and cache2_req_in(63 downto 32) = adr_1 then
+        elsif is_valid(cache2_req_i) and cache2_req_i(63 downto 32) = adr_1 then
           state      := 3;
           ----should return to cache, let it perform snoop again!!!
           -----
           ----don't forget to fill this up
           -----
           bus_res1_6 <= '1' & "11111111" & nildata;
-        elsif is_valid(cache2_req_in) then
+        elsif is_valid(cache2_req_i) then
           ---snp_req2 <= cache_req2;
-          adr_0 <= cache2_req_in(63 downto 32);
+          adr_0 <= cache2_req_i(63 downto 32);
           state := 2;
-			 tmp_cache_req2 <= cache2_req_in;
+			 tmp_cache_req2 <= cache2_req_i;
         else
           ---snp_req2 <= nilreq;
           state := 0;
@@ -2480,7 +2480,7 @@ begin
   begin
     if RUN_TEST = IC_PWR_GFX_TEST then
       if reset = '1' then
-        pwr_req_out <= (others => '0');
+        pwr_req_o <= (others => '0');
         ct := rand_nat(to_integer(unsigned(IC_PWR_GFX_TEST)));
         --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
         --               to_integer(unsigned(IC_PWR_GFX_TEST)));        
@@ -2490,12 +2490,12 @@ begin
           delay(ct, st, 1);
         elsif st = 1 then -- send
           report "ic_pwr_gfx_t @ " & integer'image(time'pos(now));
-          pwr_req_out <= "1" & -- valid bit
+          pwr_req_o <= "1" & -- valid bit
                          "10" & -- data means "poweron" (see gfx.vhd)
                          "00"; -- gfx id
           st := 2;
         elsif st = 2 then -- done
-          pwr_req_out <= (others => '0');
+          pwr_req_o <= (others => '0');
         end if;
       end if;
     end if;

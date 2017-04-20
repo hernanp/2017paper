@@ -11,7 +11,7 @@ entity l1_cache is
     reset                : in  std_logic;
     cpu_req_i              : in  MSG_T;
     snp_req_i              : in  MSG_T;
-    dn_snp_res_i              : in  STD_LOGIC_VECTOR(552 downto 0);
+    bus_res_i              : in  BMSG_T;
     --01: read response
     --10: write response
     --11: fifo full response
@@ -26,10 +26,10 @@ entity l1_cache is
     snp_req_o  : out MSG_T;
     snp_res_i  : in  MSG_T;
     snp_hit_i  : in  std_logic;
-    up_snp_req_i    : in  std_logic_vector(75 downto 0);
-    up_snp_res_o   : out std_logic_vector(75 downto 0);
+    up_snp_req_i    : in  WMSG_T;
+    up_snp_res_o   : out WMSG_T;
     up_snp_hit_o   : out std_logic;
-    wb_req_o           : out std_logic_vector(552 downto 0);
+    wb_req_o           : out BMSG_T;
     --01: read request
     --10: write request
     --10,11: write back function
@@ -42,7 +42,7 @@ entity l1_cache is
     full_crq_i   : in  std_logic; --TODO what is this? not implemented?
     full_wb_i    : in  std_logic;
     full_srs_i   : in  std_logic; --TODO where is this coming from? not implemented?
-    dn_snp_req_o : out MSG_T :=
+    bus_req_o : out MSG_T :=
       (others => '0') -- a req going to the other cache
 	);
 
@@ -91,7 +91,7 @@ architecture rtl of l1_cache is
   signal snp_mem_req_1, snp_mem_req_2 : MSG_T :=(others => '0');
 
   signal snp_mem_ack1, snp_mem_ack2 : std_logic;
-  signal mcu_upd_req, bsf_in : std_logic_vector(552 downto 0):=(others => '0');
+  signal bus_res, bsf_in : std_logic_vector(552 downto 0):=(others => '0');
   signal cpu_mem_res, write_res, upd_res : std_logic_vector(71 downto 0):=(others => '0');
   signal snp_mem_res : std_logic_vector(71 downto 0):=(others => '0');
   -- hit signals
@@ -197,7 +197,7 @@ begin
       );
   bus_res_fifo : entity work.fifo(rtl)
     generic map(
-      DATA_WIDTH => 553, -- TODO why this val?
+      DATA_WIDTH => BMSG_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
@@ -206,7 +206,7 @@ begin
       DataIn  => bsf_in,
       WriteEn => bsf_we,
       ReadEn  => bsf_re,
-      DataOut => mcu_upd_req,
+      DataOut => bus_res,
       Full    => bsf_full_o,
       Empty   => bsf_emp
       );
@@ -276,15 +276,15 @@ begin
   end process;
   
   --* Stores bus response into fifo
-  --* dn_snp_res_i;; -> ;bsf_in, bsf_we;
+  --* bus_res_i;; -> ;bsf_in, bsf_we;
   bus_res_fifo_handler : process(Clock)
   begin
     if reset = '1' then
       bsf_we <= '0';
 
     elsif rising_edge(Clock) then
-      if (dn_snp_res_i(552 downto 552) = "1") then
-        bsf_in <= dn_snp_res_i;
+      if (bus_res_i(552 downto 552) = "1") then
+        bsf_in <= bus_res_i;
         bsf_we <= '1';
       else
         bsf_we <= '0';
@@ -296,7 +296,7 @@ begin
   --* snp_res_i,snp_hit_i;cpu_mem_res;
   --*  -> ;cpu_res1, mcu_write_req, crf_re, snp_c_req1, cpu_mem_ack, cpu_mem_hit,
   --*      tmp_cpu_res1, cpu_res1, snp_req, snp_c_ack1;
-  --*     dn_snp_req_o
+  --*     bus_req_o
   cpu_req_handler : process(reset, Clock)
     -- TODO should they be signals instead of variables?
     variable nilreq : MSG_T := (others => '0');
@@ -306,13 +306,13 @@ begin
       -- reset signals
       cpu_res1  <= nilreq;
       mcu_write_req <= nilreq;
-      dn_snp_req_o <= nilreq;
+      bus_req_o <= nilreq;
 		crf_re <='0';
 		snp_c_req1 <=(others =>'0');
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
       if st = 0 then -- wait_fifo
-        dn_snp_req_o <= nilreq;
+        bus_req_o <= nilreq;
 
         if crf_re = '0' and crf_emp = '0' then
           crf_re   <= '1';
@@ -363,7 +363,7 @@ begin
               st    := 4;
               cpu_res1 <= snp_res_i;
             else
-              dn_snp_req_o <= snp_res_i;
+              bus_req_o <= snp_res_i;
               st     := 0;
             end if;
           end if;
@@ -474,6 +474,19 @@ begin
     end if;
   end process;
 
+  --* Process pwr response
+  pwr_res_handler : process(reset,clock)
+    variable tmp_msg : MSG_T;
+  begin
+    if reset='1' then
+    elsif rising_edge(Clock) then
+      tmp_msg := bus_res(BMSG_WIDTH-1 downto BMSG_WIDTH - MSG_WIDTH);
+      if is_valid(tmp_msg) and is_pwr_cmd(tmp_msg) then
+        cpu_res_o <= tmp_msg;
+      end if;
+    end if;
+  end process;
+  
   --* Process snoop response (to snoop request issued by this cache)
   bus_res_handler : process(reset, Clock)
     variable nilreq : MSG_T := (others => '0');
@@ -509,7 +522,7 @@ begin
   --* Deals with cache memory
   --* full_wb_i;
   --* cpu_mem_req, snp_mem_req, usnp_mem_req,
-  --*   mcu_write_req, mcu_upd_req, ;
+  --*   mcu_write_req, bus_res, ;
   --*   -> ;
   --*      ROM_array, write_ack, write_res, upd_ack, upd_res
   --*        cpu_mem_ack, cpu_mem_hit, cpu_mem_res,
@@ -632,7 +645,7 @@ begin
 
       -- Handling write request from cpu_req_handler (when there's no update
       -- req from bus)
-      if is_valid(mcu_write_req) and mcu_upd_req(552 downto 552) = "0" then
+      if is_valid(mcu_write_req) and bus_res(552 downto 552) = "0" then
         idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
         ROM_array(idx) <= "110" & mcu_write_req(63 downto 46) &
                            mcu_write_req(31 downto 0);
@@ -644,16 +657,16 @@ begin
       -- cpu_req_handler)
       -- TODO why two cases?
       -- case invalid request
-      elsif mcu_upd_req(552 downto 552) = "1" and not is_valid(mcu_write_req) then
-        idx    := to_integer(unsigned(mcu_upd_req(525 downto 512))) /16 * 16;
+      elsif bus_res(552 downto 552) = "1" and not is_valid(mcu_write_req) then
+        idx    := to_integer(unsigned(bus_res(525 downto 512))) /16 * 16;
         memcont := ROM_array(idx);
         --if tags do not match, dirty bit is 1,
         -- and write_back fifo in BUS is not full,
         if memcont(52 downto 52) = "1" and
           memcont(51 downto 51) = "1" and
-          memcont(49 downto 32) /= mcu_upd_req(63 downto 46) and
+          memcont(49 downto 32) /= bus_res(63 downto 46) and
           full_wb_i /= '1' then
-          wb_req_o <= "110000000" & mcu_upd_req(63 downto 32) &
+          wb_req_o <= "110000000" & bus_res(63 downto 32) &
                     memcont(31 downto 0) &
                     ROM_array(idx + 1)(31 downto 0) &
                     ROM_array(idx + 2)(31 downto 0) &
@@ -671,27 +684,27 @@ begin
                     ROM_array(idx + 14)(31 downto 0) &
                     ROM_array(idx + 15)(31 downto 0);
         end if;
-		  ROM_array(idx) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(511 downto 480);
-			 ROM_array(idx+1) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(479 downto 448);
-			 ROM_array(idx+2) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(447 downto 416);
-			 ROM_array(idx+3) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(415 downto 384);
-          ROM_array(idx+4) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(383 downto 352);
-			 ROM_array(idx+5) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(351 downto 320);
-			 ROM_array(idx+6) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(319 downto 288);
-			 ROM_array(idx+7) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(287 downto 256);
-			 ROM_array(idx+8) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(255 downto 224);
-			 ROM_array(idx+9) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(223 downto 192);
-			 ROM_array(idx+10) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(191 downto 160);
-			 ROM_array(idx+11) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(159 downto 128);
-			 ROM_array(idx+12) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(127 downto 96);
-			 ROM_array(idx+13) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(95 downto 64);
-			 ROM_array(idx+14) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(63 downto 32);
-			 ROM_array(idx+15) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(31 downto 0);
+		  ROM_array(idx) <= "100" & bus_res(63 downto 46) & bus_res(511 downto 480);
+			 ROM_array(idx+1) <= "100" & bus_res(63 downto 46) & bus_res(479 downto 448);
+			 ROM_array(idx+2) <= "100" & bus_res(63 downto 46) & bus_res(447 downto 416);
+			 ROM_array(idx+3) <= "100" & bus_res(63 downto 46) & bus_res(415 downto 384);
+          ROM_array(idx+4) <= "100" & bus_res(63 downto 46) & bus_res(383 downto 352);
+			 ROM_array(idx+5) <= "100" & bus_res(63 downto 46) & bus_res(351 downto 320);
+			 ROM_array(idx+6) <= "100" & bus_res(63 downto 46) & bus_res(319 downto 288);
+			 ROM_array(idx+7) <= "100" & bus_res(63 downto 46) & bus_res(287 downto 256);
+			 ROM_array(idx+8) <= "100" & bus_res(63 downto 46) & bus_res(255 downto 224);
+			 ROM_array(idx+9) <= "100" & bus_res(63 downto 46) & bus_res(223 downto 192);
+			 ROM_array(idx+10) <= "100" & bus_res(63 downto 46) & bus_res(191 downto 160);
+			 ROM_array(idx+11) <= "100" & bus_res(63 downto 46) & bus_res(159 downto 128);
+			 ROM_array(idx+12) <= "100" & bus_res(63 downto 46) & bus_res(127 downto 96);
+			 ROM_array(idx+13) <= "100" & bus_res(63 downto 46) & bus_res(95 downto 64);
+			 ROM_array(idx+14) <= "100" & bus_res(63 downto 46) & bus_res(63 downto 32);
+			 ROM_array(idx+15) <= "100" & bus_res(63 downto 46) & bus_res(31 downto 0);
         upd_ack         <= '1';
-        upd_res         <= mcu_upd_req(551 downto 512)&ROM_array(to_integer(unsigned(mcu_upd_req(525 downto 512))))(31 downto 0);
+        upd_res         <= bus_res(551 downto 512)&ROM_array(to_integer(unsigned(bus_res(525 downto 512))))(31 downto 0);
         write_ack       <= '0';
       -- case valid request
-      elsif mcu_upd_req(552 downto 552) = "1" and is_valid(mcu_write_req) then
+      elsif bus_res(552 downto 552) = "1" and is_valid(mcu_write_req) then
         if shifter = true then
           shifter         := false;
           idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
@@ -704,15 +717,15 @@ begin
           
         else
           shifter := true;
-         idx    := to_integer(unsigned(mcu_upd_req(525 downto 512))) /16 * 16;
+         idx    := to_integer(unsigned(bus_res(525 downto 512))) /16 * 16;
         memcont := ROM_array(idx);
         --if tags do not match, dirty bit is 1,
         -- and write_back fifo in BUS is not full,
         if memcont(52 downto 52) = "1" and
           memcont(51 downto 51) = "1" and
-          memcont(49 downto 32) /= mcu_upd_req(63 downto 46) and
+          memcont(49 downto 32) /= bus_res(63 downto 46) and
           full_wb_i /= '1' then
-          wb_req_o <= "110000000" & mcu_upd_req(63 downto 32) &
+          wb_req_o <= "110000000" & bus_res(63 downto 32) &
                     memcont(31 downto 0) &
                     ROM_array(idx + 1)(31 downto 0) &
                     ROM_array(idx + 2)(31 downto 0) &
@@ -730,24 +743,24 @@ begin
                     ROM_array(idx + 14)(31 downto 0) &
                     ROM_array(idx + 15)(31 downto 0);
         end if;
-		  ROM_array(idx) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(511 downto 480);
-			 ROM_array(idx+1) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(479 downto 448);
-			 ROM_array(idx+2) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(447 downto 416);
-			 ROM_array(idx+3) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(415 downto 384);
-          ROM_array(idx+4) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(383 downto 352);
-			 ROM_array(idx+5) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(351 downto 320);
-			 ROM_array(idx+6) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(319 downto 288);
-			 ROM_array(idx+7) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(287 downto 256);
-			 ROM_array(idx+8) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(255 downto 224);
-			 ROM_array(idx+9) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(223 downto 192);
-			 ROM_array(idx+10) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(191 downto 160);
-			 ROM_array(idx+11) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(159 downto 128);
-			 ROM_array(idx+12) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(127 downto 96);
-			 ROM_array(idx+13) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(95 downto 64);
-			 ROM_array(idx+14) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(63 downto 32);
-			 ROM_array(idx+15) <= "100" & mcu_upd_req(63 downto 46) & mcu_upd_req(31 downto 0);
+		  ROM_array(idx) <= "100" & bus_res(63 downto 46) & bus_res(511 downto 480);
+			 ROM_array(idx+1) <= "100" & bus_res(63 downto 46) & bus_res(479 downto 448);
+			 ROM_array(idx+2) <= "100" & bus_res(63 downto 46) & bus_res(447 downto 416);
+			 ROM_array(idx+3) <= "100" & bus_res(63 downto 46) & bus_res(415 downto 384);
+          ROM_array(idx+4) <= "100" & bus_res(63 downto 46) & bus_res(383 downto 352);
+			 ROM_array(idx+5) <= "100" & bus_res(63 downto 46) & bus_res(351 downto 320);
+			 ROM_array(idx+6) <= "100" & bus_res(63 downto 46) & bus_res(319 downto 288);
+			 ROM_array(idx+7) <= "100" & bus_res(63 downto 46) & bus_res(287 downto 256);
+			 ROM_array(idx+8) <= "100" & bus_res(63 downto 46) & bus_res(255 downto 224);
+			 ROM_array(idx+9) <= "100" & bus_res(63 downto 46) & bus_res(223 downto 192);
+			 ROM_array(idx+10) <= "100" & bus_res(63 downto 46) & bus_res(191 downto 160);
+			 ROM_array(idx+11) <= "100" & bus_res(63 downto 46) & bus_res(159 downto 128);
+			 ROM_array(idx+12) <= "100" & bus_res(63 downto 46) & bus_res(127 downto 96);
+			 ROM_array(idx+13) <= "100" & bus_res(63 downto 46) & bus_res(95 downto 64);
+			 ROM_array(idx+14) <= "100" & bus_res(63 downto 46) & bus_res(63 downto 32);
+			 ROM_array(idx+15) <= "100" & bus_res(63 downto 46) & bus_res(31 downto 0);
         upd_ack         <= '1';
-        upd_res         <= mcu_upd_req(551 downto 512)&ROM_array(to_integer(unsigned(mcu_upd_req(525 downto 512))))(31 downto 0);
+        upd_res         <= bus_res(551 downto 512)&ROM_array(to_integer(unsigned(bus_res(525 downto 512))))(31 downto 0);
         write_ack       <= '0';
       -- case valid request
         end if;

@@ -311,9 +311,8 @@ begin
     snp_hit_i => snp_hit2,
     snp_res_i => snp_res2,
 
-    ----------------------------------------------------------
-    dn_snp_req_o  => bus_req1, -- snp req to ic
-    dn_snp_res_i   => bus_res1, -- snp resp from ic    
+    bus_req_o  => bus_req1, -- mem or pwr req to ic
+    bus_res_i   => bus_res1, -- snp resp from ic    
 
     wb_req_o      => wb_req1, -- TODO what is it doing?
                             -- is it supposed be implemented outside cache?
@@ -342,8 +341,8 @@ begin
     snp_hit_o  => snp_hit2,
     snp_res_o  => snp_res2,
 
-    dn_snp_req_o  => bus_req2,
-    dn_snp_res_i   => bus_res2,
+    bus_req_o  => bus_req2,
+    bus_res_i   => bus_res2,
 
     up_snp_req_i   => zero75,   -- TODO not implemented yet
     up_snp_res_o   => zero75,
@@ -365,27 +364,27 @@ begin
     Clock     => Clock,
     reset     => reset,
     
-    req_in        => ic_pwr_req,
-    res_out       => ic_pwr_res,
+    req_i        => ic_pwr_req,
+    res_o       => ic_pwr_res,
     
-    audio_req_out  => pwr_audio_req,
-    audio_res_in  => pwr_audio_res,
+    audio_req_o  => pwr_audio_req,
+    audio_res_i  => pwr_audio_res,
     
-    usb_req_out    => pwr_usb_req,
-    usb_res_in    => pwr_usb_res,
+    usb_req_o    => pwr_usb_req,
+    usb_res_i    => pwr_usb_res,
     
-    uart_req_out   => pwr_uart_req,
-    uart_res_in   => pwr_uart_res,
+    uart_req_o   => pwr_uart_req,
+    uart_res_i   => pwr_uart_res,
 
     full_preq => pwr_req_full,
 
-    gfx_req_out    => pwr_gfx_req,
-    gfx_res_in    => pwr_gfx_res
+    gfx_req_o    => pwr_gfx_req,
+    gfx_res_i    => pwr_gfx_res
     );
 
   interconnect : entity work.ic(rtl) port map(
-    gfx_upreq_in     => gfx_upreq,
-    gfx_upres_out    => gfx_upres,
+    gfx_upreq_i     => gfx_upreq,
+    gfx_upres_o    => gfx_upres,
     gfx_upreq_full   => gfx_upreq_full,
     audio_upreq      => audio_upreq,
     audio_upres      => audio_upres,
@@ -408,18 +407,18 @@ begin
     wdvalid          => wdvalid,
     wdataready       => wdataready,
     wrready          => wrready,
-    wrvalid_out      => wrvalid,
+    wrvalid_o      => wrvalid,
     wrsp             => wrsp,
     -- read
     raddr            => raddr,
     rlen             => rlen,
     rsize            => rsize,
-    rvalid_out       => rvalid,
+    rvalid_o       => rvalid,
     rready           => rready,
     rdata            => rdata,
     rstrb            => rstrb,
     rlast            => rlast,
-    rdvalid_in       => rdvalid,
+    rdvalid_i       => rdvalid,
     rdready          => rdready,
     rres             => rres,
 
@@ -522,21 +521,21 @@ begin
     rres_audio       => rres_audio,
     Clock            => Clock,
     reset            => reset,
-    cache1_req_in    => bus_req1,
-    cache2_req_in    => bus_req2,
+    cache1_req_i    => bus_req1,
+    cache2_req_i    => bus_req2,
     wb_req1          => wb_req1,
     wb_req2          => wb_req2,
-    bus_res1_out     => bus_res1,
-    bus_res2_out     => bus_res2,
-    up_snp_req_out   => up_snp_req,
-    up_snp_res_in    => up_snp_res,
-    up_snp_hit_in    => up_snp_hit,
+    bus_res1_o     => bus_res1,
+    bus_res2_o     => bus_res2,
+    up_snp_req_o   => up_snp_req,
+    up_snp_res_i    => up_snp_res,
+    up_snp_hit_i    => up_snp_hit,
     full_srq1        => full_srq1,
     full_wb1         => full_wb1,
     full_srs1        => full_srs1,
     full_wb2         => full_wb2,
-    pwr_req_out      => ic_pwr_req,
-    pwr_res_in       => ic_pwr_res,
+    pwr_req_o      => ic_pwr_req,
+    pwr_res_i       => ic_pwr_res,
     pwr_req_full     => pwr_req_full
     );
 
@@ -845,6 +844,8 @@ begin
         write(l, SEP);
         write(l, rdvalid);
         write(l, SEP);
+        write(l, rlast);
+        write(l, SEP);
         ---- write
         write(l, wvalid);
         write(l, SEP);
@@ -852,7 +853,9 @@ begin
         write(l, SEP);
         write(l, wrvalid);
         write(l, SEP);
-
+        write(l, rlast);
+        write(l, SEP);
+        
         ---- gfx
         ---- read
         write(l, rvalid_gfx);
@@ -925,9 +928,6 @@ begin
         write(l, wlast_audio);
         write(l, SEP);
         
-        ---- pwr
-        ---- TODO not yet implemented
-
         -- upreq and upres
         write(l, gfx_upreq);
         write(l, SEP);
@@ -947,6 +947,14 @@ begin
         write(l, audio_upreq);
         write(l, SEP);
         write(l, audio_upres);
+
+        ---- pwr
+        -- ic_pwr_req
+        -- ic_pwr_res
+
+        -- pwr_<dev>_req
+        -- pwr_<dev>_res
+        -- where dev is one of gfx, uart, usb, audio
         
         writeline(trace_file, l); 
       end if;
