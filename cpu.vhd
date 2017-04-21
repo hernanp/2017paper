@@ -67,7 +67,7 @@ begin
   --* t5: CPU1_RW_04_TEST cpu1 writes and reads to mem[0..4]
   cpu_test : process(reset, Clock)
     variable st, st_nxt : natural := 0;
-    variable t1, t2, t3, t4, t5 : boolean := false;
+    variable t1, t2, t3, t4, t5, t6 : boolean := false;
     
     variable t1_ct : natural;
 
@@ -85,6 +85,8 @@ begin
     variable t4_dat : DAT_T;
     variable t4_ct, t4_tot_ct : natural := 0;
     variable t4_tot : natural := 20;
+
+    variable t6_ct : natural;
   begin
     -- Set up tests
     if is_tset(CPU1_R_TEST) then
@@ -110,6 +112,9 @@ begin
     if is_tset(CPU1_RW_04_TEST) then
       t5 := true;
     end if;
+    if is_tset(PWRUP_TEST) then
+      t6 := true;
+    end if;
     
     if reset = '1' then
       cpu_req_o <= (others => '0');
@@ -127,14 +132,15 @@ begin
         t4_ct := rand_nat(to_integer(unsigned(CPU_W20_TEST))); 
       end if;
       st := 0;
+      
     elsif (rising_edge(Clock)) then
       -- REPORT ST **************************************************************
-      if st = 100 then
-        --report "cpu_id_i:" & integer'image(cpu_id_i) &
-        --  ", sd:" & integer'image(t3_seed) &
-        --  ", cnt:" & integer'image(t3_ct3) &
-        --  ", st:" & integer'image(st);
-      end if;
+      --if st = 100 then
+      --  --report "cpu_id_i:" & integer'image(cpu_id_i) &
+      --  --  ", sd:" & integer'image(t3_seed) &
+      --  --  ", cnt:" & integer'image(t3_ct3) &
+      --  --  ", st:" & integer'image(st);
+      --end if;
         
       if st = 0 then -- wait
         if t1 and (cpu_id_i = 1) then
@@ -144,17 +150,20 @@ begin
           delay(t2_ct, st, 1);
         end if;
         if t3 then
-          st := 100; -- petersons algorithm starts at state 100
+          st := 100; -- petersons algorithm starts in state 100
         end if;
         --if t3 then
         --  t3_ct3 := 5;
         --end if;
         if t4 then
-          --delay(t4_ct, st, 20); -- CPU_W20_TEST starts at state 20
+          --delay(t4_ct, st, 20); -- CPU_W20_TEST starts in state 20
           st := 20;
         end if;
         if t5 then
-          st := 30; -- CPU1_RW_04_TEST starts at state 30
+          st := 30; -- CPU1_RW_04_TEST starts in state 30
+        end if;
+        if t6 then
+          st := 60; -- PWRUP_TEST starts in state 60
         end if;
       elsif st = 1 then -- send
         -- send a random msg
@@ -205,7 +214,8 @@ begin
         --if is_valid(cpu_res_i) then
           st := 2;
         --end if;
-      elsif st = 30 then -- CPU1_RW_04_TEST starts here
+-- CPU1_RW_04_TEST starts here
+      elsif st = 30 then
         if(cpu_id_i = 1) then
           cpu_req_o <= "1" & WRITE_CMD & X"1c000000" & X"00000001";
           st := 31;
@@ -215,9 +225,23 @@ begin
           cpu_req_o <= "1" & READ_CMD & X"1c000000" & X"00000000";
           st := 32;
         end if;
-      elsif st = 32 then -- CPU1_RW_04_TEST ends here
+      elsif st = 32 then
         cpu_req_o <= (others => '0');
-      -- petersons algorithm starts here
+
+-- PWRUP_TEST starts here
+      elsif st = 60 then
+        if (cpu_id_i = 1) then
+          -- send pwr req
+          cpu_req_o <= "1" & PWRUP_CMD & pad32(CPU0_ID) & pad32(GFX_ID);
+        end if;
+        st := 61;
+      elsif st = 61 then
+        cpu_req_o <= (others => '0');
+        if (cpu_id_i = 1) and is_valid(cpu_res_i) then
+          st := 2;
+        end if;
+        
+-- *** Petersons algorithm starts here ***
       elsif st = 99 then -- delay
         pt_delay(t3_rdlay, t3_seed, t3_ct3, st, st_nxt);
       elsif st = 100 then -- line 1 (for loop)

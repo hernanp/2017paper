@@ -24,13 +24,16 @@ package defs is
   subtype DEST_T is std_logic_vector(2 downto 0);
 
   constant ZERO_MSG : MSG_T := (others => '0');
+  constant ZERO_BMSG : BMSG_T := (others => '0');
   
   constant READ_CMD  : CMD_T := "01000000";
   constant WRITE_CMD : CMD_T := "10000000";
-  constant PWRUP_CMD_MASK : CMD_T := "00100000";
-  constant PWRDN_CMD_MASK : CMD_T := "01000000";
+  constant PWRUP_CMD : CMD_T := "00100000";
+  constant PWRDN_CMD : CMD_T := "01000000";
   constant ZEROS_CMD : CMD_T := (others => '0');
   constant ONES_CMD : CMD_T := (others => '1');
+
+  constant ZERO_480 : std_logic_vector(479 downto 0) := (others => '0');
   
   constant ZEROS32 : std_logic_vector(31 downto 0) := (others => '0');
   constant ONES32 : std_logic_vector(31 downto 0) := (others => '1');
@@ -40,6 +43,7 @@ package defs is
   constant ADR_MASK : MSG_T := "0" & ZEROS_CMD & ONES32 & ZEROS32;
   constant DAT_MASK : MSG_T := "0" & ZEROS_CMD & ZEROS32 & ONES32;
 
+  subtype DEVID_T is std_logic_vector(2 downto 0);
   constant CPU0_ID  : std_logic_vector(2 downto 0) := "000";
   constant GFX_ID   : std_logic_vector(2 downto 0) := "001";
   constant UART_ID  : std_logic_vector(2 downto 0) := "010";
@@ -47,6 +51,10 @@ package defs is
   constant AUDIO_ID : std_logic_vector(2 downto 0) := "100";
   constant CPU1_ID  : std_logic_vector(2 downto 0) := "101";
 
+  constant GFX_MASK32 : DAT_T := X"0000000" & "1" & GFX_ID;
+  constant CPU0_MASK32 : ADR_T := X"0000000" & "1" & CPU0_ID;
+  constant CPU1_MASK32 : ADR_T := X"0000000" & "1" & CPU1_ID;
+  
   constant CACHE0_ID : std_logic_vector(2 downto 0) := "110";
   constant CACHE1_ID  : std_logic_vector(2 downto 0) := "111";
   
@@ -56,7 +64,12 @@ package defs is
   -- indices
   --constant MEM_FOUND_IDX : positive := 56;
   constant MSG_VAL_IDX : natural := 72;
-  constant MSG_CMD_IDX : natural := 63;
-  constant MSG_ADR_IDX : natural := 31;  
+  constant MSG_CMD_IDX : natural := 64;
+  constant MSG_ADR_IDX : natural := 32;  
   constant MSG_DAT_IDX : natural := 0;
+
+  -- PWRCMD is:
+  --  a total of 73 bits:
+  --     valid_bit & cmd[8] & src[8] & dst[8] & unused[24] 
+  
 end defs;

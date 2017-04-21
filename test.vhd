@@ -27,7 +27,7 @@ package test is
   -- gfx upstream read req
   constant GFX_R_TEST : TEST_T := (4=>'1', others => '0');
   --* ic sends a pwr req to power up gfx
-  constant IC_PWR_GFX_TEST : TEST_T := (5=>'1', others => '0');
+  constant PWRUP_TEST : TEST_T := (5=>'1', others => '0');
 
   --* cpus 1 and 2 execute petersons algorithm
   constant PETERSONS_TEST : TEST_T := (6=>'1', others => '0');
@@ -48,11 +48,11 @@ package test is
                      variable st : inout natural;
                      constant next_st : in natural);
 
-  constant RND1_TEST : TEST_T := (7=>'1', others => '0');
+  constant PER_TEST : TEST_T := (7=>'1', others => '0');
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T := RND1_TEST;
+  constant RUN_TEST : TEST_T := PWRUP_TEST;
                                         --CPU_W20_TEST;
                                         --PETERSONS_TEST; --ZERO_TEST;
                                                  --CPU1_R_TEST or

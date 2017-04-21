@@ -4,7 +4,7 @@ USE IEEE.NUMERIC_STD.ALL;
 
 entity fifo is
   Generic (
-    constant DATA_WIDTH  : positive := 73;
+    constant DATA_WIDTH  : positive := 553;
     constant FIFO_DEPTH	: positive := 256
 	);
   Port ( 
@@ -22,7 +22,6 @@ end fifo;
 architecture rtl of fifo is
 
 begin
-
   -- Memory Pointer Process
   fifo_proc : process (CLK)
     type FIFO_Memory is

@@ -1,10 +1,11 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
+use work.defs.all;
 
 entity arbiter2 is
   Generic (
-    constant DATA_WIDTH  : positive := 73
+    constant DATA_WIDTH  : positive := MSG_WIDTH
 	);
   Port (
     clock: in std_logic;

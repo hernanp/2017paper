@@ -22,7 +22,7 @@ architecture tb of top is
 
   signal reset : std_logic := '1';
   
-  signal full_c1_u, full_c2_u, full_b_m         : std_logic;
+  signal full_c1_u, full_c2_u, full_b_m : std_logic;
   signal cpu_res1, cpu_res2, cpu_req1, cpu_req2 : MSG_T;
   signal bus_res1, bus_res2 : std_logic_vector(552 downto 0);
   signal snp_hit1, snp_hit2 : std_logic;
@@ -41,7 +41,8 @@ architecture tb of top is
   signal done1, done2                   : std_logic;
   signal mem_wb, wb_req1, wb_req2       : std_logic_vector(552 downto 0);
   signal wb_ack                         : std_logic;
-  signal ic_pwr_req, ic_pwr_res         : std_logic_vector(4 downto 0);
+  signal ic_pwr_req : MSG_T;
+  signal ic_pwr_res : MSG_T;
   signal pwr_req_full                   : std_logic;
 
   signal gfx_b, togfx                 : WMSG_T;
@@ -49,10 +50,10 @@ architecture tb of top is
   signal gfx_upreq_full, gfx_wb_ack   : std_logic;
 
   -- pwr
-  signal pwr_gfx_req, pwr_gfx_res       : std_logic_vector(2 downto 0);
-  signal pwr_audio_req, pwr_audio_res   : std_logic_vector(2 downto 0);
-  signal pwr_usb_req, pwr_usb_res       : std_logic_vector(2 downto 0);
-  signal pwr_uart_req, pwr_uart_res     : std_logic_vector(2 downto 0);
+  signal pwr_gfx_req, pwr_gfx_res       : MSG_T;
+  signal pwr_audio_req, pwr_audio_res   : MSG_T;
+  signal pwr_usb_req, pwr_usb_res       : MSG_T;
+  signal pwr_uart_req, pwr_uart_res     : MSG_T;
   
   signal audio_b, toaudio                   : std_logic_vector(53 downto 0);
   signal audio_upreq, audio_upres, audio_wb : MSG_T;
@@ -254,42 +255,42 @@ begin
    --done    => done2
     );
 
-  --proc1 : entity work.proc(rtl) port map(
-  --  reset => reset,
-  --  clock => clock,
-  --  -- cpu ports
-  --  proc_id_i => 1,
-  --  cpu_req_dbg_o => cpu_req1,
-  --  -- cache ports
-  --  cpu_res_o => cpu_res1,
+  ----proc1 : entity work.proc(rtl) port map(
+  ----  reset => reset,
+  ----  clock => clock,
+  ----  -- cpu ports
+  ----  proc_id_i => 1,
+  ----  cpu_req_dbg_o => cpu_req1,
+  ----  -- cache ports
+  ----  cpu_res_o => cpu_res1,
 
-  --  snp_req_i  => snp_req1, -- snoop req from cache 2
-  --  snp_hit_o => snp_hit1,
-  --  snp_res_o => snp_res1,
+  ----  snp_req_i  => snp_req1, -- snoop req from cache 2
+  ----  snp_hit_o => snp_hit1,
+  ----  snp_res_o => snp_res1,
 
-  --  up_snp_req_i  => up_snp_req, -- upstream snoop req 
-  --  up_snp_hit_o => up_snp_hit,
-  --  up_snp_res_o => up_snp_res,
+  ----  up_snp_req_i  => up_snp_req, -- upstream snoop req 
+  ----  up_snp_hit_o => up_snp_hit,
+  ----  up_snp_res_o => up_snp_res,
 
-  --  snp_req_o => snp_req2, -- fwd snp req to other cache
-  --  snp_hit_i => snp_hit2,
-  --  snp_res_i => snp_res2,
+  ----  snp_req_o => snp_req2, -- fwd snp req to other cache
+  ----  snp_hit_i => snp_hit2,
+  ----  snp_res_i => snp_res2,
 
-  --  ----------------------------------------------------------
-  --  dn_snp_req_o  => bus_req1, -- snp req to ic
-  --  dn_snp_res_i   => bus_res1, -- snp resp from ic    
+  ----  ----------------------------------------------------------
+  ----  dn_snp_req_o  => bus_req1, -- snp req to ic
+  ----  dn_snp_res_i   => bus_res1, -- snp resp from ic    
 
-  --  wb_req_o      => wb_req1, -- TODO what is it doing?
-  --                          -- is it supposed be implemented outside cache?
+  ----  wb_req_o      => wb_req1, -- TODO what is it doing?
+  ----                          -- is it supposed be implemented outside cache?
     
-  --  bsf_full_o    => full_brs1, -- bus resp fifo full
-  --  srf_full_o    => full_srs2, 
-  --  crf_full_o    => full_c1_u,
+  ----  bsf_full_o    => full_brs1, -- bus resp fifo full
+  ----  srf_full_o    => full_srs2, 
+  ----  crf_full_o    => full_c1_u,
 	 
-  --  full_crq_i    => full_crq1,
-  --  full_wb_i     => full_wb1,  -- TODO are these outputs not implemented yet?
-  --  full_srs_i    => full_srs1
-  --  );
+  ----  full_crq_i    => full_crq1,
+  ----  full_wb_i     => full_wb1,  -- TODO are these outputs not implemented yet?
+  ----  full_srs_i    => full_srs1
+  ----  );
   
   cache1 : entity work.l1_cache(rtl) port map(
     Clock       => Clock,
@@ -312,7 +313,7 @@ begin
     snp_res_i => snp_res2,
 
     bus_req_o  => bus_req1, -- mem or pwr req to ic
-    bus_res_i   => bus_res1, -- snp resp from ic    
+    bus_res_i   => bus_res1, -- mem or pwr resp from ic    
 
     wb_req_o      => wb_req1, -- TODO what is it doing?
                             -- is it supposed be implemented outside cache?
@@ -383,18 +384,25 @@ begin
     );
 
   interconnect : entity work.ic(rtl) port map(
-    gfx_upreq_i     => gfx_upreq,
-    gfx_upres_o    => gfx_upres,
-    gfx_upreq_full   => gfx_upreq_full,
-    audio_upreq      => audio_upreq,
-    audio_upres      => audio_upres,
-    audio_upreq_full => audio_upreq_full,
-    usb_upreq        => usb_upreq,
-    usb_upres        => usb_upres,
-    usb_upreq_full   => usb_upreq_full,
-    uart_upreq       => uart_upreq,
-    uart_upres       => uart_upres,
-    uart_upreq_full  => uart_upreq_full,
+    Clock            => Clock,
+    reset            => reset,
+    
+    gfx_upreq_i      => gfx_upreq,
+    gfx_upres_o      => gfx_upres,
+    gfx_upreq_full_o => gfx_upreq_full,
+    
+    audio_upreq_i      => audio_upreq,
+    audio_upres_o      => audio_upres,
+    audio_upreq_full_o => audio_upreq_full,
+
+    usb_upreq_i        => usb_upreq,
+    usb_upres_o        => usb_upres,
+    usb_upreq_full_o   => usb_upreq_full,
+
+    uart_upreq_i       => uart_upreq,
+    uart_upres_o       => uart_upres,
+    uart_upreq_full_o  => uart_upreq_full,
+
     -- write
     waddr            => waddr,
     wlen             => wlen,
@@ -519,24 +527,31 @@ begin
     rdvalid_audio    => rdvalid_audio,
     rdready_audio    => rdready_audio,
     rres_audio       => rres_audio,
-    Clock            => Clock,
-    reset            => reset,
-    cache1_req_i    => bus_req1,
-    cache2_req_i    => bus_req2,
-    wb_req1          => wb_req1,
-    wb_req2          => wb_req2,
+
+    up_snp_res_i     => up_snp_res,
+    up_snp_hit_i     => up_snp_hit,
+
+    cache1_req_i     => bus_req1,
+    cache2_req_i     => bus_req2,
+
+    pwr_res_i        => ic_pwr_res,
+    
+    wb_req1_i        => wb_req1,
+    wb_req2_i        => wb_req2,
+    pwr_req_full_i   => pwr_req_full,
+
+    full_snp_req1_i  => full_srq1,
+    
     bus_res1_o     => bus_res1,
     bus_res2_o     => bus_res2,
     up_snp_req_o   => up_snp_req,
-    up_snp_res_i    => up_snp_res,
-    up_snp_hit_i    => up_snp_hit,
-    full_srq1        => full_srq1,
-    full_wb1         => full_wb1,
-    full_srs1        => full_srs1,
-    full_wb2         => full_wb2,
-    pwr_req_o      => ic_pwr_req,
-    pwr_res_i       => ic_pwr_res,
-    pwr_req_full     => pwr_req_full
+
+    full_wb1_o         => full_wb1,
+    full_srs1_o        => full_srs1,
+    full_wb2_o         => full_wb2,
+     --full_mrs_o
+    
+    pwr_req_o        => ic_pwr_req
     );
 
   gfx : entity work.peripheral(rtl) port map(
@@ -748,44 +763,44 @@ begin
     rres_out   => rres
     );
 
-  -- Clock generation, starts at 0
+  -- -- Clock generation, starts at 0
   tb_clk <= not tb_clk after tb_period/2 when tb_sim_ended /= '1' else '0';
   Clock <= tb_clk;
   
-  --log_up_snp : process(tb_clk)
-  --  variable l : line;
-  --  constant SEP : String(1 to 1) := ",";
-  --  file log_file : TEXT open write_mode is "up_snp.log";
-  --begin
-  --  if rising_edge(tb_clk) then
-  --    write(l, gfx_upreq);
-  --    write(l, SEP);
-  --    write(l, up_snp_req);
-  --    write(l, SEP);
-  --    write(l, snp_req2);
-  --    write(l, SEP);
-  --    write(l, snp_res2);
-  --    write(l, SEP);
-  --    write(l, up_snp_res);
-  --    write(l, SEP);
-  --    write(l, rvalid);
-  --    write(l, SEP);
-  --    write(l, rres);
-  --    writeline(log_file, l); 
-  --  end if;
-  --end process;
+  ----log_up_snp : process(tb_clk)
+  ----  variable l : line;
+  ----  constant SEP : String(1 to 1) := ",";
+  ----  file log_file : TEXT open write_mode is "up_snp.log";
+  ----begin
+  ----  if rising_edge(tb_clk) then
+  ----    write(l, gfx_upreq);
+  ----    write(l, SEP);
+  ----    write(l, up_snp_req);
+  ----    write(l, SEP);
+  ----    write(l, snp_req2);
+  ----    write(l, SEP);
+  ----    write(l, snp_res2);
+  ----    write(l, SEP);
+  ----    write(l, up_snp_res);
+  ----    write(l, SEP);
+  ----    write(l, rvalid);
+  ----    write(l, SEP);
+  ----    write(l, rres);
+  ----    writeline(log_file, l); 
+  ----  end if;
+  ----end process;
 
-  --rand_template: process(tb_clk)
-  --  variable b : boolean := true;
-  --  variable max : positive := 255;
-  --begin
-  --  if b then
-  --    report integer'image(time'pos(now));
-  --    report integer'image(to_int(max'instance_name));
-  --    report integer'image(rand_int(max,to_int(max'instance_name)));
-  --    b := false;
-  --  end if;
-  --end process;
+  ----rand_template: process(tb_clk)
+  ----  variable b : boolean := true;
+  ----  variable max : positive := 255;
+  ----begin
+  ----  if b then
+  ----    report integer'image(time'pos(now));
+  ----    report integer'image(to_int(max'instance_name));
+  ----    report integer'image(rand_int(max,to_int(max'instance_name)));
+  ----    b := false;
+  ----  end if;
+  ----end process;
   
   logger : process(tb_clk)
     file trace_file : TEXT open write_mode is "trace1.txt";
@@ -949,6 +964,7 @@ begin
         write(l, audio_upres);
 
         ---- pwr
+        -- TODO add:
         -- ic_pwr_req
         -- ic_pwr_res
 
@@ -961,96 +977,96 @@ begin
     end if;
   end process;
 
-  ic_pwr_gfx_mon : process
-    variable m, t : time := 0 ps;
-    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
-    variable zeros73 : MSG_T := (others => '0');
-  begin
-    if is_tset(IC_PWR_GFX_TEST) then
-      wait until cpu_res1 /= zeros73;
-      report "IC_PWR_GFX_TEST OK";
-    end if;
-    wait;
-  end process;
+  --pwr_test_mon : process
+  --  variable m, t : time := 0 ps;
+  --  variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+  --  variable zeros73 : MSG_T := (others => '0');
+  --begin
+  --  if is_tset(PWRUP_TEST) then
+  --    wait until cpu_res1 /= zeros73;
+  --    report "PWRUP_TEST OK";
+  --  end if;
+  --  wait;
+  --end process;
   
-  gfx_r_mon : process
-    variable m, t : time := 0 ps;
-    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
-    variable zeros73 : MSG_T := (others => '0');
-  begin
-    if is_tset(GFX_R_TEST) then
-      wait until gfx_upres /= zeros73;
-      report "GFX_R_TEST OK";
-    end if;
-    wait;
-  end process;
+  --gfx_r_mon : process
+  --  variable m, t : time := 0 ps;
+  --  variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+  --  variable zeros73 : MSG_T := (others => '0');
+  --begin
+  --  if is_tset(GFX_R_TEST) then
+  --    wait until gfx_upres /= zeros73;
+  --    report "GFX_R_TEST OK";
+  --  end if;
+  --  wait;
+  --end process;
   
-  cpu2_w_mon : process
-    variable m, t : time := 0 ps;
-    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
-    variable zeros73 : MSG_T := (others => '0');
-  begin
-    if is_tset(CPU2_W_TEST) then
-      wait until cpu_res2 /= zeros73;
-      report "CPU2_W_TEST OK";
-    ---- TODO ... more tests here ...
-      --m := 510 ps;
-      --wait for m - t;
-      --t := m;
-      --assert cpu_res2 /= zeros73 report "cpu2_w_mon, msg 8: cpu_res2 is 0" severity error;
-    end if;
-    wait;
-  end process;
+  --cpu2_w_mon : process
+  --  variable m, t : time := 0 ps;
+  --  variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+  --  variable zeros73 : MSG_T := (others => '0');
+  --begin
+  --  if is_tset(CPU2_W_TEST) then
+  --    wait until cpu_res2 /= zeros73;
+  --    report "CPU2_W_TEST OK";
+  --  ---- TODO ... more tests here ...
+  --    --m := 510 ps;
+  --    --wait for m - t;
+  --    --t := m;
+  --    --assert cpu_res2 /= zeros73 report "cpu2_w_mon, msg 8: cpu_res2 is 0" severity error;
+  --  end if;
+  --  wait;
+  --end process;
     
-  cpu1_r_mon : process
-    variable m, t : time := 0 ps;
-    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
-    variable zeros73 : std_logic_vector(72 downto 0) := (others => '0');
-  begin
-    if is_tset(CPU1_R_TEST) then
-      m := 70 ps;
-      wait for m - t;
-      t := m;
-      assert cpu_req1 /= zeros73 report "cpu1_r_mon, msg 1: cpu_req1 is 0" severity error;
+  --cpu1_r_mon : process
+  --  variable m, t : time := 0 ps;
+  --  variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
+  --  variable zeros73 : std_logic_vector(72 downto 0) := (others => '0');
+  --begin
+  --  if is_tset(CPU1_R_TEST) then
+  --    m := 70 ps;
+  --    wait for m - t;
+  --    t := m;
+  --    assert cpu_req1 /= zeros73 report "cpu1_r_mon, msg 1: cpu_req1 is 0" severity error;
       
-      m := 140 ps;
-      wait for m - t;
-      t := m;
-      assert snp_req2 /= zeros73 report "cpu1_r_mon, msg 2: snp_req2 is 0" severity error;
+  --    m := 140 ps;
+  --    wait for m - t;
+  --    t := m;
+  --    assert snp_req2 /= zeros73 report "cpu1_r_mon, msg 2: snp_req2 is 0" severity error;
       
-      m := 220 ps;
-      wait for m - t;
-      t := m;
-      assert snp_res2 /= zeros73 report "cpu1_r_mon, msg 3: snp_res2 is 0" severity error;
+  --    m := 220 ps;
+  --    wait for m - t;
+  --    t := m;
+  --    assert snp_res2 /= zeros73 report "cpu1_r_mon, msg 3: snp_res2 is 0" severity error;
       
-      m := 230 ps;
-      wait for m - t;
-      t := m;
-      assert bus_req1 /= zeros73 report "cpu1_r_mon, msg 4: bus_req1 is 0" severity error;
+  --    m := 230 ps;
+  --    wait for m - t;
+  --    t := m;
+  --    assert bus_req1 /= zeros73 report "cpu1_r_mon, msg 4: bus_req1 is 0" severity error;
       
-      m := 280 ps;
-      wait for m - t;
-      t := m;
-      assert rvalid /= '0' report "cpu1_r_mon, msg 5: rvalid is 0" severity error;
+  --    m := 280 ps;
+  --    wait for m - t;
+  --    t := m;
+  --    assert rvalid /= '0' report "cpu1_r_mon, msg 5: rvalid is 0" severity error;
       
-      m := 300 ps;
-      wait for m - t;
-      t := m;
-      assert rdvalid /= '0' report "cpu1_r_mon, msg 6: rdvalid is 0" severity error;
+  --    m := 300 ps;
+  --    wait for m - t;
+  --    t := m;
+  --    assert rdvalid /= '0' report "cpu1_r_mon, msg 6: rdvalid is 0" severity error;
       
-      m := 440 ps;
-      wait for m - t;
-      t := m;
-      assert bus_res1 /= zeros73 report "cpu1_r_mon, msg 7: bus_res1 is 0" severity error;
+  --    m := 440 ps;
+  --    wait for m - t;
+  --    t := m;
+  --    assert bus_res1 /= zeros73 report "cpu1_r_mon, msg 7: bus_res1 is 0" severity error;
       
-      m := 550 ps;
-      wait for m - t;
-      t := m;
-      assert cpu_res1 /= zeros73 report "cpu1_r_mon, msg 8: cpu_res1 is 0" severity error;
-    --check_inv(t, 550 ps, cpu_res1 /= zeros73, "cpu1_r_mon, msg 8: cpu_res1 is 0");
-    end if;
-    wait;
-  end process;
+  --    m := 550 ps;
+  --    wait for m - t;
+  --    t := m;
+  --    assert cpu_res1 /= zeros73 report "cpu1_r_mon, msg 8: cpu_res1 is 0" severity error;
+  --  --check_inv(t, 550 ps, cpu_res1 /= zeros73, "cpu1_r_mon, msg 8: cpu_res1 is 0");
+  --  end if;
+  --  wait;
+  --end process;
   
   stimuli : process
   begin

@@ -114,13 +114,11 @@ architecture rtl of l1_cache is
   signal upreq : std_logic_vector(75 downto 0); -- used only by up_snp_req_handler
   signal snpreq       : MSG_T; -- used only by cpu_req_handler
   
-  constant DEFAULT_DATA_WIDTH : positive := MSG_WIDTH;
-  constant DEFAULT_WDATA_WIDTH : positive := WMSG_WIDTH;
   constant DEFAULT_FIFO_DEPTH : positive := 256;
 begin
   cpu_req_fifo : entity work.fifo(rtl)
     generic map(
-      DATA_WIDTH => DEFAULT_DATA_WIDTH,
+      DATA_WIDTH => MSG_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
@@ -135,7 +133,7 @@ begin
       );
   snp_res_fifo : entity work.fifo(rtl)
     generic map(
-      DATA_WIDTH => DEFAULT_DATA_WIDTH,
+      DATA_WIDTH => MSG_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
@@ -150,7 +148,7 @@ begin
       );
   up_snp_req_fifo : entity work.fifo(rtl) -- req from device
     generic map(
-      DATA_WIDTH => DEFAULT_WDATA_WIDTH,
+      DATA_WIDTH => WMSG_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
@@ -182,7 +180,7 @@ begin
   
   snp_req_fifo : entity work.fifo(rtl)
     generic map(
-      DATA_WIDTH => DEFAULT_DATA_WIDTH,
+      DATA_WIDTH => MSG_WIDTH,
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
     port map(
@@ -307,8 +305,8 @@ begin
       cpu_res1  <= nilreq;
       mcu_write_req <= nilreq;
       bus_req_o <= nilreq;
-		crf_re <='0';
-		snp_c_req1 <=(others =>'0');
+      crf_re <='0';
+      snp_c_req1 <=(others =>'0');
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
       if st = 0 then -- wait_fifo
@@ -475,28 +473,28 @@ begin
   end process;
 
   --* Process pwr response
-  pwr_res_handler : process(reset,clock)
-    variable tmp_msg : MSG_T;
-  begin
-    if reset='1' then
-    elsif rising_edge(Clock) then
-      tmp_msg := bus_res(BMSG_WIDTH-1 downto BMSG_WIDTH - MSG_WIDTH);
-      if is_valid(tmp_msg) and is_pwr_cmd(tmp_msg) then
-        cpu_res_o <= tmp_msg;
-      end if;
-    end if;
-  end process;
+  --pwr_res_handler : process(reset,clock)
+  --  variable tmp_msg : MSG_T;
+  --begin
+  --  if reset='1' then
+  --  elsif rising_edge(Clock) then
+  --    tmp_msg := bus_res(BMSG_WIDTH-1 downto BMSG_WIDTH - MSG_WIDTH);
+  --    if is_valid(tmp_msg) and is_pwr_cmd(tmp_msg) then
+  --      report integer'image(BMSG_WIDTH - MSG_WIDTH);
+  --      cpu_res2 <= tmp_msg; -- TODO should be cpu_res3
+  --    end if;
+  --  end if;
+  --end process;
   
   --* Process snoop response (to snoop request issued by this cache)
   bus_res_handler : process(reset, Clock)
-    variable nilreq : MSG_T := (others => '0');
-    variable state  : integer                       := 0;
+    variable state  : integer := 0;
   begin
     if reset = '1' then
       -- reset signals
-      cpu_res2 <= nilreq;
+      cpu_res2 <= (others => '0');
     --upd_req <= nilreq;
-	 bsf_re <='0';
+     bsf_re <='0';
     elsif rising_edge(Clock) then
       if state = 0 then -- wait_fifo
         if bsf_re = '0' and bsf_emp = '0' then
@@ -504,14 +502,14 @@ begin
           state := 1;
         end if;
       elsif state = 1 then -- 
-        bsf_re <= '0';
+        bsf_re <= '0';        
         if upd_ack = '1' then
           cpu_res2 <= '1' & upd_res;
           state    := 2;
         end if;
       elsif state = 2 then -- 
         if ack2 = '1' then -- TODO ack2 from cpu_resp_arbiter? meaning?
-          cpu_res2 <= nilreq;
+          cpu_res2 <= (others => '0');
           state    := 0;
         end if;
       end if;

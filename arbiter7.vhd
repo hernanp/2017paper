@@ -4,7 +4,7 @@ USE ieee.numeric_std.ALL;
 
 entity arbiter7 is
 	Generic (
-		constant DATA_WIDTH  : positive := 73
+		constant DATA_WIDTH  : positive := 553
 	);
     Port (
             clock: in std_logic;

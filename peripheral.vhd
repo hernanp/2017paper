@@ -39,8 +39,8 @@ entity peripheral is
        rdvalid_o     : out std_logic;
        rdready_i     : in  std_logic;
        rres_o        : out std_logic_vector(1 downto 0);
-       pwr_req_i     : in  std_logic_vector(2 downto 0);
-       pwr_res_o     : out std_logic_vector(2 downto 0);
+       pwr_req_i     : in  MSG_T;
+       pwr_res_o     : out MSG_T;
        
        -- up req
        upreq_o       : out std_logic_vector(72 downto 0);
@@ -159,23 +159,21 @@ begin
   end process;
 
   pwr_req_handler : process(Clock)
+    variable pwr_req : MSG_T;
   begin
     if reset = '1' then
       pwr_res_o <= (others => '0');
 
-    elsif (rising_edge(Clock)) then
-      if pwr_req_i(2 downto 2) = "1" then
-        if pwr_req_i(1 downto 0) = "00" then
-          poweron <= '0';
-        elsif (pwr_req_i(1 downto 0) = "11" or
-               pwr_req_i(1 downto 0) = "10") then
-          poweron <= '1';
-        end if;
-        pwr_res_o <= pwr_req_i;
+    elsif (rising_edge(clock)) then
+      pwr_res_o <= pwr_req;
+      pwr_req := pwr_req_i;
+      if get_cmd(pwr_req) = PWRUP_CMD then
+        poweron <= '1';
+      elsif get_cmd(pwr_req) = PWRDN_CMD then
+        poweron <= '0';
       else
-        pwr_res_o <= "000";
+        pwr_req := (others => '0');
       end if;
-
     end if;
   end process;
 
@@ -183,10 +181,10 @@ begin
     variable ct : natural;
     variable st : natural := 0;
   begin
-    if is_tset(RND1_TEST) then
+    if is_tset(PER_TEST) then
       if reset = '1' then
         upreq_o <= (others => '0');
-        ct := rand_nat(to_integer(unsigned(RND1_TEST)));
+        ct := rand_nat(to_integer(unsigned(PER_TEST)));
         --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
         --        to_integer(unsigned(GFX_R_TEST)));
         st := 0;
