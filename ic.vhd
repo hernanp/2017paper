@@ -575,6 +575,7 @@ begin
     variable lp      : integer                        := 0;
     variable tep_mem : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot : integer;
   begin
     if reset = '1' then
       rvalid_out  <= '0';
@@ -613,6 +614,7 @@ begin
           --mem_ack <= '0';
           rvalid_out <= '1';
           raddr  <= tep_mem(63 downto 32);
+			 slot := to_integer(unsigned(tep_mem(35 downto 32)));
           if (dst_eq(tep_mem, CPU0_ID) or
               dst_eq(tep_mem, CPU1_ID)) then
             rlen <= "00000" & "10000";
@@ -631,7 +633,11 @@ begin
           if (dst_eq(tep_mem, CPU0_ID) or
               dst_eq(tep_mem, CPU1_ID)) then
             rdready <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata;
+				if lp=slot and cmd_eq(tep_mem, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_mem(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata;
+				end if;
             lp := lp + 1;
             if rlast = '1' then
               state := 3;
@@ -735,6 +741,7 @@ begin
     variable lp      : integer                        := 0;
     variable tep_gfx1 : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot : integer :=0;
   begin
     if reset = '1' then
       rvalid_gfx  <= '0';
@@ -765,6 +772,7 @@ begin
           ---gfx_ack <= '0';
           rvalid_gfx <= '1';
           raddr_gfx  <= tep_gfx1(63 downto 32);
+			 slot := to_integer(unsigned(tep_gfx1(35 downto 32)));
           if (dst_eq(tep_gfx1, CPU0_ID) or
               dst_eq(tep_gfx1, CPU1_ID)) then
             rlen_gfx <= "00000" & "10000";
@@ -782,8 +790,12 @@ begin
         if rdvalid_gfx = '1' and rres_gfx = "00" then
           if (dst_eq(tep_gfx1, CPU0_ID) or
               dst_eq(tep_gfx1, CPU1_ID)) then
+				if lp=slot and cmd_eq(tep_gfx1, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_gfx1(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata_gfx;
+				end if;
             rdready_gfx                        <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata_gfx;
             lp                                 := lp + 1;
             if rlast_gfx = '1' then
               state := 3;
@@ -1284,6 +1296,7 @@ begin
     variable lp      : integer                        := 0;
     variable tep_usb : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot :integer :=0;
   begin
     if reset = '1' then
       rvalid_usb  <= '0';
@@ -1312,6 +1325,7 @@ begin
           ---usb_ack <= '0';
           rvalid_usb <= '1';
           raddr_usb  <= tep_usb(63 downto 32);
+			 slot := to_integer(unsigned(tep_usb(35 downto 32)));
           if (dst_eq(tep_usb, CPU0_ID) or
               dst_eq(tep_usb, CPU1_ID)) then
             rlen_usb <= "00000" & "10000";
@@ -1330,7 +1344,11 @@ begin
           if (dst_eq(tep_usb, CPU0_ID) or
               dst_eq(tep_usb, CPU1_ID)) then
             rdready_usb                        <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata_usb;
+				if lp=slot and cmd_eq(tep_usb, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_usb(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata_usb;
+				end if;
             lp                                 := lp + 1;
             if rlast_usb = '1' then
               state := 3;
@@ -1519,6 +1537,7 @@ begin
     variable lp       : integer                        := 0;
     variable tep_uart : std_logic_vector(75 downto 0);
     variable nullreq  : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot:integer :=0;
   begin
     if reset = '1' then
       rvalid_uart  <= '0';
@@ -1547,6 +1566,7 @@ begin
           ---uart_ack <= '0';
           rvalid_uart <= '1';
           raddr_uart  <= tep_uart(63 downto 32);
+			 slot := to_integer(unsigned(tep_uart(35 downto 32)));
           if (dst_eq(tep_uart, CPU0_ID) or
               dst_eq(tep_uart, CPU1_ID)) then
             rlen_uart <= "00000" & "10000";
@@ -1565,7 +1585,12 @@ begin
           if (dst_eq(tep_uart, CPU0_ID) or
               dst_eq(tep_uart, CPU1_ID)) then
             rdready_uart                       <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata_uart;
+				if lp=slot and cmd_eq(tep_uart, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_uart(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata_uart;
+				end if;
+            
             lp                                 := lp + 1;
             if rlast_uart = '1' then
               state := 3;
@@ -1853,6 +1878,7 @@ begin
     variable lp        : integer                        := 0;
     variable tep_audio : std_logic_vector(75 downto 0);
     variable nullreq   : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot :integer :=0;
   begin
     if reset = '1' then
       rvalid_audio  <= '0';
@@ -1881,6 +1907,7 @@ begin
           ---audio_ack <= '0';
           rvalid_audio <= '1';
           raddr_audio  <= tep_audio(63 downto 32);
+			 slot := to_integer(unsigned(tep_audio(35 downto 32)));
           if (dst_eq(tep_audio, CPU0_ID) or
               dst_eq(tep_audio, CPU1_ID)) then
             rlen_audio <= "00000" & "10000";
@@ -1899,7 +1926,11 @@ begin
           if (dst_eq(tep_audio, CPU0_ID) or
               dst_eq(tep_audio, CPU1_ID)) then
             rdready_audio                      <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata_audio;
+				if lp=slot and cmd_eq(tep_audio, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_audio(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata_audio;
+				end if;
             lp                                 := lp + 1;
             if rlast_audio = '1' then
               state := 3;

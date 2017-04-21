@@ -705,7 +705,7 @@ begin
   --  end if;
   --end process;
       
-  logger : process(tb_clk)
+logger : process(tb_clk)
     file trace_file : TEXT open write_mode is "trace1.txt";
     variable l : line;
     constant SEP : String(1 to 1) := ",";
@@ -762,6 +762,8 @@ begin
         write(l, SEP);
         write(l, rdvalid);
         write(l, SEP);
+		  write(l, rlast);
+		  write(l, SEP);
         ---- write
         write(l, wvalid);
         write(l, SEP);
@@ -769,12 +771,16 @@ begin
         write(l, SEP);
         write(l, wrvalid);
         write(l, SEP);
+		  write(l, wlast);
+		  write(l, SEP);
 
         ---- gfx
         ---- read
         write(l, rvalid_gfx);
         write(l, SEP);
         write(l, rdvalid_gfx);
+        write(l, SEP);
+        write(l, rlast_gfx);
         write(l, SEP);
         ---- write
         write(l, wvalid_gfx);
@@ -783,12 +789,16 @@ begin
         write(l, SEP);
         write(l, wrvalid_gfx);
         write(l, SEP);
+        write(l, wlast_gfx);
+        write(l, SEP);
 
         ---- uart
         ---- read
         write(l, rvalid_uart);
         write(l, SEP);
         write(l, rdvalid_uart);
+        write(l, SEP);
+        write(l, rlast_uart);
         write(l, SEP);
         ---- write
         write(l, wvalid_uart);
@@ -797,12 +807,16 @@ begin
         write(l, SEP);
         write(l, wrvalid_uart);
         write(l, SEP);
+        write(l, wlast_uart);
+        write(l, SEP);
 
         ---- usb
         ---- read
         write(l, rvalid_usb);
         write(l, SEP);
         write(l, rdvalid_usb);
+        write(l, SEP);
+        write(l, rlast_usb);
         write(l, SEP);
         ---- write
         write(l, wvalid_usb);
@@ -811,6 +825,8 @@ begin
         write(l, SEP);
         write(l, wrvalid_usb);
         write(l, SEP);
+        write(l, wlast_usb);
+        write(l, SEP);
 
         ---- audio
         ---- read
@@ -818,12 +834,16 @@ begin
         write(l, SEP);
         write(l, rdvalid_audio);
         write(l, SEP);
+        write(l, rlast_audio);
+        write(l, SEP);
         ---- write
         write(l, wvalid_audio);
         write(l, SEP);
         write(l, waddr_audio);
         write(l, SEP);
         write(l, wrvalid_audio);
+        write(l, SEP);
+        write(l, wlast_audio);
         write(l, SEP);
         
         ---- pwr
