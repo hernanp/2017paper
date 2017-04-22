@@ -60,6 +60,8 @@ architecture rtl of peripheral is
   signal emp3, emp2 : std_logic := '0';
   signal tmp_req : std_logic_vector(50 downto 0);
 
+  signal sim_end : std_logic := '0';
+  
 begin
 
   --upreq_o_arbiter : entity work.arbiter2(rtl)
@@ -192,6 +194,18 @@ begin
     end if;
   end process;
 
+  clk_counter : process(clock, sim_end)
+    variable count : natural := 0;
+    variable b : boolean := true;
+  begin
+    if sim_end = '1' and b then
+      report "per" & integer'image(to_integer(unsigned(devid_i))) & " sim ended, clock cycles is " & integer'image(count);
+      b := false;
+    elsif (rising_edge(clock)) then
+      count := count + 1;
+    end if;
+  end process;
+  
   t1 : process(clock, reset) -- up read test
     variable dc, tc, st_nxt : natural := 0;
     variable s : natural := to_integer(unsigned(devid_i));
@@ -209,6 +223,7 @@ begin
           rnd_dlay(b, s, dc, st, st_nxt);
         elsif st = 2 then -- done
           upreq_o <= (others => '0');
+          sim_end <= '1';
         elsif st = 0 then -- check
           if is_tset(UREQ_TEST) then
             if tc < UREQT_CNT then
@@ -217,7 +232,6 @@ begin
               st_nxt := 3;
               st := 1;
             else
-              report "UREQT done";
               st := 2;
             end if;
           end if;

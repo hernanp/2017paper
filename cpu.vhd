@@ -45,7 +45,9 @@ begin
   --* t3: PETERSONS_TEST executes petersons algorithm
   --* t4: CPU_W20_TEST cpu 1 and 2 send 20 rand write reqs
   --* t5: CPU1_RW_04_TEST cpu1 writes and reads to mem[0..4]
-
+  --* t6: PWR_TEST
+  --* t7: RW_TEST
+  --* t8: RND_CPU_TEST
   cpu_test : process(reset, Clock)
     variable st, st_nxt : natural := 0;
     variable t1, t2, t3, t4, t5, t6, t7 : boolean := false;
@@ -82,6 +84,15 @@ begin
     variable t7_tc, t7_c, t7_r : natural := 0;
     variable t7_cmd : CMD_T;
     variable t7_adr : ADR_T;
+
+    ---- t8 vars
+    --variable t8_f : boolean := true;
+    --variable t8_s : natural := cpu_id_i;
+    --variable t8_tc, t8_c, t8_r : natural := 0;
+    --variable t8_cmd : CMD_T;
+    --variable t8_adr : ADR_T;
+    --variable t8_cpuid : DEVID_T;
+    --variable t8_devid : DEVID_T;
     
   begin
     -- Set up tests
@@ -271,7 +282,12 @@ begin
         --end if;
 
         -- do not wait for resp, dlay for rnd time and continue
-        st_nxt := 60;
+        if is_tset(RW_TEST) then
+          st_nxt := 80;
+        else
+          st_nxt := 60;
+        end if;
+
         st := 69;
       elsif st = 69 then -- delay
         rnd_dlay(t6_f, t6_s, t6_c, st, st_nxt);
@@ -289,7 +305,7 @@ begin
 
         -- rndmz cmd
         t7_r := rand_nat(cpu_id_i + t7_s);
-        report integer'image(cpu_id_i) & ", r is " & integer'image(t7_r);
+        --report integer'image(cpu_id_i) & ", r is " & integer'image(t7_r);
         if (t6_r mod 2) = 1 then
           t7_cmd := READ_CMD;
         else
@@ -297,8 +313,6 @@ begin
         end if;
 
         -- rndmz adr
-        -- TODO replace by rand_adr() to get better rnd vect
-        --t7_adr := std_logic_vector(to_unsigned(rand_nat(cpu_id_i + t7_s), t7_adr'length));
         t7_adr := rnd_adr(t7_r);
         
         cpu_req_o <= "1" & t7_cmd & t7_adr & t7_adr;
@@ -306,10 +320,23 @@ begin
       elsif st = 72 then -- wait some time        
         cpu_req_o <= (others => '0');
         -- do not wait for resp, dlay for rnd time and continue
-        st_nxt := 70;
+        if is_tset(PWR_TEST) then -- if pwrt is set, rndmly choose next one to
+                                  -- run
+          st_nxt := 80;
+        else
+          st_nxt := 70;
+        end if;
         st := 79;
       elsif st = 79 then -- delay
         rnd_dlay(t7_f, t7_s, t7_c, st, st_nxt);
+
+-- *** RND_CPU_TEST starts here ***
+      elsif st = 80 then -- rndmly choose between pwr_test and rw_test
+        if (rand_nat(t6_s + t7_s) mod 2) = 1 then
+          st := 60;
+        else
+          st := 70;
+        end if;
         
 -- *** Petersons algorithm starts here ***
       elsif st = 99 then -- delay
