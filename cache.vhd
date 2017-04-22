@@ -526,12 +526,14 @@ begin
   --*        snp_mem_ack, snp_mem_hit, snp_mem_res,
   --*        usnp_mem_ack, usnp_mem_hit, usnp_mem_res;
   --*      wb_req_o
+ --* Deal with cache memory
   mem_control_unit : process(reset, Clock)
     variable idx    : integer;
     variable memcont : std_logic_vector(52 downto 0);
-    variable nilreq  : MSG_T  := (others => '0');
+    variable nilreq  : std_logic_vector(72 downto 0)  := (others => '0');
     variable nilreq2 : std_logic_vector(552 downto 0) := (others => '0');
     variable shifter : boolean                        := false;
+	 variable turn: integer :=0;
   begin
     if (reset = '1') then
       -- reset signals;
@@ -544,28 +546,29 @@ begin
       snp_mem_res  <= nilreq(71 downto 0);
       write_ack <= '0';
       upd_ack   <= '0';
-      wb_req_o    <= nilreq2;
-
-      -- cpu memory request
-      if is_valid(bus_req_s) then
-        idx    := to_integer(unsigned(bus_req_s(45 downto 32)));
+      wb_req    <= nilreq2;
+		content1 <=ROM_array(7967);      -- cpu memory request
+      if is_valid(cpu_mem_req) then
+        idx    := to_integer(unsigned(cpu_mem_req(45 downto 32)));
+		  tindex <= cpu_mem_req(45 downto 32);
         memcont := ROM_array(idx);
+		  content <=ROM_array(idx);
         --if we can't find it in memory
         if memcont(52 downto 52) = "0" or
-          (bus_req_s(71 downto 64) = "10100000" and ---this should be read command
+          (cpu_mem_req(71 downto 64) = "10100000" and ---this should be read command
            memcont(50 downto 50) = "0") or
-          bus_req_s(71 downto 64) = "11000000" -- TODO writeback? how does it work?
-          or memcont(49 downto 32) /= bus_req_s(63 downto 46) then
+          cpu_mem_req(71 downto 64) = "11000000" -- TODO writeback? how does it work?
+          or memcont(49 downto 32) /= cpu_mem_req(63 downto 46) then
           cpu_mem_ack <= '1';
           cpu_mem_hit     <= '0';
-          cpu_mem_res <= bus_req_s(71 downto 0);
+          cpu_mem_res <= cpu_mem_req(71 downto 0);
         else -- it's a hit
           cpu_mem_ack <= '1';
           cpu_mem_hit     <= '1';
-          if bus_req_s(71 downto 64) = "10" then -- TODO why compare to 10?
-            cpu_mem_res <= bus_req_s(71 downto 0);
+          if cpu_mem_req(71 downto 64) = "10" then -- TODO why compare to 10?
+            cpu_mem_res <= cpu_mem_req(71 downto 0);
           else
-            cpu_mem_res <= bus_req_s(71 downto 32) & memcont(31 downto 0);
+            cpu_mem_res <= cpu_mem_req(71 downto 32) & memcont(31 downto 0);
           end if;
         end if;
       else
@@ -611,7 +614,7 @@ begin
         --invalide  ---or tag different
         --or its write, but not exclusive
         if memcont(52 downto 52) = "0" or -- mem not found
-          (bus_req_s(71 downto 64) = "10000000" and
+          (cpu_mem_req(71 downto 64) = "10000000" and
            memcont(50 downto 50) = "0") or -- TODO what is this bit?
           memcont(49 downto 32) /= usnp_mem_req(63 downto 46) then -- TODO meaning?
           usnp_mem_ack <= '1';
@@ -637,132 +640,80 @@ begin
       else -- invalid req
         usnp_mem_ack <= '0';
       end if;
-      --first deal with write request from cpu_request
-      --the write is only sent here if the data exist in cahce memory
 
-      -- Handling write request from cpu_req_handler (when there's no update
-      -- req from bus)
-      if is_valid(mcu_write_req) and bus_res(552 downto 552) = "0" then
-        idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
-        ROM_array(idx) <= "110" & mcu_write_req(63 downto 46) &
-                           mcu_write_req(31 downto 0);
-        write_ack       <= '1';
-        upd_ack         <= '0';
-        write_res          <= mcu_write_req(71 downto 0);
-
-      -- Handling update request from bus (when there's no mcu_write_req from
-      -- cpu_req_handler)
-      -- TODO why two cases?
-      -- case invalid request
-      elsif bus_res(552 downto 552) = "1" and not is_valid(mcu_write_req) then
-        idx    := to_integer(unsigned(bus_res(525 downto 512))) /16 * 16;
-        memcont := ROM_array(idx);
-        --if tags do not match, dirty bit is 1,
-        -- and write_back fifo in BUS is not full,
-        if memcont(52 downto 52) = "1" and
-          memcont(51 downto 51) = "1" and
-          memcont(49 downto 32) /= bus_res(63 downto 46) and
-          full_wb_i /= '1' then
-          wb_req_o <= "110000000" & bus_res(63 downto 32) &
-                    memcont(31 downto 0) &
-                    ROM_array(idx + 1)(31 downto 0) &
-                    ROM_array(idx + 2)(31 downto 0) &
-                    ROM_array(idx + 3)(31 downto 0) &
-                    ROM_array(idx + 4)(31 downto 0) &
-                    ROM_array(idx + 5)(31 downto 0) &
-                    ROM_array(idx + 6)(31 downto 0) &
-                    ROM_array(idx + 7)(31 downto 0) &
-                    ROM_array(idx + 8)(31 downto 0) &
-                    ROM_array(idx + 9)(31 downto 0) &
-                    ROM_array(idx + 10)(31 downto 0) &
-                    ROM_array(idx + 11)(31 downto 0) &
-                    ROM_array(idx + 12)(31 downto 0) &
-                    ROM_array(idx + 13)(31 downto 0) &
-                    ROM_array(idx + 14)(31 downto 0) &
-                    ROM_array(idx + 15)(31 downto 0);
-        end if;
-		  ROM_array(idx) <= "100" & bus_res(63 downto 46) & bus_res(511 downto 480);
-			 ROM_array(idx+1) <= "100" & bus_res(63 downto 46) & bus_res(479 downto 448);
-			 ROM_array(idx+2) <= "100" & bus_res(63 downto 46) & bus_res(447 downto 416);
-			 ROM_array(idx+3) <= "100" & bus_res(63 downto 46) & bus_res(415 downto 384);
-          ROM_array(idx+4) <= "100" & bus_res(63 downto 46) & bus_res(383 downto 352);
-			 ROM_array(idx+5) <= "100" & bus_res(63 downto 46) & bus_res(351 downto 320);
-			 ROM_array(idx+6) <= "100" & bus_res(63 downto 46) & bus_res(319 downto 288);
-			 ROM_array(idx+7) <= "100" & bus_res(63 downto 46) & bus_res(287 downto 256);
-			 ROM_array(idx+8) <= "100" & bus_res(63 downto 46) & bus_res(255 downto 224);
-			 ROM_array(idx+9) <= "100" & bus_res(63 downto 46) & bus_res(223 downto 192);
-			 ROM_array(idx+10) <= "100" & bus_res(63 downto 46) & bus_res(191 downto 160);
-			 ROM_array(idx+11) <= "100" & bus_res(63 downto 46) & bus_res(159 downto 128);
-			 ROM_array(idx+12) <= "100" & bus_res(63 downto 46) & bus_res(127 downto 96);
-			 ROM_array(idx+13) <= "100" & bus_res(63 downto 46) & bus_res(95 downto 64);
-			 ROM_array(idx+14) <= "100" & bus_res(63 downto 46) & bus_res(63 downto 32);
-			 ROM_array(idx+15) <= "100" & bus_res(63 downto 46) & bus_res(31 downto 0);
-        upd_ack         <= '1';
-        upd_res         <= bus_res(551 downto 512)&ROM_array(to_integer(unsigned(bus_res(525 downto 512))))(31 downto 0);
-        write_ack       <= '0';
-      -- case valid request
-      elsif bus_res(552 downto 552) = "1" and is_valid(mcu_write_req) then
+      if is_valid(mcu_write_req) and mcu_upd_req(552 downto 552) = "0" then
+			turn :=1;
+      elsif mcu_upd_req(552 downto 552) = "1" and not is_valid(mcu_write_req) then
+			turn :=2;
+      elsif mcu_upd_req(552 downto 552) = "1" and is_valid(mcu_write_req) then
         if shifter = true then
-          shifter         := false;
-          idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
-        ROM_array(idx) <= "110" & mcu_write_req(63 downto 46) &
-                           mcu_write_req(31 downto 0);
-        write_ack       <= '1';
-        upd_ack         <= '0';
-        write_res       <= mcu_write_req(71 downto 0);
-
-          
+				shifter         := false;
+				turn := 1;
         else
-          shifter := true;
-         idx    := to_integer(unsigned(bus_res(525 downto 512))) /16 * 16;
-        memcont := ROM_array(idx);
-        --if tags do not match, dirty bit is 1,
-        -- and write_back fifo in BUS is not full,
-        if memcont(52 downto 52) = "1" and
-          memcont(51 downto 51) = "1" and
-          memcont(49 downto 32) /= bus_res(63 downto 46) and
-          full_wb_i /= '1' then
-          wb_req_o <= "110000000" & bus_res(63 downto 32) &
-                    memcont(31 downto 0) &
-                    ROM_array(idx + 1)(31 downto 0) &
-                    ROM_array(idx + 2)(31 downto 0) &
-                    ROM_array(idx + 3)(31 downto 0) &
-                    ROM_array(idx + 4)(31 downto 0) &
-                    ROM_array(idx + 5)(31 downto 0) &
-                    ROM_array(idx + 6)(31 downto 0) &
-                    ROM_array(idx + 7)(31 downto 0) &
-                    ROM_array(idx + 8)(31 downto 0) &
-                    ROM_array(idx + 9)(31 downto 0) &
-                    ROM_array(idx + 10)(31 downto 0) &
-                    ROM_array(idx + 11)(31 downto 0) &
-                    ROM_array(idx + 12)(31 downto 0) &
-                    ROM_array(idx + 13)(31 downto 0) &
-                    ROM_array(idx + 14)(31 downto 0) &
-                    ROM_array(idx + 15)(31 downto 0);
-        end if;
-		  ROM_array(idx) <= "100" & bus_res(63 downto 46) & bus_res(511 downto 480);
-			 ROM_array(idx+1) <= "100" & bus_res(63 downto 46) & bus_res(479 downto 448);
-			 ROM_array(idx+2) <= "100" & bus_res(63 downto 46) & bus_res(447 downto 416);
-			 ROM_array(idx+3) <= "100" & bus_res(63 downto 46) & bus_res(415 downto 384);
-          ROM_array(idx+4) <= "100" & bus_res(63 downto 46) & bus_res(383 downto 352);
-			 ROM_array(idx+5) <= "100" & bus_res(63 downto 46) & bus_res(351 downto 320);
-			 ROM_array(idx+6) <= "100" & bus_res(63 downto 46) & bus_res(319 downto 288);
-			 ROM_array(idx+7) <= "100" & bus_res(63 downto 46) & bus_res(287 downto 256);
-			 ROM_array(idx+8) <= "100" & bus_res(63 downto 46) & bus_res(255 downto 224);
-			 ROM_array(idx+9) <= "100" & bus_res(63 downto 46) & bus_res(223 downto 192);
-			 ROM_array(idx+10) <= "100" & bus_res(63 downto 46) & bus_res(191 downto 160);
-			 ROM_array(idx+11) <= "100" & bus_res(63 downto 46) & bus_res(159 downto 128);
-			 ROM_array(idx+12) <= "100" & bus_res(63 downto 46) & bus_res(127 downto 96);
-			 ROM_array(idx+13) <= "100" & bus_res(63 downto 46) & bus_res(95 downto 64);
-			 ROM_array(idx+14) <= "100" & bus_res(63 downto 46) & bus_res(63 downto 32);
-			 ROM_array(idx+15) <= "100" & bus_res(63 downto 46) & bus_res(31 downto 0);
-        upd_ack         <= '1';
-        upd_res         <= bus_res(551 downto 512)&ROM_array(to_integer(unsigned(bus_res(525 downto 512))))(31 downto 0);
-        write_ack       <= '0';
-      -- case valid request
+				shifter := true;
+				turn :=2;
         end if;
       end if;
+		
+		if turn =1 then
+			idx            := to_integer(unsigned(mcu_write_req(45 downto 32)));
+			ROM_array(idx) <= "110" & mcu_write_req(63 downto 46) &
+                           mcu_write_req(31 downto 0);
+			write_ack       <= '1';
+			upd_ack         <= '1';
+			wt_res          <= mcu_write_req(71 downto 0);
+			turn := 0;
+		elsif turn =2 then
+			turn :=0;
+			tindex <= mcu_upd_req(525 downto 512);
+			idx    := to_integer(unsigned(mcu_upd_req(525 downto 515)))*16;
+         memcont := ROM_array(idx);
+		
+        --if tags do not match, dirty bit is 1,
+        -- and write_back fifo in BUS is not full,
+        if memcont(52 downto 52) = "1" and
+          memcont(51 downto 51) = "1" and
+          memcont(49 downto 32) /= mcu_upd_req(63 downto 46) and
+          full_wb /= '1' then
+          wb_req <= "110000000" & mcu_upd_req(63 downto 32) &
+                    memcont(31 downto 0) &
+                    ROM_array(idx + 1)(31 downto 0) &
+                    ROM_array(idx + 2)(31 downto 0) &
+                    ROM_array(idx + 3)(31 downto 0) &
+                    ROM_array(idx + 4)(31 downto 0) &
+                    ROM_array(idx + 5)(31 downto 0) &
+                    ROM_array(idx + 6)(31 downto 0) &
+                    ROM_array(idx + 7)(31 downto 0) &
+                    ROM_array(idx + 8)(31 downto 0) &
+                    ROM_array(idx + 9)(31 downto 0) &
+                    ROM_array(idx + 10)(31 downto 0) &
+                    ROM_array(idx + 11)(31 downto 0) &
+                    ROM_array(idx + 12)(31 downto 0) &
+                    ROM_array(idx + 13)(31 downto 0) &
+                    ROM_array(idx + 14)(31 downto 0) &
+                    ROM_array(idx + 15)(31 downto 0);
+        end if;
+		  ROM_array(idx+15) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(511 downto 480);
+		  ROM_array(idx+14) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(479 downto 448);
+		  ROM_array(idx+13) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(447 downto 416);
+		  ROM_array(idx+12) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(415 downto 384);
+        ROM_array(idx+11) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(383 downto 352);
+			 ROM_array(idx+10) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(351 downto 320);
+			 ROM_array(idx+9) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(319 downto 288);
+			 ROM_array(idx+8) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(287 downto 256);
+			 ROM_array(idx+7) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(255 downto 224);
+			 ROM_array(idx+6) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(223 downto 192);
+			 ROM_array(idx+5) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(191 downto 160);
+			 ROM_array(idx+4) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(159 downto 128);
+			 ROM_array(idx+3) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(127 downto 96);
+			 ROM_array(idx+2) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(95 downto 64);
+			 ROM_array(idx+1) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(63 downto 32);
+			 ROM_array(idx+0) <= "101" & mcu_upd_req(533 downto 516) & mcu_upd_req(31 downto 0);
+        upd_ack         <= '1';
+        upd_res         <= mcu_upd_req(551 downto 512)&mcu_upd_req(to_integer(unsigned(mcu_upd_req(515 downto 512)))*32+31 downto to_integer(unsigned(mcu_upd_req(515 downto 512)))*32 );
+		  content <= ROM_array(idx+15);
+        write_ack       <= '0';
+		end if;
     end if;
   end process;
-
 end rtl;
