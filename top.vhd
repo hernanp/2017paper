@@ -970,6 +970,7 @@ begin
         write(l, audio_upreq);
         write(l, SEP);
         write(l, audio_upres);
+        write(l, SEP);
 
         ---- pwr sigs
         -- from ic
@@ -997,7 +998,6 @@ begin
         write(l, pwr_audio_req);
         write(l, SEP);
         write(l, pwr_audio_res);
-        write(l, SEP);
         
         writeline(trace_file, l); 
       end if;
