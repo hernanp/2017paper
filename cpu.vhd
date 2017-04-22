@@ -116,9 +116,9 @@ begin
     if is_tset(CPU_W20_TEST) then
       t4 := true;
     end if;
-    if is_tset(CPU1_RW_04_TEST) then
-      t5 := true;
-    end if;
+    --if is_tset(CPU1_RW_04_TEST) then
+    --  t5 := true;
+    --end if;
     if is_tset(PWR_TEST) then
       t6 := true;
     end if;
@@ -222,18 +222,18 @@ begin
           st := 2;
         --end if;
 -- CPU1_RW_04_TEST starts here
-      elsif st = 30 then
-        if(cpu_id_i = 1) then
-          cpu_req_o <= "1" & WRITE_CMD & X"1c000000" & X"00000001";
-          st := 31;
-        end if;
-      elsif st = 31 then
-        if(cpu_id_i = 1) and is_valid(cpu_res_i) then
-          cpu_req_o <= "1" & READ_CMD & X"1c000000" & X"00000000";
-          st := 32;
-        end if;
-      elsif st = 32 then
-        cpu_req_o <= (others => '0');
+      --elsif st = 50 then
+      --  if(cpu_id_i = 1) then
+      --    cpu_req_o <= "1" & WRITE_CMD & X"1c000000" & X"00000001";
+      --    st := 51;
+      --  end if;
+      --elsif st = 51 then
+      --  if(cpu_id_i = 1) and is_valid(cpu_res_i) then
+      --    cpu_req_o <= "1" & READ_CMD & X"1c000000" & X"00000000";
+      --    st := 52;
+      --  end if;
+      --elsif st = 52 then
+      --  cpu_req_o <= (others => '0');
 
 -- PWR_TEST starts here
       elsif st = 60 then -- go to delay or done

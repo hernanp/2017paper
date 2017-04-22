@@ -971,14 +971,33 @@ begin
         write(l, SEP);
         write(l, audio_upres);
 
-        ---- pwr
-        -- TODO add:
-        -- ic_pwr_req
-        -- ic_pwr_res
+        ---- pwr sigs
+        -- from ic
+        write(l, ic_pwr_req);
+        write(l, SEP);
+        write(l, ic_pwr_res);
+        write(l, SEP);
 
-        -- pwr_<dev>_req
-        -- pwr_<dev>_res
-        -- where dev is one of gfx, uart, usb, audio
+        -- from peripherals
+        write(l, pwr_gfx_req);
+        write(l, SEP);
+        write(l, pwr_gfx_res);
+        write(l, SEP);
+
+        write(l, pwr_uart_req);
+        write(l, SEP);
+        write(l, pwr_uart_res);
+        write(l, SEP);
+
+        write(l, pwr_usb_req);
+        write(l, SEP);
+        write(l, pwr_usb_res);
+        write(l, SEP);
+
+        write(l, pwr_audio_req);
+        write(l, SEP);
+        write(l, pwr_audio_res);
+        write(l, SEP);
         
         writeline(trace_file, l); 
       end if;

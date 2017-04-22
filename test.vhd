@@ -22,13 +22,15 @@ package test is
   constant CPU_W20_TEST : TEST_T := (2=>'1', others=>'0');
 
   --* CPU1_RW_04_TEST cpu1 writes and reads to mem[0..4]
-  constant CPU1_RW_04_TEST : TEST_T := (3=>'1', others=>'0');
+  -- constant CPU1_RW_04_TEST : TEST_T := (3=>'1', others=>'0');
+  -- to enable, also need to uncomment code in cpu.vhd
   
   -- gfx upstream read req
   constant GFX_R_TEST : TEST_T := (4=>'1', others => '0');
   --* ic sends a pwr req to power up gfx
   constant PWR_TEST : TEST_T := (5=>'1', others => '0');
 
+  constant RWT_CNT : natural := 1;
   constant PWRT_CNT : natural := 5;
   constant UREQT_CNT : natural := 5;
   

@@ -29,7 +29,7 @@ package defs is
   constant READ_CMD  : CMD_T := "01000000";
   constant WRITE_CMD : CMD_T := "10000000";
   constant PWRUP_CMD : CMD_T := "00100000";
-  constant PWRDN_CMD : CMD_T := "01000000";
+  constant PWRDN_CMD : CMD_T := "01100000";
   constant ZEROS_CMD : CMD_T := (others => '0');
   constant ONES_CMD : CMD_T := (others => '1');
 
