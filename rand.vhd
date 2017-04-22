@@ -19,11 +19,13 @@ package rand is
   
   type int_array_t is array(0 to RND_INT_CNT) of integer;
 
-  impure function rand_init return int_array_t;
-  
+  impure function rand_init(fn : string) return int_array_t;
+
   --* Returns a number between 0 and RND_INT_MAX.
   function rand_nat(constant seed:in natural) return natural;
 
+  function rnd_adr(constant seed:in natural) return std_logic_vector;
+  
   --* Returns a std_logic_vector of size bits between 1 and num.
   function rand_vect_range(constant num:in integer;
                       constant size:in integer) return std_logic_vector;
@@ -31,15 +33,15 @@ end rand;
 
 package body rand is
 
-  impure function rand_init return int_array_t is
-    file rnd_ints_f : TEXT open read_mode is "rand_ints.txt";
+  impure function rand_init(fn : string) return int_array_t is
+    file rnd_ints1_f : TEXT open read_mode is fn;
     variable l : line;
     variable n : integer;
     variable i : integer := 0;
     variable res : int_array_t := (others => 0);
   begin
-    while not endfile(rnd_ints_f) loop
-      readline(rnd_ints_f, l);
+    while not endfile(rnd_ints1_f) loop
+      readline(rnd_ints1_f, l);
       read(l, n);
       res(i) := n;
       i := i+1;
@@ -47,13 +49,21 @@ package body rand is
     return res;
   end rand_init;
 
-  constant a : int_array_t := rand_init;
+  constant a1 : int_array_t := rand_init("rand_ints4b.txt");
+  constant a2 : int_array_t := rand_init("rand_ints32b.txt");
   
   function rand_nat(constant seed:in natural) return natural is
   begin
     --report "rnd[" & integer'image((seed + time'pos(now)) mod RND_INT_CNT) & "]:" & integer'image(a((seed + time'pos(now)) mod RND_INT_CNT));
-    return a((seed + time'pos(now)) mod RND_INT_CNT);
+    return a1((seed + time'pos(now)) mod RND_INT_CNT);
   end rand_nat;
+
+  function rnd_adr(constant seed:in natural) return std_logic_vector is
+    variable tmp, tmp2 : std_logic_vector(31 downto 0);
+  begin
+    --report "rnd[" & integer'image((seed + time'pos(now)) mod RND_INT_CNT) & "]:" & integer'image(a((seed + time'pos(now)) mod RND_INT_CNT));
+    return std_logic_vector(to_unsigned(a2((seed + time'pos(now)) mod RND_INT_CNT), 32));
+  end rnd_adr;
   
   function rand_vect_range(constant num:in integer;
                        constant size:in integer)

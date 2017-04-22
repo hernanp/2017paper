@@ -25,27 +25,7 @@ architecture rtl of cpu is
   type states is (init, send, idle);
   signal st, next_st : states;
   signal addr,data: std_logic_vector(31 downto 0);
-
   signal sim_end : std_logic := '0';
-  ----* TODO is this a fun to create a power_req?
-  --procedure power(variable cmd : in  std_logic_vector(1 downto 0);
-  --                signal req   : out std_logic_vector(72 downto 0);
-  --                variable hw  : in  std_logic_vector(1 downto 0)) is
-  --begin
-  --  req <= "111000000" & cmd & hw & "00000000" & "00000000" & "00000000" &
-  --         "00000000" & "00000000" & "00000000" & "00000000" & "0000";
-  --  -- TODO maybe wait statements here need to go, however power is not being
-  --  -- called, so why does simulation fail?
-  --  wait for 3 ps;
-  --  req <= (others => '0');
-  --  wait until cpu_res(72 downto 72) = "1";
-  --  wait for 50 ps;
-  --end power;
-
-  --procedure run_petersons (rst, clk: in std_logic) is
-  --begin
-    
-  --end;
   
 begin
   clk_counter : process(clock, sim_end)
@@ -65,9 +45,10 @@ begin
   --* t3: PETERSONS_TEST executes petersons algorithm
   --* t4: CPU_W20_TEST cpu 1 and 2 send 20 rand write reqs
   --* t5: CPU1_RW_04_TEST cpu1 writes and reads to mem[0..4]
+
   cpu_test : process(reset, Clock)
     variable st, st_nxt : natural := 0;
-    variable t1, t2, t3, t4, t5, t6 : boolean := false;
+    variable t1, t2, t3, t4, t5, t6, t7 : boolean := false;
     
     variable t1_ct : natural;
 
@@ -86,6 +67,7 @@ begin
     variable t4_ct, t4_tot_ct : natural := 0;
     variable t4_tot : natural := 20;
 
+    -- t6 vars
     variable t6_f : boolean := true;
     variable t6_c, t6_tc, t6_r : natural := 0;
     variable t6_s : natural := cpu_id_i;
@@ -93,6 +75,13 @@ begin
     variable t6_cpuid : DEVID_T;
     variable t6_cmd : CMD_T;
     variable t6_devid : DEVID_T;
+
+    -- t7 vars
+    variable t7_f : boolean := true;
+    variable t7_s : natural := cpu_id_i;
+    variable t7_tc, t7_c, t7_r : natural := 0;
+    variable t7_cmd : CMD_T;
+    variable t7_adr : ADR_T;
     
   begin
     -- Set up tests
@@ -121,6 +110,9 @@ begin
     --end if;
     if is_tset(PWR_TEST) then
       t6 := true;
+    end if;
+    if is_tset(RW_TEST) then
+      t7 := true;
     end if;
     
     if reset = '1' then
@@ -157,7 +149,7 @@ begin
           delay(t2_ct, st, 1);
         end if;
         if t3 then
-          st := 100; -- petersons algorithm starts in state 100
+          st := 100; -- petersons test starts in state 100
         end if;
         --if t3 then
         --  t3_ct3 := 5;
@@ -172,6 +164,11 @@ begin
         if t6 then
           st := 60; -- PWR_TEST starts in state 60
         end if;
+        if t7 then
+          st := 70; -- RW_TEST starts in state 70
+        end if;
+
+-- *** CPU_R_TEST and CPU_W_TEST start here ***
       elsif st = 1 then -- send
         -- send a random msg
         if t1 and (cpu_id_i = 1) then
@@ -191,12 +188,12 @@ begin
           st := 2;
         end if;
       elsif st = 2 then -- done
-        -- TODO wait for resp
         --if is_valid(cpu_res_i) then
           sim_end <= '1';
         --end if;
         cpu_req_o<=(others =>'0');
-      -- CPU_W20_TEST starts here
+
+-- *** CPU_W20_TEST starts here ***
       elsif st = 20 then
         cpu_req_o <= (others => '0');
         if t4_tot_ct = 0 or is_valid(cpu_res_i) then
@@ -221,7 +218,7 @@ begin
         --if is_valid(cpu_res_i) then
           st := 2;
         --end if;
--- CPU1_RW_04_TEST starts here
+-- *** CPU1_RW_04_TEST starts here ***
       --elsif st = 50 then
       --  if(cpu_id_i = 1) then
       --    cpu_req_o <= "1" & WRITE_CMD & X"1c000000" & X"00000001";
@@ -235,7 +232,7 @@ begin
       --elsif st = 52 then
       --  cpu_req_o <= (others => '0');
 
--- PWR_TEST starts here
+-- *** PWR_TEST starts here ***
       elsif st = 60 then -- go to delay or done
         if t6_tc < PWRT_CNT then
           t6_tc := t6_tc + 1;
@@ -278,6 +275,41 @@ begin
         st := 69;
       elsif st = 69 then -- delay
         rnd_dlay(t6_f, t6_s, t6_c, st, st_nxt);
+
+-- *** RW_TEST starts here ***
+      elsif st = 70 then -- go to delay or done
+        if t7_tc < RWT_CNT then
+          t7_tc := t7_tc + 1;
+          st_nxt := 71;
+          st := 79;
+        else
+          st := 2;
+        end if;
+      elsif st = 71 then -- snd r|w req
+
+        -- rndmz cmd
+        t7_r := rand_nat(cpu_id_i + t7_s);
+        report integer'image(cpu_id_i) & ", r is " & integer'image(t7_r);
+        if (t6_r mod 2) = 1 then
+          t7_cmd := READ_CMD;
+        else
+          t7_cmd := WRITE_CMD;
+        end if;
+
+        -- rndmz adr
+        -- TODO replace by rand_adr() to get better rnd vect
+        --t7_adr := std_logic_vector(to_unsigned(rand_nat(cpu_id_i + t7_s), t7_adr'length));
+        t7_adr := rnd_adr(t7_r);
+        
+        cpu_req_o <= "1" & t7_cmd & t7_adr & t7_adr;
+        st := 72;
+      elsif st = 72 then -- wait some time        
+        cpu_req_o <= (others => '0');
+        -- do not wait for resp, dlay for rnd time and continue
+        st_nxt := 70;
+        st := 79;
+      elsif st = 79 then -- delay
+        rnd_dlay(t7_f, t7_s, t7_c, st, st_nxt);
         
 -- *** Petersons algorithm starts here ***
       elsif st = 99 then -- delay

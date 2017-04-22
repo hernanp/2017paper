@@ -28,10 +28,10 @@ all:
 	ghdl -a arbiter61.vhd
 	ghdl -a arbiter7.vhd
 	ghdl -a --ieee=synopsys ic.vhd # uses fifo, arbiter2,6,61,7
-	ghdl -a --ieee=synopsys gfx.vhd
-	ghdl -a audio.vhd
-	ghdl -a usb.vhd
-	ghdl -a uart.vhd
+#	ghdl -a --ieee=synopsys gfx.vhd
+#	ghdl -a audio.vhd
+#	ghdl -a usb.vhd
+#	ghdl -a uart.vhd
 	ghdl -a --ieee=synopsys peripheral.vhd # generic peripheral
 # simulation
 	ghdl -a --ieee=synopsys top.vhd
@@ -43,7 +43,8 @@ topnsim:
 clean:
 	rm *.o *.vcd
 rand:
-	python rand.py # use opts -n and -c to set count and max
+	python rand.py -c 15 -o "rand_ints4b.txt" # use opts -n and -c to set count and max
+	python rand.py -c 2147483648 -o "rand_ints32b.txt" # 2^31 - 1
 showtree:
 	./top --no-run --disp-tree
 sim:

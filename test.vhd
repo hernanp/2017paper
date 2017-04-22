@@ -13,6 +13,7 @@ package test is
   constant TDW : positive := 64;
   subtype TEST_T is std_logic_vector(TDW-1 downto 0);
   constant ZERO_TEST : TEST_T := (others => '0');
+
   --* cpu1 sends a read req
   constant CPU1_R_TEST : TEST_T := (0=>'1', others=>'0');
   --* cpu2 sends a write req
@@ -26,40 +27,45 @@ package test is
   -- to enable, also need to uncomment code in cpu.vhd
   
   -- gfx upstream read req
-  constant GFX_R_TEST : TEST_T := (4=>'1', others => '0');
-  --* ic sends a pwr req to power up gfx
-  constant PWR_TEST : TEST_T := (5=>'1', others => '0');
-
-  constant RWT_CNT : natural := 1;
-  constant PWRT_CNT : natural := 5;
-  constant UREQT_CNT : natural := 5;
+  --constant GFX_R_TEST : TEST_T := (4=>'1', others => '0');
   
+  
+  -- test delay flag, used by rnd_dlay fun to re-enable rndmz_flg 
   constant TDLAY_FLG : boolean := true;
-  
+
+  --********* PWR TEST ************
+  constant PWR_TEST : TEST_T := (5=>'1', others => '0');
+  constant PWRT_CNT : natural := 5;
+
+  --********* PETERSONS TEST ************
   --* cpus 1 and 2 execute petersons algorithm
   constant PETERSONS_TEST : TEST_T := (6=>'1', others => '0');
-
   constant PT_DELAY_FLAG : boolean := true;
-
   constant PT_ITERATIONS : natural := 50;
-  
   -- petersons' shared variables
   constant PT_VAR_FLAG0 : ADR_T := (1=>'1', others=>'0'); -- M[1]
   constant PT_VAR_FLAG1 : ADR_T := (2=>'1', others=>'0'); -- M[2]
   constant PT_VAR_TURN : ADR_T := (2=>'1', 1=>'1', others=>'0'); -- M[3]
   constant PT_VAR_SHARED : ADR_T := (3=>'1', others=>'0'); -- M[4]
-
   procedure pt_delay(variable rndmz_dlay : inout boolean;
                      variable seed: inout natural;
                      variable cnt: inout natural;
                      variable st : inout natural;
                      constant next_st : in natural);
 
+
+  --********* UREQ TEST ************
   constant UREQ_TEST : TEST_T := (7=>'1', others => '0');
+  constant UREQT_CNT : natural := 5;
+
+  --********* RW TEST ************
+  -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
+  constant RW_TEST : TEST_T := (8=>'1', others => '0');
+  constant RWT_CNT : natural := 5;
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T := PWR_TEST;
+  constant RUN_TEST : TEST_T := RW_TEST;
                                         --CPU_W20_TEST;
                                         --PETERSONS_TEST; --ZERO_TEST;
                                                  --CPU1_R_TEST or
