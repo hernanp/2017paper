@@ -557,6 +557,8 @@ begin
   gfx : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
+
+    devid_i     => GFX_ID,
     
     -- write address channel
     waddr_i      => waddr_gfx,
@@ -602,6 +604,8 @@ begin
   audio : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
+
+    devid_i     => AUDIO_ID,
     
     -- write address channel
     waddr_i      => waddr_audio,
@@ -647,6 +651,8 @@ begin
   usb : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
+
+    devid_i     => USB_ID,
     
     -- write address channel
     waddr_i      => waddr_usb,
@@ -692,6 +698,8 @@ begin
   uart : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
+
+    devid_i     => UART_ID,
     
     -- write address channel
     waddr_i      => waddr_uart,

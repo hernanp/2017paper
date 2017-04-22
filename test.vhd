@@ -30,6 +30,7 @@ package test is
   constant PWR_TEST : TEST_T := (5=>'1', others => '0');
 
   constant PWRT_CNT : natural := 5;
+  constant UREQT_CNT : natural := 5;
   
   constant TDLAY_FLG : boolean := true;
   
@@ -52,11 +53,11 @@ package test is
                      variable st : inout natural;
                      constant next_st : in natural);
 
-  constant PER_TEST : TEST_T := (7=>'1', others => '0');
+  constant UREQ_TEST : TEST_T := (7=>'1', others => '0');
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T := PWR_TEST;
+  constant RUN_TEST : TEST_T := UREQ_TEST;
                                         --CPU_W20_TEST;
                                         --PETERSONS_TEST; --ZERO_TEST;
                                                  --CPU1_R_TEST or

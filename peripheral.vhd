@@ -9,6 +9,9 @@ use work.util.all;
 entity peripheral is
   Port(Clock      : in  std_logic;
        reset      : in  std_logic;
+
+       devid_i    : in DEVID_T;
+
        ---write address channel
        waddr_i      : in  std_logic_vector(31 downto 0);
        wlen_i       : in  std_logic_vector(9 downto 0);
@@ -43,8 +46,8 @@ entity peripheral is
        pwr_res_o     : out MSG_T;
        
        -- up req
-       upreq_o       : out std_logic_vector(72 downto 0);
-       upres_i       : in  std_logic_vector(72 downto 0);
+       upreq_o       : out MSG_T;
+       upres_i       : in  MSG_T;
        upreq_full_i  : in  std_logic
        );
 end peripheral;
@@ -58,6 +61,18 @@ architecture rtl of peripheral is
   signal tmp_req : std_logic_vector(50 downto 0);
 
 begin
+
+  --upreq_o_arbiter : entity work.arbiter2(rtl)
+  --  port map(
+  --    clock => Clock,
+  --    reset => reset,
+  --    din1  => upreq1_s,
+  --    ack1  => ack1,
+  --    din2  => upreq2_s,
+  --    ack2  => ack2,
+  --    dout  => upreq_o
+  --    );
+
   write_req_handler : process(Clock, reset)
     variable address : integer;
     variable len     : integer;
@@ -178,31 +193,58 @@ begin
   end process;
 
   t1 : process(clock, reset) -- up read test
-    variable ct : natural;
+    variable dc, tc, st_nxt : natural := 0;
+    variable s : natural := to_integer(unsigned(devid_i));
     variable st : natural := 0;
+    variable b : boolean := true;
+    variable rnd_adr : std_logic_vector(30 downto 0);
+    variable cmd : CMD_T;
   begin
-    if is_tset(PER_TEST) then
       if reset = '1' then
         upreq_o <= (others => '0');
-        ct := rand_nat(to_integer(unsigned(PER_TEST)));
-        --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
-        --        to_integer(unsigned(GFX_R_TEST)));
+        --ct := rand_nat(to_integer(unsigned(UREQ_TEST)));
         st := 0;
       elsif(rising_edge(clock)) then
-        if st = 0 then -- wait
-          delay(ct, st, 1);
-        elsif st = 1 then -- snd up_req 
-          report "rnd1_test @ " & integer'image(time'pos(now));
-          upreq_o <= '1' &
-                       READ_CMD &
-                       "1000000000000000" &
-                       "1000000000000000" &
-                       ZEROS32;
-          st := 2;
+        if st = 1 then -- delay
+          rnd_dlay(b, s, dc, st, st_nxt);
         elsif st = 2 then -- done
           upreq_o <= (others => '0');
+        elsif st = 0 then -- check
+          if is_tset(UREQ_TEST) then
+            if tc < UREQT_CNT then
+              tc := tc + 1;
+              --report integer'image(tc);
+              st_nxt := 3;
+              st := 1;
+            else
+              report "UREQT done";
+              st := 2;
+            end if;
+          end if;
+        elsif st = 3 then -- snd
+          -- report integer'image(to_integer(unsigned(devid_i))) & " snd ureq";
+          -- rmz adr
+          rnd_adr := std_logic_vector(to_unsigned(rand_nat(s), rnd_adr'length));
+
+          -- rmz cmd
+          if (rand_nat(s) mod 2) = 1 then
+            cmd := READ_CMD;
+          else
+            cmd := WRITE_CMD;
+          end if;
+          
+          upreq_o <= "1" & cmd & "1" & rnd_adr & ZEROS32; -- TODO causes
+                                                             -- warning when
+                                                             -- reading adr 800..
+                                                             -- (not happening when
+                                                             -- reading addr 0)
+          st := 4;
+        elsif st = 4 then
+          upreq_o <= (others => '0');
+          -- do not wait for response
+          st_nxt := 0;
+          st := 1; -- delay next check
         end if;
       end if;
-    end if;
   end process;  
 end rtl;
