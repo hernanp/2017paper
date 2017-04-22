@@ -232,7 +232,7 @@ begin
       elsif st = 60 then
         if (cpu_id_i = 1) then
           -- send pwr req
-          cpu_req_o <= "1" & PWRUP_CMD & pad32(CPU0_ID) & pad32(GFX_ID);
+          cpu_req_o <= "1" & PWRUP_CMD & pad32(CPU0_ID) & pad32(UART_ID);
         end if;
         st := 61;
       elsif st = 61 then

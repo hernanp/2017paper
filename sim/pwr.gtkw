@@ -1,19 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Fri Apr 21 17:36:31 2017
+[*] Sat Apr 22 11:00:33 2017
 [*]
 [dumpfile] "/home/hpalombo/oven/soc/top.vcd"
-[dumpfile_mtime] "Fri Apr 21 17:33:09 2017"
-[dumpfile_size] 954330
+[dumpfile_mtime] "Sat Apr 22 10:57:06 2017"
+[dumpfile_size] 630354
 [savefile] "/home/hpalombo/oven/soc/sim/pwr.gtkw"
 [timestart] 180000
 [size] 1855 1056
 [pos] -1 -1
-*-15.590152 315400 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-15.590152 388100 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] cache1.
 [treeopen] power.
 [sst_width] 225
-[signals_width] 355
+[signals_width] 525
 [sst_expanded] 1
 [sst_vpaned_height] 343
 @28
@@ -36,6 +36,10 @@ gfx.pwr_req_i[72:0]
 [color] 7
 gfx.pwr_res_o[72:0]
 +{(5) pwr_gfx_res[72:0]} pwr_gfx_res[72:0]
+@23
+[color] 3
+power.gfx_res_i[72:0]
+@22
 +{(6) ic_pwr_res[72:0]} ic_pwr_res[72:0]
 [color] 3
 interconnect.pwr_res_i[72:0]

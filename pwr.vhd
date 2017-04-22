@@ -26,7 +26,6 @@ entity pwr is
 end pwr;
 
 architecture rtl of pwr is
-  signal tmp_req: MSG_T;
   signal in1,out1 : MSG_T;
   signal in2,out2 : MSG_T;
   signal we1,re1,emp1,we2,re2,emp2 : std_logic:='0';
@@ -67,6 +66,8 @@ begin
   --*    forwards res back to ic
   req_handler : process (reset, Clock)
     variable st: integer :=0;
+    variable dev : DEVID_T;
+    variable tmp_req, tmp: MSG_T;
   begin
     if (reset = '1') then
       gfx_req_o <= (others => '0');
@@ -85,56 +86,53 @@ begin
           st := 1;
         end if;
         
-      elsif st = 1 then
+      elsif st = 1 then -- wait output (out1) from fifo
         re1 <= '0';
         if is_valid(out1) then
-          tmp_req <= out1;
+          tmp := out1;
           if get_dat(out1) = pad32(GFX_ID) then
-            st := 2;
-          --elsif out1(1 downto 0) = AUDIO_ID then
-          --  state := 3;
-          --elsif out1(1 downto 0) = USB_ID then
-          --  state := 4;
-          --elsif out1(1 downto 0) = UART_ID then
-          --  state := 5;
+            --report "ready to send gfx req";
+            dev := GFX_ID;
+          elsif get_dat(out1) = pad32(AUDIO_ID) then
+            dev := AUDIO_ID;
+          elsif get_dat(out1) = pad32(USB_ID) then
+            dev := USB_ID;
+          elsif get_dat(out1) = pad32(UART_ID) then
+            dev := UART_ID;
           end if;
+          st := 2;
         end if;
-      elsif st = 2 then
-        gfx_req_o <= tmp_req;
-        st := 6;
-      --elsif state = 3 then
-      --  audio_req_o <= tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
-      --  state := 7;
-      --elsif state = 4 then
-      --  usb_req_o <= tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
-      --  state := 8;
-      --elsif state = 5 then
-      --  uart_req_o<=tmp_req(REQ_WIDTH - 1 downto DATA_WIDTH - 1);
-      --  state := 9;
-      elsif st = 6 then
-        gfx_req_o <= (others => '0');
-        if is_valid(gfx_res_i) then
-          res_o <= gfx_res_i;
+      elsif st = 2 then -- output
+        if dev = GFX_ID then
+          --report "output gfx req";
+          gfx_req_o <= tmp;
+        elsif dev = AUDIO_ID then
+          audio_req_o <= tmp;
+        elsif dev = USB_ID then
+          usb_req_o <= tmp;
+        elsif dev = UART_ID then
+          uart_req_o <= tmp;
+        end if;
+        st := 3;
+      elsif st = 3 then
+        if dev = GFX_ID then
+          tmp := gfx_res_i;
+          gfx_req_o <= (others => '0');
+        elsif dev = AUDIO_ID then
+          tmp := audio_res_i;
+          audio_req_o <= (others => '0');
+        elsif dev = USB_ID then
+          tmp := usb_res_i;
+          usb_req_o <= (others => '0');
+        elsif dev = UART_ID then
+          tmp := uart_res_i;
+          uart_req_o <= (others => '0');
+        end if;
+        
+        if is_valid(tmp) then
+          res_o <= tmp;
           st :=0;
         end if;
-      --elsif state = 7 then
-      --  audio_req_o <= (others => '0');
-      --  if audio_res_i(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
-      --    res_o <= tmp_req;
-      --    state :=0;
-      --  end if;
-      --elsif state = 8 then
-      --  usb_req_o <= (others => '0');
-      --  if usb_res_i(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
-      --    res_o <= tmp_req;
-      --    state :=0;
-      --  end if;
-      --elsif state = 9 then
-      --  uart_req_o <= (others => '0');
-      --  if uart_res_i(DATA_WIDTH - 1 downto DATA_WIDTH - 1) = "1" then
-      --    res_o <= tmp_req;
-      --    state :=0;
-      --  end if;
       end if;
     end if;
   end process;

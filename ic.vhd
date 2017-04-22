@@ -2177,24 +2177,24 @@ togfx_channel : process(reset, Clock)
           if get_cmd(pwr_res_i) = PWRDN_CMD then
             if dst = pad32(GFX_ID) then
               gfxpoweron <= '0';
-            --elsif pwr_res_i(1 downto 0) = "01" then
-            --  audiopoweron <= '0';
-            --elsif pwr_res_i(1 downto 0) = "10" then
-            --  usbpoweron <= '0';
-            --elsif pwr_res_i(1 downto 0) = "11" then
-            --  uartpoweron <= '0';
+            elsif dst = pad32(AUDIO_ID) then
+              audiopoweron <= '0';
+            elsif dst = pad32(USB_ID) then
+              usbpoweron <= '0';
+            elsif dst = pad32(UART_ID) then
+              uartpoweron <= '0';
             end if;
           elsif get_cmd(pwr_res_i) = PWRUP_CMD then
             --report "pu";
             if dst = pad32(GFX_ID) then
               --report "dst:gfx";
               gfxpoweron <= '1';
-            --elsif pwr_res_i(1 downto 0) = "01" then
-            --  audiopoweron <= '1';
-            --elsif pwr_res_i(1 downto 0) = "10" then
-            --  usbpoweron <= '1';
-            --elsif pwr_res_i(1 downto 0) = "11" then
-            --  uartpoweron <= '1';
+            elsif dst = pad32(AUDIO_ID) then
+              audiopoweron <= '1';
+            elsif dst = pad32(USB_ID) then
+              usbpoweron <= '1';
+            elsif dst = pad32(UART_ID) then
+              uartpoweron <= '1';
             end if;
           end if;
 

@@ -44,12 +44,12 @@ package defs is
   constant DAT_MASK : MSG_T := "0" & ZEROS_CMD & ZEROS32 & ONES32;
 
   subtype DEVID_T is std_logic_vector(2 downto 0);
-  constant CPU0_ID  : std_logic_vector(2 downto 0) := "000";
-  constant GFX_ID   : std_logic_vector(2 downto 0) := "001";
-  constant UART_ID  : std_logic_vector(2 downto 0) := "010";
-  constant USB_ID   : std_logic_vector(2 downto 0) := "011";
-  constant AUDIO_ID : std_logic_vector(2 downto 0) := "100";
-  constant CPU1_ID  : std_logic_vector(2 downto 0) := "101";
+  constant CPU0_ID  : DEVID_T := "000";
+  constant GFX_ID   : DEVID_T := "001";
+  constant UART_ID  : DEVID_T := "010";
+  constant USB_ID   : DEVID_T := "011";
+  constant AUDIO_ID : DEVID_T := "100";
+  constant CPU1_ID  : DEVID_T := "101";
 
   constant GFX_MASK32 : DAT_T := X"0000000" & "1" & GFX_ID;
   constant CPU0_MASK32 : ADR_T := X"0000000" & "1" & CPU0_ID;
