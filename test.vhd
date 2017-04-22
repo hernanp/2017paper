@@ -27,8 +27,12 @@ package test is
   -- gfx upstream read req
   constant GFX_R_TEST : TEST_T := (4=>'1', others => '0');
   --* ic sends a pwr req to power up gfx
-  constant PWRUP_TEST : TEST_T := (5=>'1', others => '0');
+  constant PWR_TEST : TEST_T := (5=>'1', others => '0');
 
+  constant PWRT_CNT : natural := 5;
+  
+  constant TDLAY_FLG : boolean := true;
+  
   --* cpus 1 and 2 execute petersons algorithm
   constant PETERSONS_TEST : TEST_T := (6=>'1', others => '0');
 
@@ -52,13 +56,19 @@ package test is
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T := PWRUP_TEST;
+  constant RUN_TEST : TEST_T := PWR_TEST;
                                         --CPU_W20_TEST;
                                         --PETERSONS_TEST; --ZERO_TEST;
                                                  --CPU1_R_TEST or
                                                  --CPU2_W_TEST or
                                                  --GFX_R_TEST; -- or
                                                  --IC_PWR_GFX_TEST;
+
+  procedure rnd_dlay(variable rndmz_dlay : inout boolean; 
+                     variable seed : inout natural;
+                     variable cnt: inout natural; 
+                     variable st : inout natural;
+                     constant next_st : in natural);
   
   --* Checks if test is enabled
   function is_tset(test: std_logic_vector) return boolean;
@@ -99,6 +109,42 @@ package body test is
     --  boolean'image(rndmz_dlay);
   end;
 
+  -- A generalized version of pt_delay
+  -- @rndmz_dlay : flag, indicates if rndmly select value for cnt or start from
+  -- current value of cnt; turned off while counting; turned on when done (if
+  -- TDLAY_FLG is set)
+  -- @seed : a num to offset rnd assignment, will be incremented once (if
+  -- rmdmz_dlay is set)
+  -- @cnt : counter current val will be read/written to cnt
+  -- @st : current st
+  -- @next_st : where to jump when done
+  --
+  -- Usage example:
+  --   f := true;
+  --   s := 0;
+  --   st := 0;
+  --   nxt_st := 1;
+  --   rnd_dlay(f, s, c, st, nxt_st); 
+  procedure rnd_dlay(variable rndmz_dlay : inout boolean; 
+                     variable seed : inout natural;
+                     variable cnt: inout natural; 
+                     variable st : inout natural;
+                     constant next_st : in natural) is
+  begin
+    if rndmz_dlay and st /= next_st then -- start
+      cnt := rand_nat(to_integer(unsigned(PETERSONS_TEST)) + seed);
+      seed := seed + 1;
+      rndmz_dlay := false;
+      delay(cnt, st, next_st);
+    elsif (rndmz_dlay = false) then -- count
+      delay(cnt, st, next_st);
+    end if;
+    
+    if st = next_st and TDLAY_FLG then -- if done, set flag back to true
+      rndmz_dlay := true;
+    end if;
+  end;
+  
   function is_tset(test: std_logic_vector) return boolean is
   begin
     if (RUN_TEST and test) /= ZERO_TEST then

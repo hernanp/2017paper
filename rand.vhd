@@ -51,7 +51,7 @@ package body rand is
   
   function rand_nat(constant seed:in natural) return natural is
   begin
---    report "rnd[" & integer'image((seed + time'pos(now)) mod RND_INT_CNT) & "]:" & integer'image(a((seed + time'pos(now)) mod RND_INT_CNT));
+    --report "rnd[" & integer'image((seed + time'pos(now)) mod RND_INT_CNT) & "]:" & integer'image(a((seed + time'pos(now)) mod RND_INT_CNT));
     return a((seed + time'pos(now)) mod RND_INT_CNT);
   end rand_nat;
   

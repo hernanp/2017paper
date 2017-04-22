@@ -12,13 +12,7 @@ entity l1_cache is
     cpu_req_i              : in  MSG_T;
     snp_req_i              : in  MSG_T;
     bus_res_i              : in  BMSG_T;
-    --01: read response
-    --10: write response
-    --11: fifo full response
     cpu_res_o              : out MSG_T := (others => '0');
-    --01: read response 
-    --10: write response
-    --11: fifo full response
     snp_hit_o            : out std_logic;
     snp_res_o            : out MSG_T := (others => '0');
 
@@ -30,9 +24,6 @@ entity l1_cache is
     up_snp_res_o   : out WMSG_T;
     up_snp_hit_o   : out std_logic;
     wb_req_o           : out BMSG_T;
-    --01: read request
-    --10: write request
-    --10,11: write back function
 
     -- FIFO flags
     crf_full_o : out std_logic := '0'; -- Full flag from cpu_req FIFO
@@ -85,7 +76,7 @@ architecture rtl of l1_cache is
   -- Naming conventions:
   -- [cpu|snp|usnp]_mem_[req|res|ack] memory (write) request, response, or ack for
   --   cpu, snoop (from cache), or upstream snoop (from bus on behalf of a device)
-  signal cpu_mem_req, snp_mem_req, mcu_write_req  : MSG_T;
+  signal bus_req_s, snp_mem_req, mcu_write_req  : MSG_T;
   signal usnp_mem_req, usnp_mem_res : std_logic_vector(75 downto 0):=(others => '0'); -- usnp reqs are longer
   signal usnp_mem_ack : std_logic;
   signal snp_mem_req_1, snp_mem_req_2 : MSG_T :=(others => '0');
@@ -127,7 +118,7 @@ begin
       DataIn  => crf_in,
       WriteEn => crf_we,
       ReadEn  => crf_re,
-      DataOut => cpu_mem_req,
+      DataOut => bus_req_s,
       Full    => crf_full_o,
       Empty   => crf_emp
       );
@@ -319,23 +310,31 @@ begin
 
       elsif st = 1 then -- access
         crf_re <= '0';
-        if cpu_mem_ack = '1' then
-          if cpu_mem_hit = '1' then
-            if cpu_mem_res(71 downto 64) = WRITE_CMD then
-              mcu_write_req    <= '1' & cpu_mem_res;
-              tmp_cpu_res1 <= '1' & cpu_mem_res;
-              st        := 3;
-            else -- read cmd
-              cpu_res1 <= '1' & cpu_mem_res;
-              st    := 4;
-            end if;
-          else -- it's a miss
-            snp_c_req1 <= '1' & cpu_mem_res;
-            snpreq     <= '1' & cpu_mem_res;
-            st      := 5;
-          end if;
-        end if;
 
+        if is_pwr_cmd(bus_req_s) then -- fwd pwr req TODO cpu should not have
+                                      -- to go through cache to comm. with bus
+          --report "pwr req";
+          bus_req_o <= bus_req_s;
+          st := 0;
+        else -- is mem request
+          if cpu_mem_ack = '1' then
+            if cpu_mem_hit = '1' then
+              if cpu_mem_res(71 downto 64) = WRITE_CMD then
+                mcu_write_req    <= '1' & cpu_mem_res;
+                tmp_cpu_res1 <= '1' & cpu_mem_res;
+                st        := 3;
+              else -- read cmd
+                cpu_res1 <= '1' & cpu_mem_res;
+                st    := 4;
+              end if;
+            else -- it's a miss
+              snp_c_req1 <= '1' & cpu_mem_res;
+              snpreq     <= '1' & cpu_mem_res;
+              st      := 5;
+            end if;
+          end if;   
+        end if;
+       
       elsif st = 3 then -- get_resp_from_mcu
         if write_ack = '1' then
           mcu_write_req <= nilreq;
@@ -519,7 +518,7 @@ begin
 
   --* Deals with cache memory
   --* full_wb_i;
-  --* cpu_mem_req, snp_mem_req, usnp_mem_req,
+  --* bus_req_s, snp_mem_req, usnp_mem_req,
   --*   mcu_write_req, bus_res, ;
   --*   -> ;
   --*      ROM_array, write_ack, write_res, upd_ack, upd_res
@@ -548,25 +547,25 @@ begin
       wb_req_o    <= nilreq2;
 
       -- cpu memory request
-      if is_valid(cpu_mem_req) then
-        idx    := to_integer(unsigned(cpu_mem_req(45 downto 32)));
+      if is_valid(bus_req_s) then
+        idx    := to_integer(unsigned(bus_req_s(45 downto 32)));
         memcont := ROM_array(idx);
         --if we can't find it in memory
         if memcont(52 downto 52) = "0" or
-          (cpu_mem_req(71 downto 64) = "10100000" and ---this should be read command
+          (bus_req_s(71 downto 64) = "10100000" and ---this should be read command
            memcont(50 downto 50) = "0") or
-          cpu_mem_req(71 downto 64) = "11000000" -- TODO writeback? how does it work?
-          or memcont(49 downto 32) /= cpu_mem_req(63 downto 46) then
+          bus_req_s(71 downto 64) = "11000000" -- TODO writeback? how does it work?
+          or memcont(49 downto 32) /= bus_req_s(63 downto 46) then
           cpu_mem_ack <= '1';
           cpu_mem_hit     <= '0';
-          cpu_mem_res <= cpu_mem_req(71 downto 0);
+          cpu_mem_res <= bus_req_s(71 downto 0);
         else -- it's a hit
           cpu_mem_ack <= '1';
           cpu_mem_hit     <= '1';
-          if cpu_mem_req(71 downto 64) = "10" then -- TODO why compare to 10?
-            cpu_mem_res <= cpu_mem_req(71 downto 0);
+          if bus_req_s(71 downto 64) = "10" then -- TODO why compare to 10?
+            cpu_mem_res <= bus_req_s(71 downto 0);
           else
-            cpu_mem_res <= cpu_mem_req(71 downto 32) & memcont(31 downto 0);
+            cpu_mem_res <= bus_req_s(71 downto 32) & memcont(31 downto 0);
           end if;
         end if;
       else
@@ -612,7 +611,7 @@ begin
         --invalide  ---or tag different
         --or its write, but not exclusive
         if memcont(52 downto 52) = "0" or -- mem not found
-          (cpu_mem_req(71 downto 64) = "10000000" and
+          (bus_req_s(71 downto 64) = "10000000" and
            memcont(50 downto 50) = "0") or -- TODO what is this bit?
           memcont(49 downto 32) /= usnp_mem_req(63 downto 46) then -- TODO meaning?
           usnp_mem_ack <= '1';

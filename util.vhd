@@ -26,6 +26,8 @@ package util is
   function pad32(v : DEVID_T) return ADR_T;
 
   function rpad(v : MSG_T) return BMSG_T;
+
+  procedure dbug(constant n : in integer);
   
   --procedure clr(signal vector : out std_logic_vector);
 end util;
@@ -107,4 +109,9 @@ package body util is
     return v & pad;
   end;
 
+  procedure dbug(constant n : in integer) is
+  begin
+    report integer'image(n);
+  end;
+  
 end util;

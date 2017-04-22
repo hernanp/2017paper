@@ -982,9 +982,9 @@ begin
     variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
     variable zeros73 : MSG_T := (others => '0');
   begin
-    if is_tset(PWRUP_TEST) then
+    if is_tset(PWR_TEST) then
       wait until cpu_res1 /= zeros73;
-      report "PWRUP_TEST OK";
+      report "PWR_TEST OK";
     end if;
     wait;
   end process;

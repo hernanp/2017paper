@@ -86,7 +86,12 @@ begin
     variable t4_ct, t4_tot_ct : natural := 0;
     variable t4_tot : natural := 20;
 
-    variable t6_ct : natural;
+    variable t6_f : boolean := true;
+    variable t6_s, t6_c, t6_tc, t6_r : natural := 0;
+    -- _s is seed, _c is cnt, _tc is tot cnt
+    variable t6_cpuid : DEVID_T;
+    variable t6_cmd : CMD_T;
+    
   begin
     -- Set up tests
     if is_tset(CPU1_R_TEST) then
@@ -112,7 +117,7 @@ begin
     if is_tset(CPU1_RW_04_TEST) then
       t5 := true;
     end if;
-    if is_tset(PWRUP_TEST) then
+    if is_tset(PWR_TEST) then
       t6 := true;
     end if;
     
@@ -163,7 +168,7 @@ begin
           st := 30; -- CPU1_RW_04_TEST starts in state 30
         end if;
         if t6 then
-          st := 60; -- PWRUP_TEST starts in state 60
+          st := 60; -- PWR_TEST starts in state 60
         end if;
       elsif st = 1 then -- send
         -- send a random msg
@@ -228,18 +233,43 @@ begin
       elsif st = 32 then
         cpu_req_o <= (others => '0');
 
--- PWRUP_TEST starts here
-      elsif st = 60 then
-        if (cpu_id_i = 1) then
-          -- send pwr req
-          cpu_req_o <= "1" & PWRUP_CMD & pad32(CPU0_ID) & pad32(UART_ID);
-        end if;
-        st := 61;
-      elsif st = 61 then
-        cpu_req_o <= (others => '0');
-        if (cpu_id_i = 1) and is_valid(cpu_res_i) then
+-- PWR_TEST starts here
+      elsif st = 60 then -- go to delay or done
+        if t6_tc < PWRT_CNT then
+          t6_tc := t6_tc + 1;
+          st_nxt := 61;
+          st := 69;
+        else
           st := 2;
         end if;
+      elsif st = 61 then -- snd pwr req
+
+        -- set cpu id vect
+        if cpu_id_i = 1 then
+          t6_cpuid := CPU0_ID;
+        else
+          t6_cpuid := CPU1_ID;
+        end if;
+        
+        -- rnmz pwr cmd
+        t6_r := rand_nat(cpu_id_i + t6_s);
+        if (t6_r mod 2) = 1 then
+          -- report integer'image(cpu_id_i) & "up";
+          t6_cmd := PWRUP_CMD;
+        else
+          -- report integer'image(cpu_id_i) & "dn";
+          t6_cmd := PWRDN_CMD;
+        end if;
+        
+        cpu_req_o <= "1" & t6_cmd & pad32(t6_cpuid) & pad32(UART_ID);
+        st := 62;
+      elsif st = 62 then -- wait res
+        cpu_req_o <= (others => '0');
+        if (cpu_id_i = 1) and is_valid(cpu_res_i) then
+          st := 60;
+        end if;
+      elsif st = 69 then -- delay
+        rnd_dlay(t6_f, t6_s, t6_c, st, st_nxt);
         
 -- *** Petersons algorithm starts here ***
       elsif st = 99 then -- delay
