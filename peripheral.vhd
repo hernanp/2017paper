@@ -241,7 +241,9 @@ begin
           rnd_adr := std_logic_vector(to_unsigned(rand_nat(s), rnd_adr'length));
 
           -- rmz cmd
-          if (rand_nat(s) mod 2) = 1 then
+          if (devid_i = USB_ID) or
+            (devid_i = UART_ID) or
+            (rand_nat(s) mod 2) = 1 then
             cmd := READ_CMD;
           else
             cmd := WRITE_CMD;
