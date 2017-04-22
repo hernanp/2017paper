@@ -87,10 +87,12 @@ begin
     variable t4_tot : natural := 20;
 
     variable t6_f : boolean := true;
-    variable t6_s, t6_c, t6_tc, t6_r : natural := 0;
+    variable t6_c, t6_tc, t6_r : natural := 0;
+    variable t6_s : natural := cpu_id_i;
     -- _s is seed, _c is cnt, _tc is tot cnt
     variable t6_cpuid : DEVID_T;
     variable t6_cmd : CMD_T;
+    variable t6_devid : DEVID_T;
     
   begin
     -- Set up tests
@@ -260,14 +262,20 @@ begin
           -- report integer'image(cpu_id_i) & "dn";
           t6_cmd := PWRDN_CMD;
         end if;
+
+        t6_devid := std_logic_vector(to_unsigned((t6_r mod 4) + 2, t6_devid'length)); -- calc devid
         
-        cpu_req_o <= "1" & t6_cmd & pad32(t6_cpuid) & pad32(UART_ID);
+        cpu_req_o <= "1" & t6_cmd & pad32(t6_cpuid) & pad32(t6_devid);
         st := 62;
       elsif st = 62 then -- wait res
         cpu_req_o <= (others => '0');
-        if (cpu_id_i = 1) and is_valid(cpu_res_i) then
-          st := 60;
-        end if;
+        --if is_valid(cpu_res_i) then
+        --  st := 60;
+        --end if;
+
+        -- do not wait for resp, dlay for rnd time and continue
+        st_nxt := 60;
+        st := 69;
       elsif st = 69 then -- delay
         rnd_dlay(t6_f, t6_s, t6_c, st, st_nxt);
         

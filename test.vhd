@@ -57,7 +57,7 @@ package test is
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T := UREQ_TEST;
+  constant RUN_TEST : TEST_T := PWR_TEST;
                                         --CPU_W20_TEST;
                                         --PETERSONS_TEST; --ZERO_TEST;
                                                  --CPU1_R_TEST or
