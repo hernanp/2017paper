@@ -271,7 +271,9 @@ begin
           t6_cmd := PWRDN_CMD;
         end if;
 
-        t6_devid := std_logic_vector(to_unsigned((t6_r mod 4) + 2, t6_devid'length)); -- calc devid
+        -- calc devid
+        --  (t6_r % 4) + 1 since there are 4 peripherals and their ids start at 1
+        t6_devid := std_logic_vector(to_unsigned((t6_r mod 4) + 1, t6_devid'length));
         
         cpu_req_o <= "1" & t6_cmd & pad32(t6_cpuid) & pad32(t6_devid);
         st := 62;

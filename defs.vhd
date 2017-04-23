@@ -49,7 +49,8 @@ package defs is
   constant UART_ID  : DEVID_T := "010";
   constant USB_ID   : DEVID_T := "011";
   constant AUDIO_ID : DEVID_T := "100";
-  constant CPU1_ID  : DEVID_T := "101";
+  constant CPU1_ID  : DEVID_T := "101";  -- TODO should change to 001 but may
+                                         -- break stg else
 
   constant GFX_MASK32 : DAT_T := X"0000000" & "1" & GFX_ID;
   constant CPU0_MASK32 : ADR_T := X"0000000" & "1" & CPU0_ID;

@@ -388,7 +388,7 @@ begin
     if reset = '1' then
       we13 <= '0';
     elsif rising_edge(Clock) then
-      if (audio_upreq_i(52 downto 52) = "1") then
+      if (audio_upreq_i(72 downto 72) = "1") then
         in13 <= audio_upreq_i;
         we13 <= '1';
       else
@@ -417,7 +417,7 @@ begin
     if reset = '1' then
       we14 <= '0';
     elsif rising_edge(Clock) then
-      if (usb_upreq_i(52 downto 52) = "1") then
+      if (usb_upreq_i(72 downto 72) = "1") then
         in14 <= usb_upreq_i;
         we14 <= '1';
       else
@@ -446,7 +446,7 @@ begin
     if reset = '1' then
       we15 <= '0';
     elsif rising_edge(Clock) then
-      if (uart_upreq_i(52 downto 52) = "1") then
+      if (uart_upreq_i(72 downto 72) = "1") then
         in15 <= uart_upreq_i;
         we15 <= '1';
       else
@@ -530,7 +530,7 @@ begin
         end if;
       elsif stage = 1 then
         re14 <= '0';
-        if out14(52 downto 52) = "1" then
+        if out14(72 downto 72) = "1" then
           snp1_4 <= USB_ID & out14;
           stage  := 2;
         end if;
@@ -559,7 +559,7 @@ begin
         end if;
       elsif stage = 1 then
         re15 <= '0';
-        if out15(52 downto 52) = "1" then
+        if out15(72 downto 72) = "1" then
           snp1_5 <= UART_ID & out15;
           stage  := 2;
         end if;
