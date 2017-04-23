@@ -179,7 +179,7 @@ begin
           st := 70; -- RW_TEST starts in state 70
         end if;
 
--- *** CPU_R_TEST and CPU_W_TEST start here ***
+-- *** t1, t2: CPU_R_TEST and CPU_W_TEST start here ***
       elsif st = 1 then -- send
         -- send a random msg
         if t1 and (cpu_id_i = 1) then
@@ -204,7 +204,7 @@ begin
         --end if;
         cpu_req_o<=(others =>'0');
 
--- *** CPU_W20_TEST starts here ***
+-- *** t4: CPU_W20_TEST starts here ***
       elsif st = 20 then
         cpu_req_o <= (others => '0');
         if t4_tot_ct = 0 or is_valid(cpu_res_i) then
@@ -229,7 +229,7 @@ begin
         --if is_valid(cpu_res_i) then
           st := 2;
         --end if;
--- *** CPU1_RW_04_TEST starts here ***
+-- *** t5: CPU1_RW_04_TEST starts here ***
       --elsif st = 50 then
       --  if(cpu_id_i = 1) then
       --    cpu_req_o <= "1" & WRITE_CMD & X"1c000000" & X"00000001";
@@ -243,7 +243,7 @@ begin
       --elsif st = 52 then
       --  cpu_req_o <= (others => '0');
 
--- *** PWR_TEST starts here ***
+-- *** t6: PWR_TEST starts here ***
       elsif st = 60 then -- go to delay or done
         if t6_tc < PWRT_CNT then
           t6_tc := t6_tc + 1;
@@ -294,7 +294,7 @@ begin
       elsif st = 69 then -- delay
         rnd_dlay(t6_f, t6_s, t6_c, st, st_nxt);
 
--- *** RW_TEST starts here ***
+-- *** t7: RW_TEST starts here ***
       elsif st = 70 then -- go to delay or done
         if t7_tc < RWT_CNT then
           t7_tc := t7_tc + 1;
@@ -332,7 +332,7 @@ begin
       elsif st = 79 then -- delay
         rnd_dlay(t7_f, t7_s, t7_c, st, st_nxt);
 
--- *** RND_CPU_TEST starts here ***
+-- *** t8: RND_CPU_TEST starts here ***
       elsif st = 80 then -- rndmly choose between pwr_test and rw_test
         if (rand_nat(t6_s + t7_s) mod 2) = 1 then
           st := 60;
@@ -340,7 +340,7 @@ begin
           st := 70;
         end if;
         
--- *** Petersons algorithm starts here ***
+-- *** t3: Petersons algorithm starts here ***
       elsif st = 99 then -- delay
         pt_delay(t3_rdlay, t3_seed, t3_ct3, st, st_nxt);
       elsif st = 100 then -- line 1 (for loop)
