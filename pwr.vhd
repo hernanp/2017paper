@@ -29,6 +29,7 @@ architecture rtl of pwr is
   signal in1,out1 : MSG_T;
   signal in2,out2 : MSG_T;
   signal we1,re1,emp1,we2,re2,emp2 : std_logic:='0';
+  signal test: MSG_T;
 begin
 
   pwr_req_fifo: entity work.fifo(rtl) 
@@ -74,7 +75,8 @@ begin
       audio_req_o <= (others => '0');
       usb_req_o <= (others => '0');
       uart_req_o <= (others => '0');
-    elsif rising_edge(Clock) then
+  elsif rising_edge(Clock) then
+  	test <= tmp;
       res_o <= (others => '0');
       if st =0 then
         gfx_req_o <= (others => '0');
@@ -91,27 +93,32 @@ begin
         if is_valid(out1) then
           tmp := out1;
           if get_dat(out1) = pad32(GFX_ID) then
-            --report "ready to send gfx req";
+            report "ready to send gfx req";
             dev := GFX_ID;
           elsif get_dat(out1) = pad32(AUDIO_ID) then
             dev := AUDIO_ID;
           elsif get_dat(out1) = pad32(USB_ID) then
             dev := USB_ID;
           elsif get_dat(out1) = pad32(UART_ID) then
-            dev := UART_ID;
+          	dev := UART_ID;
+          else
+          	report "device id unkonwn 1";
+          	
           end if;
           st := 2;
         end if;
       elsif st = 2 then -- output
         if dev = GFX_ID then
-          --report "output gfx req";
+          report "output gfx req";
           gfx_req_o <= tmp;
         elsif dev = AUDIO_ID then
           audio_req_o <= tmp;
         elsif dev = USB_ID then
           usb_req_o <= tmp;
         elsif dev = UART_ID then
-          uart_req_o <= tmp;
+        		uart_req_o <= tmp;
+        	else
+          	report "device id unkonwn 2";
         end if;
         st := 3;
       elsif st = 3 then
