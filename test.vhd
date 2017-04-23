@@ -56,7 +56,7 @@ package test is
 
   --********* UREQ TEST ************
   constant UREQ_TEST : TEST_T := (7=>'1', others => '0');
-  constant UREQT_CNT : natural := 1;
+  constant UREQT_CNT : natural := 1000;
 
   --********* RW TEST ************
   -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
@@ -66,8 +66,8 @@ package test is
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
   constant RUN_TEST : TEST_T := --RW_TEST or
-                                --PWR_TEST or
-                                UREQ_TEST;
+                                PWR_TEST;-- or
+                                --UREQ_TEST;
                                 --PETERSONS_TEST;
                                 --ZERO_TEST;
 
