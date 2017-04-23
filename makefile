@@ -44,7 +44,8 @@ clean:
 	rm *.o *.vcd
 rand:
 #	python rand.py -c 15 -o "rand_ints4b.txt" # use opts -n and -c to set count and max
-	python rand.py -c 63 -o "rand_ints7b.txt" # 2^6 - 1
+#	python rand.py -c 63 -o "rand_ints7b.txt" # 2^6 - 1
+	python rand.py -c 127 -o "rand_ints8b.txt" # 2^7 - 1
 #	python rand.py -c 511 -o "rand_ints10b.txt" # 2^9 - 1
 #	python rand.py -c 2147483648 -o "rand_ints32b.txt" # 2^31 - 1
 showtree:
