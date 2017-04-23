@@ -592,24 +592,25 @@ begin
       ack   => mem_ack
       );
 
-  tomem_channel : process(reset, Clock)
+ tomem_channel : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
     variable lp      : integer                        := 0;
     variable tep_mem : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot : integer;
   begin
     if reset = '1' then
       rvalid_o  <= '0';
       rdready <= '0';
-    	state :=0;
+		state :=0;
     elsif rising_edge(Clock) then
-       if state = 0 then
-    		mem_ack <= '1';
-    		state :=20;
+	   if state = 0 then
+			mem_ack <= '1';
+			state :=20;
       elsif state = 20 then
-    		mem_ack <='0';
+			mem_ack <='0';
         bus_res1_1   <= nullreq;
         bus_res2_1   <= nullreq;
         gfx_upres1   <= (others => '0');
@@ -628,15 +629,16 @@ begin
             state   := 9;
           else
             tep_mem := tomem_p;
-            state   := 6; -- MERGE durw: changed from 16 to 6
+            state   := 6;
           end if;
         end if;
         
-      elsif state = 16 then -- send mem req out
+      elsif state = 16 then
         if rready = '1' then
           --mem_ack <= '0';
           rvalid_o <= '1';
           raddr  <= tep_mem(63 downto 32);
+			 slot := to_integer(unsigned(tep_mem(35 downto 32)));
           if (dst_eq(tep_mem, CPU0_ID) or
               dst_eq(tep_mem, CPU1_ID)) then
             rlen <= "00000" & "10000";
@@ -655,7 +657,11 @@ begin
           if (dst_eq(tep_mem, CPU0_ID) or
               dst_eq(tep_mem, CPU1_ID)) then
             rdready <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata;
+				if lp=slot and cmd_eq(tep_mem, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_mem(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata;
+				end if;
             lp := lp + 1;
             if rlast = '1' then
               state := 3;
@@ -666,7 +672,7 @@ begin
             rdready <= '1';
             sdata   := rdata;
             rdready <= '1';
-    			state :=3;
+				state :=3;
           end if;
 
         end if;
@@ -729,7 +735,6 @@ begin
       end if;
     end if;
   end process;
-
   togfx_arbitor : entity work.arbiter6_ack(rtl)
     generic map(
       DATA_WIDTH => 76
@@ -753,21 +758,22 @@ begin
       ack 	=> gfx_ack
       );
 
-togfx_channel : process(reset, Clock)
+ togfx_channel : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
     variable lp      : integer                        := 0;
     variable tep_gfx1 : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot : integer :=0;
   begin
     if reset = '1' then
       rvalid_gfx  <= '0';
       rdready_gfx <= '0';
     elsif rising_edge(Clock) then
-    	if state =0 then
-    		gfx_ack <='1';
-    		state :=20;
+		if state =0 then
+			gfx_ack <='1';
+			state :=20;
     	elsif state = 20 then
     	  gfx_ack <='0';
         bus_res1_2   <= nullreq;
@@ -790,6 +796,7 @@ togfx_channel : process(reset, Clock)
           ---gfx_ack <= '0';
           rvalid_gfx <= '1';
           raddr_gfx  <= tep_gfx1(63 downto 32);
+			 slot := to_integer(unsigned(tep_gfx1(35 downto 32)));
           if (dst_eq(tep_gfx1, CPU0_ID) or
               dst_eq(tep_gfx1, CPU1_ID)) then
             rlen_gfx <= "00000" & "10000";
@@ -807,8 +814,12 @@ togfx_channel : process(reset, Clock)
         if rdvalid_gfx = '1' and rres_gfx = "00" then
           if (dst_eq(tep_gfx1, CPU0_ID) or
               dst_eq(tep_gfx1, CPU1_ID)) then
+				if lp=slot and cmd_eq(tep_gfx1, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_gfx1(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata_gfx;
+				end if;
             rdready_gfx                        <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata_gfx;
             lp                                 := lp + 1;
             if rlast_gfx = '1' then
               state := 3;
@@ -877,7 +888,6 @@ togfx_channel : process(reset, Clock)
       end if;
     end if;
   end process;
-
   mem_write:process(reset, Clock)
     variable state:integer :=0;
     variable tep_mem:std_logic_vector(75 downto 0);
@@ -1309,6 +1319,7 @@ togfx_channel : process(reset, Clock)
     variable lp      : integer                        := 0;
     variable tep_usb : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot :integer :=0;
   begin
     if reset = '1' then
       rvalid_usb  <= '0';
@@ -1337,9 +1348,10 @@ togfx_channel : process(reset, Clock)
           ---usb_ack <= '0';
           rvalid_usb <= '1';
           raddr_usb  <= tep_usb(63 downto 32);
+			 slot := to_integer(unsigned(tep_usb(35 downto 32)));
           if (dst_eq(tep_usb, CPU0_ID) or
               dst_eq(tep_usb, CPU1_ID)) then
-            rlen_usb <= "00000" & "10000"; -- MERGE durw: ["00000" & "10000"/"00001" & "00000"]
+            rlen_usb <= "00000" & "10000";
           else
             rlen_usb <= "00000" & "00001";
           end if;
@@ -1355,7 +1367,11 @@ togfx_channel : process(reset, Clock)
           if (dst_eq(tep_usb, CPU0_ID) or
               dst_eq(tep_usb, CPU1_ID)) then
             rdready_usb                        <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata_usb;
+				if lp=slot and cmd_eq(tep_usb, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_usb(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata_usb;
+				end if;
             lp                                 := lp + 1;
             if rlast_usb = '1' then
               state := 3;
@@ -1423,7 +1439,6 @@ togfx_channel : process(reset, Clock)
       end if;
     end if;
   end process;
-
   usb_write:process(reset, Clock)
     variable state:integer :=0;
     variable tep_usb:std_logic_vector(75 downto 0);
@@ -1535,13 +1550,14 @@ togfx_channel : process(reset, Clock)
       ack	=> uart_ack
       );
 
-  touart_channel : process(reset, Clock)
+   touart_channel : process(reset, Clock)
     variable tdata    : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata    : std_logic_vector(31 downto 0)  := (others => '0');
     variable state    : integer                        := 0;
     variable lp       : integer                        := 0;
     variable tep_uart : std_logic_vector(75 downto 0);
     variable nullreq  : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot:integer :=0;
   begin
     if reset = '1' then
       rvalid_uart  <= '0';
@@ -1549,7 +1565,7 @@ togfx_channel : process(reset, Clock)
     elsif rising_edge(Clock) then
     	  if state = 0 then
     		uart_ack <= '1';
-    		state :=20;
+			state :=20;
     	elsif state = 20 then
     		uart_ack <='0';
         bus_res1_3   <= nullreq;
@@ -1570,9 +1586,10 @@ togfx_channel : process(reset, Clock)
           ---uart_ack <= '0';
           rvalid_uart <= '1';
           raddr_uart  <= tep_uart(63 downto 32);
+			 slot := to_integer(unsigned(tep_uart(35 downto 32)));
           if (dst_eq(tep_uart, CPU0_ID) or
               dst_eq(tep_uart, CPU1_ID)) then
-            rlen_uart <= "00000" & "10000"; -- MERGE durw
+            rlen_uart <= "00000" & "10000";
           else
             rlen_uart <= "00000" & "00001";
           end if;
@@ -1588,7 +1605,12 @@ togfx_channel : process(reset, Clock)
           if (dst_eq(tep_uart, CPU0_ID) or
               dst_eq(tep_uart, CPU1_ID)) then
             rdready_uart                       <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata_uart;
+				if lp=slot and cmd_eq(tep_uart, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_uart(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata_uart;
+				end if;
+            
             lp                                 := lp + 1;
             if rlast_uart = '1' then
               state := 3;
@@ -1660,7 +1682,6 @@ togfx_channel : process(reset, Clock)
       end if;
     end if;
   end process;
-
   bus_res2_arbitor : entity work.arbiter61(rtl)
     generic map(
       DATA_WIDTH => BMSG_WIDTH
@@ -1847,23 +1868,24 @@ togfx_channel : process(reset, Clock)
       dout => audio_wb
       );
 
-  toaudio_channel : process(reset, Clock)
+   toaudio_channel : process(reset, Clock)
     variable tdata     : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata     : std_logic_vector(31 downto 0)  := (others => '0');
     variable state     : integer                        := 0;
     variable lp        : integer                        := 0;
     variable tep_audio : std_logic_vector(75 downto 0);
     variable nullreq   : std_logic_vector(552 downto 0) := (others => '0');
+	 variable slot :integer :=0;
   begin
     if reset = '1' then
       rvalid_audio  <= '0';
       rdready_audio <= '0';
     elsif rising_edge(Clock) then
       if state = 0 then
-    		audio_ack <='1';
-    		state :=20;
-    	elsif state =20 then
-    		audio_ack <='0';
+			audio_ack <='1';
+			state :=20;
+		elsif state =20 then
+			audio_ack <='0';
         bus_res1_5  <= nullreq;
         bus_res2_5  <= nullreq;
         gfx_upres5  <= (others => '0');
@@ -1882,9 +1904,10 @@ togfx_channel : process(reset, Clock)
           ---audio_ack <= '0';
           rvalid_audio <= '1';
           raddr_audio  <= tep_audio(63 downto 32);
+			 slot := to_integer(unsigned(tep_audio(35 downto 32)));
           if (dst_eq(tep_audio, CPU0_ID) or
               dst_eq(tep_audio, CPU1_ID)) then
-            rlen_audio <= "00000" & "10000"; -- MERGE durw
+            rlen_audio <= "00000" & "10000";
           else
             rlen_audio <= "00000" & "00001";
           end if;
@@ -1900,7 +1923,11 @@ togfx_channel : process(reset, Clock)
           if (dst_eq(tep_audio, CPU0_ID) or
               dst_eq(tep_audio, CPU1_ID)) then
             rdready_audio                      <= '0';
-            tdata(lp * 32 + 31 downto lp * 32) := rdata_audio;
+				if lp=slot and cmd_eq(tep_audio, WRITE_CMD) then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_audio(31 downto 0);
+				else
+					tdata(lp * 32 + 31 downto lp * 32) := rdata_audio;
+				end if;
             lp                                 := lp + 1;
             if rlast_audio = '1' then
               state := 3;
@@ -1911,7 +1938,7 @@ togfx_channel : process(reset, Clock)
             rdready_audio <= '1';
             sdata         := rdata_audio;
             rdready_audio <= '1';
-    			state :=3;
+				state :=3;
           end if;
 
         end if;

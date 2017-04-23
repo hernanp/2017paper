@@ -35,13 +35,13 @@ package test is
 
   --********* PWR TEST ************
   constant PWR_TEST : TEST_T := (5=>'1', others => '0');
-  constant PWRT_CNT : natural := 1;
+  constant PWRT_CNT : natural := 5;
 
   --********* PETERSONS TEST ************
   --* cpus 1 and 2 execute petersons algorithm
   constant PETERSONS_TEST : TEST_T := (6=>'1', others => '0');
   constant PT_DELAY_FLAG : boolean := true;
-  constant PT_ITERATIONS : natural := 50;
+  constant PT_ITERATIONS : natural := 500;
   -- petersons' shared variables
   constant PT_VAR_FLAG0 : ADR_T := (1=>'1', others=>'0'); -- M[1]
   constant PT_VAR_FLAG1 : ADR_T := (2=>'1', others=>'0'); -- M[2]
@@ -56,12 +56,12 @@ package test is
 
   --********* UREQ TEST ************
   constant UREQ_TEST : TEST_T := (7=>'1', others => '0');
-  constant UREQT_CNT : natural := 1;
+  constant UREQT_CNT : natural := 1000;
 
   --********* RW TEST ************
   -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
   constant RW_TEST : TEST_T := (8=>'1', others => '0');
-  constant RWT_CNT : natural := 1;
+  constant RWT_CNT : natural := 10;
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
