@@ -56,7 +56,7 @@ package test is
 
   --********* UREQ TEST ************
   constant UREQ_TEST : TEST_T := (7=>'1', others => '0');
-  constant UREQT_CNT : natural := 1000;
+  constant UREQT_CNT : natural := 1;
 
   --********* RW TEST ************
   -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
@@ -140,7 +140,7 @@ package body test is
   begin
     if rndmz_dlay and st /= next_st then -- start
       cnt := rand_nat(to_integer(unsigned(PETERSONS_TEST)) + seed);
-      seed := seed + 1;
+      seed := seed + cnt + 1;
       rndmz_dlay := false;
       delay(cnt, st, next_st);
     elsif (rndmz_dlay = false) then -- count

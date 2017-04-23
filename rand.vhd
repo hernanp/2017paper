@@ -7,7 +7,7 @@ use std.textio.all;
 use work.defs.all;
 
 package rand is
-  constant RND_INT_CNT: natural := 1000;
+  constant RND_INT_CNT: natural := 100000;
   constant RND_INT_MAX: natural := 9;
   
   --+ seeds
@@ -40,7 +40,7 @@ package body rand is
     variable i : integer := 0;
     variable res : int_array_t := (others => 0);
   begin
-    while not endfile(rnd_ints1_f) loop
+    while (not endfile(rnd_ints1_f)) and i < RND_INT_CNT loop
       readline(rnd_ints1_f, l);
       read(l, n);
       res(i) := n;
@@ -49,20 +49,22 @@ package body rand is
     return res;
   end rand_init;
 
-  constant a1 : int_array_t := rand_init("rand_ints4b.txt");
-  constant a2 : int_array_t := rand_init("rand_ints32b.txt");
+--  constant a4b : int_array_t := rand_init("rand_ints4b.txt");
+--  constant a10b : int_array_t := rand_init("rand_ints10b.txt");
+  constant a7b : int_array_t := rand_init("rand_ints7b.txt");
+  constant a32b : int_array_t := rand_init("rand_ints32b.txt");
   
   function rand_nat(constant seed:in natural) return natural is
   begin
     --report "rnd[" & integer'image((seed + time'pos(now)) mod RND_INT_CNT) & "]:" & integer'image(a((seed + time'pos(now)) mod RND_INT_CNT));
-    return a1((seed + time'pos(now)) mod RND_INT_CNT);
+    return a7b((seed + time'pos(now)) mod RND_INT_CNT);
   end rand_nat;
 
   function rnd_adr(constant seed:in natural) return std_logic_vector is
     variable tmp, tmp2 : std_logic_vector(31 downto 0);
   begin
     --report "rnd[" & integer'image((seed + time'pos(now)) mod RND_INT_CNT) & "]:" & integer'image(a((seed + time'pos(now)) mod RND_INT_CNT));
-    return std_logic_vector(to_unsigned(a2((seed + time'pos(now)) mod RND_INT_CNT), 32));
+    return std_logic_vector(to_unsigned(a32b((seed + time'pos(now)) mod RND_INT_CNT), 32));
   end rnd_adr;
   
   function rand_vect_range(constant num:in integer;
