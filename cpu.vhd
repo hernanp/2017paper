@@ -85,6 +85,10 @@ begin
     variable t7_cmd : CMD_T;
     variable t7_adr : ADR_T;
 
+    -- HACKS
+    variable c1: integer := 0;
+    variable c2: integer := 200;
+    
     ---- t8 vars
     --variable t8_f : boolean := true;
     --variable t8_s : natural := cpu_id_i;
@@ -317,8 +321,18 @@ begin
         end if;
 
         -- rndmz adr
-        t7_adr := rnd_adr(t7_r);
-        -- TODO this is a hack to force adr to be in mem or gfx
+        --t7_adr := rnd_adr(t7_r);
+
+        -- HACK1 force each cpu to request different addresses
+        if cpu_id_i = 1 then
+          t7_adr := std_logic_vector(to_unsigned(c1, t7_adr'length));
+          c1 := c1 + 1;
+        else
+          t7_adr := std_logic_vector(to_unsigned(c2, t7_adr'length));
+          c2 := c2 + 1;
+        end if;
+        
+        -- HACK2 force them to go to memory or gfx
         if (t7_r mod 2) = 1 then
           t7_adr := t7_adr or X"80000000"; -- mem
         else

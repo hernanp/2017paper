@@ -214,6 +214,13 @@ begin
     variable t_adr : ADR_T;
     variable cmd : CMD_T;
     variable offset : ADR_T;
+
+    --HACKS
+    variable c1 : integer := 0;
+    variable c2 : integer := 200;
+    variable c3 : integer := 400;
+    variable c4 : integer := 600;
+    
   begin
       if reset = '1' then
         upreq_o <= (others => '0');
@@ -241,17 +248,25 @@ begin
           -- rmz adr
           s := s + to_integer(unsigned(devid_i));
           --t_adr := std_logic_vector(to_unsigned(rand_nat(s), t_adr'length));
-          t_adr := rnd_adr(s);
+          --t_adr := rnd_adr(s);
 
           -- HACK 1 : force devices to request different addresses
           if devid_i = GFX_ID then
-            t_adr := t_adr and X"000000FF";
+            t_adr := std_logic_vector(to_unsigned(c1, t_adr'length));
+            c1 := c1 + 1;
+            --t_adr := t_adr and X"000000FF";
           elsif devid_i = USB_ID then
-            t_adr := t_adr and X"0000FF00";
+            t_adr := std_logic_vector(to_unsigned(c2, t_adr'length));
+            c2 := c2 + 1;
+            --t_adr := t_adr and X"0000FF00";
           elsif devid_i = UART_ID then
-            t_adr := t_adr and X"00FF0000";
+            t_adr := std_logic_vector(to_unsigned(c3, t_adr'length));
+            c3 := c3 + 1;
+            --t_adr := t_adr and X"00FF0000";
           elsif devid_i = AUDIO_ID then
-            t_adr := t_adr and X"FF000000";
+            t_adr := std_logic_vector(to_unsigned(c4, t_adr'length));
+            c4 := c4 + 1;
+            --t_adr := t_adr and X"FF000000";
           end if;
           
             
