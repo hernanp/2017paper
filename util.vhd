@@ -30,6 +30,8 @@ package util is
 
   procedure dbug(constant n : in integer);
 
+  procedure dbug(constant s : in string);
+  
   procedure req(signal sig : out std_logic_vector;
                 constant v : in std_logic_vector;
                 constant str : in string);
@@ -121,6 +123,13 @@ package body util is
     report integer'image(n);
   end;
 
+  procedure dbug(constant s : in string) is
+  begin
+    if DBUG_FLG then
+      report s;
+    end if;
+  end;
+  
   procedure req(signal sig : out std_logic_vector;
                 constant v : in std_logic_vector;
                 constant str : in string) is

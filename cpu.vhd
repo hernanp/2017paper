@@ -155,7 +155,7 @@ begin
       --  --  ", cnt:" & integer'image(t3_ct3) &
       --  --  ", st:" & integer'image(st);
       --end if;
-      report "st is " & integer'image(st);
+      dbug("st is " & integer'image(st));
         
       if st = 0 then -- wait
         if t1 and (cpu_id_i = 1) then
@@ -430,8 +430,8 @@ begin
           else
             st_nxt := 108; -- jump out of loop
           end if;
-        end if;
         st := 99;
+        end if;
       elsif st = 106 then -- busy wait
         st := 1032; -- go to loop again
       elsif st = 108 then -- line 6 (get val of shared)
@@ -457,7 +457,7 @@ begin
           st_nxt := 1102;
         end if;
       elsif st = 1102 then
-        req(cpu_req_o, "1" & WRITE_CMD & t3_adr_other & ZEROS32, str(cpu_id_i));
+        req(cpu_req_o, "1" & WRITE_CMD & t3_adr_me & ZEROS32, str(cpu_id_i));
         st := 111;
       elsif st = 111 then -- jmp to FOR_LOOP_START
         cpu_req_o <= ZERO_MSG;
