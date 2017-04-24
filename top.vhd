@@ -745,30 +745,36 @@ begin
   mem : entity work.Memory(rtl) port map(
     Clock      => Clock,
     reset      => reset,
-    waddr      => waddr,
-    wlen       => wlen,
-    wsize      => wsize,
-    wvalid     => wvalid,
-    wready     => wready,
-    wdata      => wdata,
-    wtrb       => wtrb,
-    wlast      => wlast,
-    wdvalid    => wdvalid,
-    wdataready => wdataready,
-    wrready    => wrready,
-    wrvalid    => wrvalid,
-    wrsp       => wrsp,
-    raddr      => raddr,
-    rlen       => rlen,
-    rsize      => rsize,
-    rvalid_in  => rvalid,
-    rready     => rready,
-    rdata      => rdata,
-    rstrb      => rstrb,
-    rlast      => rlast,
-    rdvalid_out => rdvalid,
-    rdready    => rdready,
-    rres_out   => rres
+
+    waddr_i      => waddr,
+    wlen_i       => wlen,
+    wsize_i      => wsize,
+    wvalid_i     => wvalid,
+    wready_o     => wready,
+    
+    wdata_i      => wdata,
+    wtrb_i       => wtrb,
+    wlast_i      => wlast,
+    wdvalid_i    => wdvalid,
+    wdataready_o => wdataready,
+    
+    wrready_i    => wrready,
+    wrvalid_o    => wrvalid,
+    wrsp_o       => wrsp,
+    
+    raddr_i      => raddr,
+    rlen_i       => rlen,
+    rsize_i      => rsize,
+    rvalid_i     => rvalid,
+    rready_o     => rready,
+    
+    rdata_o      => rdata,
+    rstrb_o      => rstrb,
+    rlast_o      => rlast,
+    rdvalid_o    => rdvalid,
+
+    rdready_i    => rdready,
+    rres_o   => rres
     );
 
   -- -- Clock generation, starts at 0
@@ -865,6 +871,8 @@ begin
         ---- read
         write(l, rvalid);
         write(l, SEP);
+        write(l, raddr);
+        write(l, SEP);
         write(l, rdvalid);
         write(l, SEP);
         write(l, rlast);
@@ -882,6 +890,8 @@ begin
         ---- gfx
         ---- read
         write(l, rvalid_gfx);
+        write(l, SEP);
+        write(l, raddr_gfx);
         write(l, SEP);
         write(l, rdvalid_gfx);
         write(l, SEP);
@@ -901,6 +911,8 @@ begin
         ---- read
         write(l, rvalid_uart);
         write(l, SEP);
+        write(l, raddr_uart);
+        write(l, SEP);
         write(l, rdvalid_uart);
         write(l, SEP);
         write(l, rlast_uart);
@@ -919,6 +931,8 @@ begin
         ---- read
         write(l, rvalid_usb);
         write(l, SEP);
+        write(l, raddr_usb);
+        write(l, SEP);
         write(l, rdvalid_usb);
         write(l, SEP);
         write(l, rlast_usb);
@@ -936,6 +950,8 @@ begin
         ---- audio
         ---- read
         write(l, rvalid_audio);
+        write(l, SEP);
+        write(l, raddr_audio);
         write(l, SEP);
         write(l, rdvalid_audio);
         write(l, SEP);

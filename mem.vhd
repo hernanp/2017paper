@@ -1,162 +1,182 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
---use work.rand.all;
+use work.util.all;
 
 entity memory is
-	Port(Clock      : in  std_logic;
-		 reset      : in  std_logic;
-		 ---write address chanel
-		 waddr      : in  std_logic_vector(31 downto 0);
-		 wlen       : in  std_logic_vector(9 downto 0);
-		 wsize      : in  std_logic_vector(9 downto 0);
-		 wvalid     : in  std_logic;
-		 wready     : out std_logic;
-		 ---write data channel
-		 wdata      : in  std_logic_vector(31 downto 0);
-		 wtrb       : in  std_logic_vector(3 downto 0);
-		 wlast      : in  std_logic;
-		 wdvalid    : in  std_logic;
-		 wdataready : out std_logic;
-		 ---write response channel
-		 wrready    : in  std_logic;
-		 wrvalid    : out std_logic;
-		 wrsp       : out std_logic_vector(1 downto 0);
+  Port(Clock      : in  std_logic;
+       reset      : in  std_logic;
+       ---write address chanel
+       waddr_i      : in  std_logic_vector(31 downto 0);
+       wlen_i       : in  std_logic_vector(9 downto 0);
+       wsize_i      : in  std_logic_vector(9 downto 0);
+       wvalid_i     : in  std_logic;
+       wready_o     : out std_logic;
+       ---write data channel
+       wdata_i      : in  std_logic_vector(31 downto 0);
+       wtrb_i       : in  std_logic_vector(3 downto 0);
+       wlast_i      : in  std_logic;
+       wdvalid_i    : in  std_logic;
+       wdataready_o : out std_logic;
+       ---write response channel
+       wrready_i    : in  std_logic;
+       wrvalid_o    : out std_logic;
+       wrsp_o       : out std_logic_vector(1 downto 0);
 
-		 ---read address channel
-		 raddr      : in  std_logic_vector(31 downto 0);
-		 rlen       : in  std_logic_vector(9 downto 0);
-		 rsize      : in  std_logic_vector(9 downto 0);
-		 rvalid_in  : in  std_logic;
-		 rready     : out std_logic;
-		 ---read data channel
-		 rdata      : out std_logic_vector(31 downto 0);
-		 rstrb      : out std_logic_vector(3 downto 0);
-		 rlast      : out std_logic;
-		 rdvalid_out    : out std_logic; -- sig from mem to ic meaning "here comes
-                                     -- the data"
-		 rdready    : in  std_logic; -- sig from ic to mem meaning "done"
-                                     -- sending data
-		 rres_out   : out std_logic_vector(1 downto 0)
-	);
+       ---read address channel
+       raddr_i      : in  std_logic_vector(31 downto 0);
+       rlen_i       : in  std_logic_vector(9 downto 0);
+       rsize_i      : in  std_logic_vector(9 downto 0);
+       rvalid_i  : in  std_logic;
+       rready_o     : out std_logic;
+       ---read data channel
+       rdata_o      : out std_logic_vector(31 downto 0);
+       rstrb_o      : out std_logic_vector(3 downto 0);
+       rlast_o      : out std_logic;
+       rdvalid_o    : out std_logic; -- sig from mem to ic meaning "here comes
+       -- the data"
+       rdready_i    : in  std_logic; -- sig from ic to mem meaning "done"
+       -- sending data
+       rres_o   : out std_logic_vector(1 downto 0)
+       );
 end Memory;
 
 architecture rtl of Memory is
-	--type rom_type is array (2**32-1 downto 0) of std_logic_vector (31 downto 0);
-	type ram_type is array (0 to natural(2 ** 5 - 1) - 1) of std_logic_vector(wdata'range);
-	type ram_type1 is array (0 to natural(2 ** 2 - 1) - 1) of ram_type;
-	signal ROM_array : ram_type1 := (others => (others => (others => '0')));
+  --type rom_type is array (2**32-1 downto 0) of std_logic_vector (31 downto 0);
+  type ram_type is array (0 to natural(2 ** 5 - 1) - 1) of std_logic_vector(wdata_i'range);
+  type ram_type1 is array (0 to natural(2 ** 2 - 1) - 1) of ram_type;
+  signal ROM_array : ram_type1 := (others => (others => (others => '0')));
 
+  signal r,w : std_logic := '0';
+  
 begin
-	write : process(Clock, reset)
-		variable slot    : integer;
-		variable address : integer;
-		variable len     : integer;
-		variable size    : std_logic_vector(9 downto 0);
-		variable state   : integer := 0;
-		variable lp      : integer := 0;
-	begin
-		if reset = '1' then
-			wready     <= '1';
-			wdataready <= '0';
-		elsif (rising_edge(Clock)) then
-			if state = 0 then
-				wrvalid <= '0';
-				wrsp    <= "10";
-				if wvalid = '1' then
-					wready     <= '0';
-					slot       := to_integer(unsigned(waddr(30 downto 15)));
-					address    := to_integer(unsigned(waddr(15 downto 0)));
-					len        := to_integer(unsigned(wlen));
-					size       := wsize;
-					state      := 2;
-					wdataready <= '1';
-				end if;
+  write : process(Clock, reset)
+    variable slot       : integer;
+    variable address    : integer;
+    variable len        : integer;
+    variable size       : std_logic_vector(9 downto 0);
+    variable st, st_nxt : natural := 0;
+    variable cnt        : natural;
+    variable lp         : integer := 0;
+  begin
+    if reset = '1' then
+      wready_o     <= '1';
+      wdataready_o <= '0';
+    elsif (rising_edge(Clock)) then
+      if st = 0 then
+        wrvalid_o <= '0';
+        wrsp_o    <= "10";
+        if wvalid_i = '1' then
+          wready_o     <= '0';
+          slot       := to_integer(unsigned(waddr_i(26 downto 15)));
+          address    := to_integer(unsigned(waddr_i(15 downto 0)));
+          len        := to_integer(unsigned(wlen_i));
+          size       := wsize_i;
+          wdataready_o <= '1';
+          st      := 2;
+        end if;
 
-			elsif state = 2 then
-				if wdvalid = '1' then
-					---not sure if lengh or length -1
-					if lp < len - 1 then
-						wdataready                    <= '0';
-						---strob here is not considered
-						ROM_array(slot)(address + lp) <= wdata(31 downto 0);
-						lp                            := lp + 1;
-						wdataready                    <= '1';
-						if wlast = '1' then
-							state := 3;
-						end if;
-					else
-						state := 3;
-					end if;
+      elsif st = 2 then
+        if wdvalid_i = '1' then
+          st := 4;
+          st_nxt := 5;
+        end if;
+      elsif st = 5 then
+        if lp < len - 1 then
+          wdataready_o <= '0';
+          ---strob here is not considered
+          ROM_array(slot)(address + lp) <= wdata_i(31 downto 0);
+          lp := lp + 1;
+          wdataready_o <= '1';
+          if wlast_i = '1' then
+            st := 4;
+            st_nxt := 3;
+          end if;
+        else
+          cnt := 100;
+          st := 4;
+          st_nxt := 3;
+        end if;
+      elsif st = 3 then
+  --      w <= '0';
+        if wrready_i = '1' then
+          wrvalid_o <= '1';
+          wrsp_o    <= "00";
+          st   := 0;
+        end if;
+      elsif st = 4 then
+  --      w <= '1';
+        delay(cnt, st, st_nxt);
+      end if;
+    end if;
+  end process;
 
-				end if;
-			elsif state = 3 then
-				if wrready = '1' then
-					wrvalid <= '1';
-					wrsp    <= "00";
-					state   := 0;
-				end if;
-			end if;
-		end if;
-	end process;
+  read : process(Clock, reset)
+    variable slot    : integer;
+    variable address : integer;
+    variable len     : integer;
+    variable size    : std_logic_vector(9 downto 0);
+    variable st, st_nxt   : natural := 0;
+    variable lp      : integer := 0;
+    variable dt      : std_logic_vector(31 downto 0);
+    variable cnt     : natural;
+  begin
+    if reset = '1' then
+      rready_o  <= '1';
+      rdvalid_o <= '0';
+      rstrb_o   <= "1111";
+      rlast_o   <= '0';
+      address := 0;
+    elsif (rising_edge(Clock)) then
+      if st = 0 then
+        lp := 0;
+        if rvalid_i = '1' then
+          rready_o  <= '0';
+          slot    := to_integer(unsigned(waddr_i(26 downto 25)));
+          address := to_integer(unsigned(waddr_i(15 downto 14)));
+          len     := to_integer(unsigned(rlen_i));
+          size    := rsize_i;
+          st   := 2;
+        end if;
 
-	read : process(Clock, reset)
-		variable slot    : integer;
-		variable address : integer;
-		variable len     : integer;
-		variable size    : std_logic_vector(9 downto 0);
-		variable state   : integer := 0;
-		variable lp      : integer := 0;
-		variable dt      : std_logic_vector(31 downto 0);
-	begin
-		if reset = '1' then
-			rready  <= '1';
-			rdvalid_out <= '0';
-			rstrb   <= "1111";
-			rlast   <= '0';
-			address := 0;
-		elsif (rising_edge(Clock)) then
-			if state = 0 then
-				lp := 0;
-				if rvalid_in = '1' then
-					rready  <= '0';
-					slot    := to_integer(unsigned(waddr(30 downto 25)));
-					address := to_integer(unsigned(waddr(15 downto 14)));
-					len     := to_integer(unsigned(rlen));
-					size    := rsize;
-					state   := 2;
-				end if;
+      elsif st = 2 then
+        if rdready_i = '1' then
+          cnt := 100;
+          st := 4;
+          st_nxt := 5;
+        end if;
+      elsif st = 5 then
+          if lp < 16 then
+            rdvalid_o <= '1';
+            ---strob here is not considered
+            ---left alone , dono how to fix
+            ---if ROM_array(address+lp) ="00000000000000000000000000000000" then
+            ---ROM_array(address+lp) := selection(2**15-1,32); -- TODO replace all calls "selection" in this file by rand_int, etc...
+            ---end if;
+            --dt      := selection(2 ** 15 - 1, 32);
+            ---rdata_o <= dt;
+            rdata_o   <= ROM_array(slot)(address + lp);
+            lp      := lp + 1;
+            rres_o <= "00";
+            if lp = len then
+              st := 3;
+              rlast_o <= '1';
+            end if;
+          else
+            st := 3;
+          end if;
 
-			elsif state = 2 then
-				if rdready = '1' then
-					if lp < 16 then
-						rdvalid_out <= '1';
-						---strob here is not considered
-						---left alone , dono how to fix
-						---if ROM_array(address+lp) ="00000000000000000000000000000000" then
-						---ROM_array(address+lp) := selection(2**15-1,32); -- TODO replace all calls "selection" in this file by rand_int, etc...
-						---end if;
-						--dt      := selection(2 ** 15 - 1, 32);
-						---rdata <= dt;
-						rdata   <= ROM_array(slot)(address + lp);
-						lp      := lp + 1;
-						rres_out <= "00";
-						if lp = len then
-							state := 3;
-							rlast <= '1';
-						end if;
-					else
-						state := 3;
-					end if;
-
-				end if;
-			elsif state = 3 then
-				rdvalid_out <= '0';
-				rready  <= '1';
-				rlast   <= '0';
-				state   := 0;
-			end if;
-		end if;
-	end process;
+      elsif st = 3 then
+--        r <= '0';
+        rdvalid_o <= '0';
+        rready_o  <= '1';
+        rlast_o   <= '0';
+        st   := 0;
+      elsif st = 4 then
+--        r <= '1';
+        delay(cnt, st, st_nxt);
+      end if;
+    end if;
+  end process;
 
 end rtl;

@@ -211,8 +211,9 @@ begin
     variable s : natural := to_integer(unsigned(devid_i));
     variable st : natural := 0;
     variable b : boolean := true;
-    variable rnd_adr : std_logic_vector(30 downto 0);
+    variable t_adr : ADR_T;
     variable cmd : CMD_T;
+    variable offset : ADR_T;
   begin
       if reset = '1' then
         upreq_o <= (others => '0');
@@ -238,8 +239,24 @@ begin
         elsif st = 3 then -- snd
           -- report integer'image(to_integer(unsigned(devid_i))) & " snd ureq";
           -- rmz adr
-          rnd_adr := std_logic_vector(to_unsigned(rand_nat(s), rnd_adr'length));
+          s := s + to_integer(unsigned(devid_i));
+          --t_adr := std_logic_vector(to_unsigned(rand_nat(s), t_adr'length));
+          t_adr := rnd_adr(s);
 
+          -- HACK 1 : force devices to request different addresses
+          if devid_i = GFX_ID then
+            t_adr := t_adr and X"000000FF";
+          elsif devid_i = USB_ID then
+            t_adr := t_adr and X"0000FF00";
+          elsif devid_i = UART_ID then
+            t_adr := t_adr and X"00FF0000";
+          elsif devid_i = AUDIO_ID then
+            t_adr := t_adr and X"FF000000";
+          end if;
+          
+            
+          t_adr := t_adr or X"80000000"; -- HACK 2 to make it go to memory
+                   
           -- rmz cmd
           if (devid_i = USB_ID) or
             (devid_i = UART_ID) or
@@ -249,7 +266,7 @@ begin
             cmd := WRITE_CMD;
           end if;
           
-          upreq_o <= "1" & cmd & "1" & rnd_adr & ZEROS32; -- TODO causes
+          upreq_o <= "1" & cmd & t_adr & ZEROS32; -- TODO causes
                                                              -- warning when
                                                              -- reading adr 800..
                                                              -- (not happening when

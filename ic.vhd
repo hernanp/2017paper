@@ -764,7 +764,7 @@ begin
  togfx_channel : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
-    variable state   : integer                        := 0;
+    variable state   : integer                        := 20; -- TODO hack?
     variable lp      : integer                        := 0;
     variable tep_gfx1 : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
@@ -1318,7 +1318,7 @@ begin
   tousb_channel : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
-    variable state   : integer                        := 0;
+    variable state   : integer                        := 20;
     variable lp      : integer                        := 0;
     variable tep_usb : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
@@ -1556,7 +1556,7 @@ begin
    touart_channel : process(reset, Clock)
     variable tdata    : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata    : std_logic_vector(31 downto 0)  := (others => '0');
-    variable state    : integer                        := 0;
+    variable state    : integer                        := 20; -- TODO hack?
     variable lp       : integer                        := 0;
     variable tep_uart : std_logic_vector(75 downto 0);
     variable nullreq  : std_logic_vector(552 downto 0) := (others => '0');
@@ -1874,7 +1874,7 @@ begin
    toaudio_channel : process(reset, Clock)
     variable tdata     : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata     : std_logic_vector(31 downto 0)  := (others => '0');
-    variable state     : integer                        := 0;
+    variable state     : integer                        := 20; -- TODO hack?
     variable lp        : integer                        := 0;
     variable tep_audio : std_logic_vector(75 downto 0);
     variable nullreq   : std_logic_vector(552 downto 0) := (others => '0');

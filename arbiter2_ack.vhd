@@ -40,7 +40,9 @@ begin
       dout <=  nilreq;
     elsif rising_edge(clock) then
       if state =0 then
-        cmd:= din1(DATA_WIDTH-1 downto DATA_WIDTH-1) & din2(DATA_WIDTH-1 downto DATA_WIDTH-1);
+        -- TODO valid bit should always be most significant bit, should change
+        -- line below
+        cmd:= din1(72 downto 72) & din2(72 downto 72);
         dout <= nilreq;
         s_ack1 <= '0';
         s_ack2 <= '0';    
@@ -54,7 +56,7 @@ begin
             if s_ack1 = '0' then
               dout <= din1;
               state :=2;
-              s_ack1 <= '1';
+              --s_ack1 <= '1'; -- TODO hack by Yuting
             end if;
           when "11" =>
             if s_token = '1' and s_ack2 ='0' then

@@ -35,7 +35,7 @@ package test is
 
   --********* PWR TEST ************
   constant PWR_TEST : TEST_T := (5=>'1', others => '0');
-  constant PWRT_CNT : natural := 5;
+  constant PWRT_CNT : natural := 30;
 
   --********* PETERSONS TEST ************
   --* cpus 1 and 2 execute petersons algorithm
@@ -61,7 +61,7 @@ package test is
   --********* RW TEST ************
   -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
   constant RW_TEST : TEST_T := (8=>'1', others => '0');
-  constant RWT_CNT : natural := 20;
+  constant RWT_CNT : natural := 70;
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.

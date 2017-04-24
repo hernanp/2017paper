@@ -200,7 +200,8 @@ begin
         end if;
       elsif st = 2 then -- done
         --if is_valid(cpu_res_i) then
-          sim_end <= '1';
+        --report "pbm";
+        sim_end <= '1';
         --end if;
         cpu_req_o<=(others =>'0');
 
@@ -305,10 +306,11 @@ begin
         end if;
       elsif st = 71 then -- snd r|w req
 
+        t7_s := t7_s + 1;
         -- rndmz cmd
         t7_r := rand_nat(cpu_id_i + t7_s);
         --report integer'image(cpu_id_i) & ", r is " & integer'image(t7_r);
-        if (t6_r mod 2) = 1 then
+        if (t7_r mod 2) = 1 then
           t7_cmd := READ_CMD;
         else
           t7_cmd := WRITE_CMD;
@@ -316,6 +318,12 @@ begin
 
         -- rndmz adr
         t7_adr := rnd_adr(t7_r);
+        -- TODO this is a hack to force adr to be in mem or gfx
+        if (t7_r mod 2) = 1 then
+          t7_adr := t7_adr or X"80000000"; -- mem
+        else
+          t7_adr := t7_adr and X"1FFFFFFF"; -- gfx
+        end if;
         
         cpu_req_o <= "1" & t7_cmd & t7_adr & t7_adr;
         st := 72;
@@ -334,10 +342,13 @@ begin
 
 -- *** t8: RND_CPU_TEST starts here ***
       elsif st = 80 then -- rndmly choose between pwr_test and rw_test
-        if (rand_nat(t6_s + t7_s) mod 2) = 1 then
+        if (rand_nat(t6_s + t7_s) mod 2) = 1 and t6_tc < PWRT_CNT then
           st := 60;
-        else
+        elsif t7_tc < RWT_CNT then
           st := 70;
+        else
+          cpu_req_o<=(others =>'0');
+          sim_end <= '1';
         end if;
         
 -- *** t3: Petersons algorithm starts here ***

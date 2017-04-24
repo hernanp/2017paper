@@ -49,15 +49,15 @@ package body rand is
     return res;
   end rand_init;
 
---  constant a4b : int_array_t := rand_init("rand_ints4b.txt");
+  constant a4b : int_array_t := rand_init("rand_ints4b.txt");
 --  constant a10b : int_array_t := rand_init("rand_ints10b.txt");
-  constant a8b : int_array_t := rand_init("rand_ints8b.txt");
+--  constant a8b : int_array_t := rand_init("rand_ints8b.txt");
   constant a32b : int_array_t := rand_init("rand_ints32b.txt");
   
   function rand_nat(constant seed:in natural) return natural is
   begin
     --report "rnd[" & integer'image((seed + time'pos(now)) mod RND_INT_CNT) & "]:" & integer'image(a((seed + time'pos(now)) mod RND_INT_CNT));
-    return a8b((seed + time'pos(now)) mod RND_INT_CNT);
+    return a4b((seed + time'pos(now)) mod RND_INT_CNT);
   end rand_nat;
 
   function rnd_adr(constant seed:in natural) return std_logic_vector is
