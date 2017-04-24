@@ -62,7 +62,7 @@ package test is
   -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
   constant RW_TEST : TEST_T := (8=>'1', others => '0');
   constant RWT_CNT : natural := 100;
-
+  
   constant MEM_DELAY : natural := 0;
   
   --* Warning: don't enable tests that are triggered on the same signals or

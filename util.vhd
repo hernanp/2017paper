@@ -37,6 +37,8 @@ package util is
                 constant str : in string);
 
   function str(n : integer) return string;
+
+  constant DBUG_FLG : boolean := false;
   
   --procedure clr(signal vector : out std_logic_vector);
 end util;
