@@ -35,7 +35,7 @@ package test is
 
   --********* PWR TEST ************
   constant PWR_TEST : TEST_T := (5=>'1', others => '0');
-  constant PWRT_CNT : natural := 30;
+  constant PWRT_CNT : natural := 10;
 
   --********* PETERSONS TEST ************
   --* cpus 1 and 2 execute petersons algorithm
@@ -56,19 +56,20 @@ package test is
 
   --********* UREQ TEST ************
   constant UREQ_TEST : TEST_T := (7=>'1', others => '0');
-  constant UREQT_CNT : natural := 100;
+  constant UREQT_CNT : natural := 10;
 
   --********* RW TEST ************
   -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
   constant RW_TEST : TEST_T := (8=>'1', others => '0');
-  constant RWT_CNT : natural := 70;
+  constant RWT_CNT : natural :=100;
   
   --* Warning: don't enable tests that are triggered on the same signals or
   --* weird things will happen.
-  constant RUN_TEST : TEST_T := RW_TEST or
-                                PWR_TEST or
-                                UREQ_TEST;
-                                --PETERSONS_TEST;
+  constant RUN_TEST : TEST_T := --RW_TEST or
+                               -- PWR_TEST or
+                               --UREQ_TEST
+                               -- or
+                                 PETERSONS_TEST;
                                 --ZERO_TEST;
 
   procedure rnd_dlay(variable rndmz_dlay : inout boolean; 
