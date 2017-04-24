@@ -35,7 +35,7 @@ package test is
 
   --********* PWR TEST ************
   constant PWR_TEST : TEST_T := (5=>'1', others => '0');
-  constant PWRT_CNT : natural := 30;
+  constant PWRT_CNT : natural := 10;
 
   --********* PETERSONS TEST ************
   --* cpus 1 and 2 execute petersons algorithm
@@ -56,7 +56,7 @@ package test is
 
   --********* UREQ TEST ************
   constant UREQ_TEST : TEST_T := (7=>'1', others => '0');
-  constant UREQT_CNT : natural := 100;
+  constant UREQT_CNT : natural := 10;
 
   --********* RW TEST ************
   -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
