@@ -2,6 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
 use work.util.all;
+use work.test.all;
 
 entity memory is
   Port(Clock      : in  std_logic;
@@ -93,7 +94,7 @@ begin
             st_nxt := 3;
           end if;
         else
-          cnt := 100;
+          cnt := MEM_DELAY;
           st := 4;
           st_nxt := 3;
         end if;
@@ -141,7 +142,7 @@ begin
 
       elsif st = 2 then
         if rdready_i = '1' then
-          cnt := 100;
+          cnt := MEM_DELAY;
           st := 4;
           st_nxt := 5;
         end if;

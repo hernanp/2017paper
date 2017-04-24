@@ -19,7 +19,7 @@ all:
 # modules
 #	ghdl -a gfx.vhd
 	ghdl -a pwr.vhd # uses fifo
-	ghdl -a mem.vhd
+	ghdl -a --ieee=synopsys mem.vhd
 	ghdl -a -fexplicit cache.vhd # uses fifo, arbiter2
 	ghdl -a --ieee=synopsys cpu.vhd
 	ghdl -a pwr.vhd
