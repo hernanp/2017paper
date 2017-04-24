@@ -43,10 +43,10 @@ package test is
   constant PT_DELAY_FLAG : boolean := true;
   constant PT_ITERATIONS : natural := 500;
   -- petersons' shared variables
-  constant PT_VAR_FLAG0 : ADR_T := (1=>'1', others=>'0'); -- M[1]
-  constant PT_VAR_FLAG1 : ADR_T := (2=>'1', others=>'0'); -- M[2]
-  constant PT_VAR_TURN : ADR_T := (2=>'1', 1=>'1', others=>'0'); -- M[3]
-  constant PT_VAR_SHARED : ADR_T := (3=>'1', others=>'0'); -- M[4]
+  constant PT_VAR_FLAG0 : ADR_T := (0=>'1', others=>'0'); -- M[1]
+  constant PT_VAR_FLAG1 : ADR_T := (1=>'1', others=>'0'); -- M[2]
+  constant PT_VAR_TURN : ADR_T := (1=>'1', 0=>'1', others=>'0'); -- M[3]
+  constant PT_VAR_SHARED : ADR_T := (2=>'1', others=>'0'); -- M[4]
   procedure pt_delay(variable rndmz_dlay : inout boolean;
                      variable seed: inout natural;
                      variable cnt: inout natural;

@@ -376,9 +376,7 @@ begin
 --          report "done at " & integer'image(time'pos(now));
         end if;
       elsif st = 101 then -- line 2
-        cpu_req_o <= "1" & WRITE_CMD &
-                   t3_adr_me &
-                   t3_dat1; -- flag[me] = 1; (req)
+        cpu_req_o <= "1" & WRITE_CMD & t3_adr_me & t3_dat1; -- flag[me] = 1; (req)
         st := 102;
       elsif st = 102 then -- wait_rsp
         cpu_req_o <= ZERO_MSG;
@@ -389,9 +387,7 @@ begin
         end if;
       elsif st = 1022 then -- line 3
 --        report "done! st is " & integer'image(st);
-        cpu_req_o <= "1" & WRITE_CMD &
-                       PT_VAR_TURN &
-                       t3_dat1; -- turn = 1; (req)
+        cpu_req_o <= "1" & WRITE_CMD & PT_VAR_TURN & t3_dat1; -- turn = 1; (req)
         st := 103;
       elsif st = 103 then -- line 4 part 1 (read flag[other] -- 1st cond of while stmt)
         cpu_req_o <= ZERO_MSG;
@@ -401,9 +397,7 @@ begin
           st_nxt := 1032;
         end if;
       elsif st = 1032 then -- read flag[other]
-        cpu_req_o <= "1" & READ_CMD &
-                       t3_adr_other &
-                       ZEROS32;
+        cpu_req_o <= "1" & READ_CMD & t3_adr_other & ZEROS32;
         st := 104;
       elsif st = 104 then -- line 4 part 2 (read turn -- 2nd cond of while stmt)
         cpu_req_o <= ZERO_MSG;
@@ -417,9 +411,7 @@ begin
           st := 99;
         end if;
       elsif st = 1042 then
-        cpu_req_o <= "1" & READ_CMD &
-                       PT_VAR_TURN &
-                       ZEROS32; -- read turn
+        cpu_req_o <= "1" & READ_CMD & PT_VAR_TURN & ZEROS32; -- read turn
         st := 105;
       elsif st = 105 then -- line 4 part 3 (get val of turn and jmp)
         cpu_req_o <= ZERO_MSG;
@@ -432,11 +424,9 @@ begin
         end if;
         st := 99;
       elsif st = 106 then -- busy wait
-        st := 103;
+        st := 1032; -- go to loop again
       elsif st = 108 then -- line 6 (get val of shared)
-        cpu_req_o <= "1" & READ_CMD &
-                       PT_VAR_SHARED &
-                       ZEROS32;
+        cpu_req_o <= "1" & READ_CMD & PT_VAR_SHARED & ZEROS32;
         st := 109;
       elsif st = 109 then -- wait_rsp
         cpu_req_o <= ZERO_MSG;
@@ -446,8 +436,7 @@ begin
           st_nxt := 1092;          
         end if;
       elsif st = 1092 then
-        cpu_req_o <= "1" & WRITE_CMD &
-                       PT_VAR_SHARED &
+        cpu_req_o <= "1" & WRITE_CMD & PT_VAR_SHARED &
                        std_logic_vector(unsigned(get_dat(cpu_res_i)) +
                                         unsigned(t3_dat1));
         st := 110;
@@ -458,9 +447,7 @@ begin
           st_nxt := 1102;
         end if;
       elsif st = 1102 then
-        cpu_req_o <= "1" & WRITE_CMD &
-                       t3_adr_other &
-                       ZEROS32;
+        cpu_req_o <= "1" & WRITE_CMD & t3_adr_other & ZEROS32;
         st := 111;
       elsif st = 111 then -- jmp to FOR_LOOP_START
         cpu_req_o <= ZERO_MSG;
