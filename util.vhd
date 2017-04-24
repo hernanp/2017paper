@@ -1,4 +1,5 @@
 library ieee;
+use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
 use work.defs.all;
 
@@ -28,6 +29,12 @@ package util is
   function rpad(v : MSG_T) return BMSG_T;
 
   procedure dbug(constant n : in integer);
+
+  procedure req(signal sig : out std_logic_vector;
+                constant v : in std_logic_vector;
+                constant str : in string);
+
+  function str(n : integer) return string;
   
   --procedure clr(signal vector : out std_logic_vector);
 end util;
@@ -112,6 +119,26 @@ package body util is
   procedure dbug(constant n : in integer) is
   begin
     report integer'image(n);
+  end;
+
+  procedure req(signal sig : out std_logic_vector;
+                constant v : in std_logic_vector;
+                constant str : in string) is
+    variable cmd : string(1 to 2);
+  begin
+    if get_cmd(v) = WRITE_CMD then
+      cmd := "wr";
+    elsif get_cmd(v) = READ_CMD then
+      cmd := "rd";
+    end if;
+
+    report cmd & " to M[" & integer'image(to_integer(unsigned(get_adr(v)))) & "]: " & str;
+    sig <= v;
+  end;
+
+  function str(n : integer) return string is
+  begin
+    return integer'image(n);
   end;
   
 end util;

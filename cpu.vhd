@@ -155,6 +155,7 @@ begin
       --  --  ", cnt:" & integer'image(t3_ct3) &
       --  --  ", st:" & integer'image(st);
       --end if;
+      report "st is " & integer'image(st);
         
       if st = 0 then -- wait
         if t1 and (cpu_id_i = 1) then
@@ -367,7 +368,9 @@ begin
         
 -- *** t3: Petersons algorithm starts here ***
       elsif st = 99 then -- delay
-        pt_delay(t3_rdlay, t3_seed, t3_ct3, st, st_nxt);
+        --TODO remember to put back
+        --pt_delay(t3_rdlay, t3_seed, t3_ct3, st, st_nxt);
+        st := st_nxt;
       elsif st = 100 then -- line 1 (for loop)
         if t3_ct1 < PT_ITERATIONS then
           pt_delay(t3_rdlay, t3_seed, t3_ct3, st, 101);
@@ -376,34 +379,39 @@ begin
 --          report "done at " & integer'image(time'pos(now));
         end if;
       elsif st = 101 then -- line 2
-        cpu_req_o <= "1" & WRITE_CMD & t3_adr_me & t3_dat1; -- flag[me] = 1; (req)
+        req(cpu_req_o, "1" & WRITE_CMD
+            & t3_adr_me & t3_dat1, str(cpu_id_i)); -- flag[me] = 1; (req)
         st := 102;
       elsif st = 102 then -- wait_rsp
         cpu_req_o <= ZERO_MSG;
         if is_valid(cpu_res_i) then
---          report "got response";
+          report "got response" & str(cpu_id_i);
           st := 99; -- st delay
           st_nxt := 1022;
         end if;
       elsif st = 1022 then -- line 3
 --        report "done! st is " & integer'image(st);
-        cpu_req_o <= "1" & WRITE_CMD & PT_VAR_TURN & t3_dat1; -- turn = 1; (req)
+        req(cpu_req_o, "1" & WRITE_CMD
+            & PT_VAR_TURN & t3_dat1, str(cpu_id_i)); -- turn = 1; (req)
         st := 103;
       elsif st = 103 then -- line 4 part 1 (read flag[other] -- 1st cond of while stmt)
         cpu_req_o <= ZERO_MSG;
         if is_valid(cpu_res_i) then
---          report "got response";
+          report "got response" & str(cpu_id_i);
           st := 99;
           st_nxt := 1032;
         end if;
       elsif st = 1032 then -- read flag[other]
-        cpu_req_o <= "1" & READ_CMD & t3_adr_other & ZEROS32;
+        req(cpu_req_o, "1" & READ_CMD
+            & t3_adr_other & ZEROS32, str(cpu_id_i));
         st := 104;
       elsif st = 104 then -- line 4 part 2 (read turn -- 2nd cond of while stmt)
         cpu_req_o <= ZERO_MSG;
         if is_valid(cpu_res_i) then
---          report "got response";
+          report "got response" & str(cpu_id_i);
+          --report integer'image(cpu_id_i) & "got response";
           if (get_dat(cpu_res_i) = t3_dat1) then
+            --report integer'image(cpu_id_i) &  "dat is 1";
             st_nxt := 1042; --if flag[other]=1
           else
             st_nxt := 108; -- jump out of loop
@@ -411,11 +419,12 @@ begin
           st := 99;
         end if;
       elsif st = 1042 then
-        cpu_req_o <= "1" & READ_CMD & PT_VAR_TURN & ZEROS32; -- read turn
+        req(cpu_req_o, "1" & READ_CMD & PT_VAR_TURN & ZEROS32, str(cpu_id_i)); -- read turn
         st := 105;
       elsif st = 105 then -- line 4 part 3 (get val of turn and jmp)
         cpu_req_o <= ZERO_MSG;
         if is_valid(cpu_res_i) then
+          report "got response" & str(cpu_id_i);
           if (get_dat(cpu_res_i) = t3_dat1) then -- if turn=1
             st_nxt := 106; --TODO*
           else
@@ -426,32 +435,34 @@ begin
       elsif st = 106 then -- busy wait
         st := 1032; -- go to loop again
       elsif st = 108 then -- line 6 (get val of shared)
-        cpu_req_o <= "1" & READ_CMD & PT_VAR_SHARED & ZEROS32;
+        req(cpu_req_o, "1" & READ_CMD & PT_VAR_SHARED & ZEROS32, str(cpu_id_i));
         st := 109;
       elsif st = 109 then -- wait_rsp
         cpu_req_o <= ZERO_MSG;
         if is_valid(cpu_res_i) then
---          report "got response";
+          report "got response" & str(cpu_id_i);
           st := 99; -- st delay
           st_nxt := 1092;          
         end if;
       elsif st = 1092 then
-        cpu_req_o <= "1" & WRITE_CMD & PT_VAR_SHARED &
+        req(cpu_req_o, "1" & WRITE_CMD & PT_VAR_SHARED &
                        std_logic_vector(unsigned(get_dat(cpu_res_i)) +
-                                        unsigned(t3_dat1));
+                                        unsigned(t3_dat1)), str(cpu_id_i));
         st := 110;
       elsif st = 110 then
         cpu_req_o <= ZERO_MSG;
         if is_valid(cpu_res_i) then
+          report "got response" & str(cpu_id_i);          
           st := 99;
           st_nxt := 1102;
         end if;
       elsif st = 1102 then
-        cpu_req_o <= "1" & WRITE_CMD & t3_adr_other & ZEROS32;
+        req(cpu_req_o, "1" & WRITE_CMD & t3_adr_other & ZEROS32, str(cpu_id_i));
         st := 111;
       elsif st = 111 then -- jmp to FOR_LOOP_START
         cpu_req_o <= ZERO_MSG;
         if is_valid(cpu_res_i) then
+          report "got response" & str(cpu_id_i);          
           t3_ct1 := t3_ct1 + 1;
           st := 99;
           st_nxt := 100;
