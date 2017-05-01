@@ -37,9 +37,11 @@ package test is
 
   --********* PWR TEST OPTS ******************
   constant PWRT_CNT : natural := 1;
-
+  constant PWRT_SRC : IP_VECT_T := ip_enc(CPU0);
+  
   --********* RW TEST OPTS *******************
   constant RWT_CNT : natural := 1;
+  constant RWT_SRC : IP_VECT_T := ip_enc(CPU0);
 
   --********* UREQ TEST OPTS *****************
   constant UREQT_CNT : natural := 1;

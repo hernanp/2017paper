@@ -112,10 +112,12 @@ begin
     if is_tset(TEST(CPUW20)) then
       t4 := true;
     end if;
-    if is_tset(TEST(PWR)) then
+    if is_tset(TEST(PWR)) and
+     (PWRT_SRC and ip_enc(id_i)) /= ip_enc(NONE) then
       t6 := true;
     end if;
-    if is_tset(TEST(RW)) then
+    if is_tset(TEST(RW)) and
+      (RWT_SRC and ip_enc(id_i)) /= ip_enc(NONE) then
       t7 := true;
     end if;
     
