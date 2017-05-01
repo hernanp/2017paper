@@ -52,7 +52,7 @@ showtree:
 	./top --no-run --disp-tree
 sim:
 #	./top --stop-time=100ps --vcd=top.vcd
-	./top --stop-time=100ms --vcd=top.vcd
+	./top --stop-time=10ns --vcd=top.vcd
 # TODO need to adjust parameters here
 # see http://ghdl.readthedocs.io/en/latest/Simulation_and_runtime.html#simulation-and-runtime
 wave:

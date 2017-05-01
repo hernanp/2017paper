@@ -475,7 +475,7 @@ begin
       elsif st = 1 then -- snd_to_arbiter
         gfx_fifo_re <= '0';
         if is_valid(gfx_fifo_dout) then
-          snp1_2 <= GFX_ID & gfx_fifo_dout;
+          snp1_2 <= GFX_TAG & gfx_fifo_dout;
           st  := 2;
         end if;
       elsif st = 2 then -- done
@@ -502,7 +502,7 @@ begin
       elsif stage = 1 then
         re13 <= '0';
         if is_valid(out13) then
-          snp1_3 <= AUDIO_ID & out13;
+          snp1_3 <= AUDIO_TAG & out13;
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -531,7 +531,7 @@ begin
       elsif stage = 1 then
         re14 <= '0';
         if out14(72 downto 72) = "1" then
-          snp1_4 <= USB_ID & out14;
+          snp1_4 <= USB_TAG & out14;
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -560,7 +560,7 @@ begin
       elsif stage = 1 then
         re15 <= '0';
         if out15(72 downto 72) = "1" then
-          snp1_5 <= UART_ID & out15;
+          snp1_5 <= UART_TAG & out15;
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -624,10 +624,10 @@ begin
           tep_mem := tomem_p;
           state   := 16;
         elsif is_valid(tomem_p) and cmd_eq(tomem_p, WRITE_CMD) then
-          if (dst_eq(tomem_p, GFX_ID) or
-              dst_eq(tomem_p, USB_ID)  or
-              dst_eq(tomem_p, UART_ID)  or
-              dst_eq(tomem_p, AUDIO_ID)) then
+          if (dst_eq(tomem_p, GFX_TAG) or
+              dst_eq(tomem_p, USB_TAG)  or
+              dst_eq(tomem_p, UART_TAG)  or
+              dst_eq(tomem_p, AUDIO_TAG)) then
             mem_write1<=tomem_p;
             state   := 9;
           else
@@ -642,8 +642,8 @@ begin
           rvalid_o <= '1';
           raddr  <= tep_mem(63 downto 32);
 			 slot := to_integer(unsigned(tep_mem(35 downto 32)));
-          if (dst_eq(tep_mem, CPU0_ID) or
-              dst_eq(tep_mem, CPU1_ID)) then
+          if (dst_eq(tep_mem, CPU0_TAG) or
+              dst_eq(tep_mem, CPU1_TAG)) then
             rlen <= "00000" & "10000";
           else
             rlen <= "00000" & "00001";
@@ -657,8 +657,8 @@ begin
         state   := 2;
       elsif state = 2 then
         if rdvalid_i = '1' and rres = "00" then
-          if (dst_eq(tep_mem, CPU0_ID) or
-              dst_eq(tep_mem, CPU1_ID)) then
+          if (dst_eq(tep_mem, CPU0_TAG) or
+              dst_eq(tep_mem, CPU1_TAG)) then
             rdready <= '0';
 				if lp=slot and cmd_eq(tep_mem, WRITE_CMD) then
 					tdata(lp * 32 + 31 downto lp * 32) := tep_mem(31 downto 0);
@@ -681,22 +681,22 @@ begin
         end if;
       elsif state = 3 then
         --mem_ack <= '1';
-        if dst_eq(tep_mem, CPU0_ID) then
+        if dst_eq(tep_mem, CPU0_TAG) then
           bus_res1_1 <= tep_mem(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_mem, CPU1_ID) then
+        elsif dst_eq(tep_mem, CPU1_TAG) then
           bus_res2_1 <= tep_mem(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_mem, GFX_ID) then
+        elsif dst_eq(tep_mem, GFX_TAG) then
           gfx_upres1 <= tep_mem(72 downto 32) & sdata;
           state      := 5;
-        elsif dst_eq(tep_mem, UART_ID) then
+        elsif dst_eq(tep_mem, UART_TAG) then
           uart_upres1 <= tep_mem(72 downto 32) & sdata;
           state       := 6;
-        elsif dst_eq(tep_mem, USB_ID) then
+        elsif dst_eq(tep_mem, USB_TAG) then
           usb_upres1 <= tep_mem(72 downto 32) & sdata;
           state      := 7;
-        elsif dst_eq(tep_mem, AUDIO_ID) then
+        elsif dst_eq(tep_mem, AUDIO_TAG) then
           audio_upres1 <= tep_mem(72 downto 32) & sdata;
           state        := 8;
         end if;
@@ -800,8 +800,8 @@ begin
           rvalid_gfx <= '1';
           raddr_gfx  <= tep_gfx1(63 downto 32);
 			 slot := to_integer(unsigned(tep_gfx1(35 downto 32)));
-          if (dst_eq(tep_gfx1, CPU0_ID) or
-              dst_eq(tep_gfx1, CPU1_ID)) then
+          if (dst_eq(tep_gfx1, CPU0_TAG) or
+              dst_eq(tep_gfx1, CPU1_TAG)) then
             rlen_gfx <= "00000" & "10000";
           else
             rlen_gfx <= "00000" & "00001";
@@ -815,8 +815,8 @@ begin
         state       := 2;
       elsif state = 2 then
         if rdvalid_gfx = '1' and rres_gfx = "00" then
-          if (dst_eq(tep_gfx1, CPU0_ID) or
-              dst_eq(tep_gfx1, CPU1_ID)) then
+          if (dst_eq(tep_gfx1, CPU0_TAG) or
+              dst_eq(tep_gfx1, CPU1_TAG)) then
 				if lp=slot and cmd_eq(tep_gfx1, WRITE_CMD) then
 					tdata(lp * 32 + 31 downto lp * 32) := tep_gfx1(31 downto 0);
 				else
@@ -838,22 +838,22 @@ begin
         end if;
       elsif state = 3 then
         --gfx_ack <= '1';
-        if dst_eq(tep_gfx1, CPU0_ID) then
+        if dst_eq(tep_gfx1, CPU0_TAG) then
           bus_res1_2 <= tep_gfx1(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_gfx1, CPU1_ID) then
+        elsif dst_eq(tep_gfx1, CPU1_TAG) then
           bus_res2_2 <= tep_gfx1(72 downto 32) & tdata;
           state      := 4;
         --elsif tep_gfx(75 downto 73)="001" then
         --gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
         --state := 5;
-        elsif dst_eq(tep_gfx1, UART_ID) then
+        elsif dst_eq(tep_gfx1, UART_TAG) then
           uart_upres2 <= tep_gfx1(72 downto 32) & sdata;
           state       := 6;
-        elsif dst_eq(tep_gfx1, USB_ID) then
+        elsif dst_eq(tep_gfx1, USB_TAG) then
           usb_upres2 <= tep_gfx1(72 downto 32) & sdata;
           state      := 7;
-        elsif dst_eq(tep_gfx1, AUDIO_ID) then
+        elsif dst_eq(tep_gfx1, AUDIO_TAG) then
           audio_upres2 <= tep_gfx1(72 downto 32) & sdata;
           state        := 8;
         end if;
@@ -1352,8 +1352,8 @@ begin
           rvalid_usb <= '1';
           raddr_usb  <= tep_usb(63 downto 32);
 			 slot := to_integer(unsigned(tep_usb(35 downto 32)));
-          if (dst_eq(tep_usb, CPU0_ID) or
-              dst_eq(tep_usb, CPU1_ID)) then
+          if (dst_eq(tep_usb, CPU0_TAG) or
+              dst_eq(tep_usb, CPU1_TAG)) then
             rlen_usb <= "00000" & "10000";
           else
             rlen_usb <= "00000" & "00001";
@@ -1367,8 +1367,8 @@ begin
         state       := 2;
       elsif state = 2 then
         if rdvalid_usb = '1' and rres_usb = "00" then
-          if (dst_eq(tep_usb, CPU0_ID) or
-              dst_eq(tep_usb, CPU1_ID)) then
+          if (dst_eq(tep_usb, CPU0_TAG) or
+              dst_eq(tep_usb, CPU1_TAG)) then
             rdready_usb                        <= '0';
 				if lp=slot and cmd_eq(tep_usb, WRITE_CMD) then
 					tdata(lp * 32 + 31 downto lp * 32) := tep_usb(31 downto 0);
@@ -1390,22 +1390,22 @@ begin
         end if;
       elsif state = 3 then
         --usb_ack <= '1';
-        if dst_eq(tep_usb, CPU0_ID) then
+        if dst_eq(tep_usb, CPU0_TAG) then
           bus_res1_4 <= tep_usb(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_usb, CPU1_ID) then
+        elsif dst_eq(tep_usb, CPU1_TAG) then
           bus_res2_4 <= tep_usb(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_usb, GFX_ID) then
+        elsif dst_eq(tep_usb, GFX_TAG) then
           gfx_upres4 <= tep_usb(72 downto 32) & sdata;
           state      := 5;
-        elsif dst_eq(tep_usb, UART_ID) then
+        elsif dst_eq(tep_usb, UART_TAG) then
           uart_upres4 <= tep_usb(72 downto 32) & sdata;
           state       := 6;
         --				elsif tep_usb(75 downto 73)="011" then
         --					usb_upres4<= tep_usb(72 downto 32) & sdata;
         --					state := 7;
-        elsif dst_eq(tep_usb, AUDIO_ID) then
+        elsif dst_eq(tep_usb, AUDIO_TAG) then
           audio_upres4 <= tep_usb(72 downto 32) & sdata;
           state        := 8;
         end if;
@@ -1590,8 +1590,8 @@ begin
           rvalid_uart <= '1';
           raddr_uart  <= tep_uart(63 downto 32);
 			 slot := to_integer(unsigned(tep_uart(35 downto 32)));
-          if (dst_eq(tep_uart, CPU0_ID) or
-              dst_eq(tep_uart, CPU1_ID)) then
+          if (dst_eq(tep_uart, CPU0_TAG) or
+              dst_eq(tep_uart, CPU1_TAG)) then
             rlen_uart <= "00000" & "10000";
           else
             rlen_uart <= "00000" & "00001";
@@ -1605,8 +1605,8 @@ begin
         state        := 2;
       elsif state = 2 then
         if rdvalid_uart = '1' and rres_uart = "00" then
-          if (dst_eq(tep_uart, CPU0_ID) or
-              dst_eq(tep_uart, CPU1_ID)) then
+          if (dst_eq(tep_uart, CPU0_TAG) or
+              dst_eq(tep_uart, CPU1_TAG)) then
             rdready_uart                       <= '0';
 				if lp=slot and cmd_eq(tep_uart, WRITE_CMD) then
 					tdata(lp * 32 + 31 downto lp * 32) := tep_uart(31 downto 0);
@@ -1629,22 +1629,22 @@ begin
         end if;
       elsif state = 3 then
         --uart_ack <= '1';
-        if dst_eq(tep_uart, CPU0_ID) then
+        if dst_eq(tep_uart, CPU0_TAG) then
           bus_res1_3 <= tep_uart(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_uart, CPU1_ID) then
+        elsif dst_eq(tep_uart, CPU1_TAG) then
           bus_res2_3 <= tep_uart(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_uart, GFX_ID) then
+        elsif dst_eq(tep_uart, GFX_TAG) then
           gfx_upres3 <= tep_uart(72 downto 32) & sdata;
           state      := 5;
         --				elsif tep_uart(75 downto 73)="010" then
         --					uart_upres3<= tep_uart(72 downto 32) & sdata;
         --					state := 6;
-        elsif dst_eq(tep_uart, USB_ID) then
+        elsif dst_eq(tep_uart, USB_TAG) then
           usb_upres3 <= tep_uart(72 downto 32) & sdata;
           state      := 7;
-        elsif dst_eq(tep_uart, AUDIO_ID) then
+        elsif dst_eq(tep_uart, AUDIO_TAG) then
           audio_upres3 <= tep_uart(72 downto 32) & sdata;
           state        := 8;
         end if;
@@ -1908,8 +1908,8 @@ begin
           rvalid_audio <= '1';
           raddr_audio  <= tep_audio(63 downto 32);
 			 slot := to_integer(unsigned(tep_audio(35 downto 32)));
-          if (dst_eq(tep_audio, CPU0_ID) or
-              dst_eq(tep_audio, CPU1_ID)) then
+          if (dst_eq(tep_audio, CPU0_TAG) or
+              dst_eq(tep_audio, CPU1_TAG)) then
             rlen_audio <= "00000" & "10000";
           else
             rlen_audio <= "00000" & "00001";
@@ -1923,8 +1923,8 @@ begin
         state         := 2;
       elsif state = 2 then
         if rdvalid_audio = '1' and rres_audio = "00" then
-          if (dst_eq(tep_audio, CPU0_ID) or
-              dst_eq(tep_audio, CPU1_ID)) then
+          if (dst_eq(tep_audio, CPU0_TAG) or
+              dst_eq(tep_audio, CPU1_TAG)) then
             rdready_audio                      <= '0';
 				if lp=slot and cmd_eq(tep_audio, WRITE_CMD) then
 					tdata(lp * 32 + 31 downto lp * 32) := tep_audio(31 downto 0);
@@ -1947,19 +1947,19 @@ begin
         end if;
       elsif state = 3 then
         --audio_ack <= '1';
-        if dst_eq(tep_audio, CPU0_ID) then
+        if dst_eq(tep_audio, CPU0_TAG) then
           bus_res1_5 <= tep_audio(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_audio, CPU1_ID) then
+        elsif dst_eq(tep_audio, CPU1_TAG) then
           bus_res2_5 <= tep_audio(72 downto 32) & tdata;
           state      := 4;
-        elsif dst_eq(tep_audio, GFX_ID) then
+        elsif dst_eq(tep_audio, GFX_TAG) then
           gfx_upres5 <= tep_audio(72 downto 32) & sdata;
           state      := 5;
-        elsif dst_eq(tep_audio, UART_ID) then
+        elsif dst_eq(tep_audio, UART_TAG) then
           uart_upres5 <= tep_audio(72 downto 32) & sdata;
           state       := 6;
-        elsif dst_eq(tep_audio, USB_ID) then
+        elsif dst_eq(tep_audio, USB_TAG) then
           usb_upres5 <= tep_audio(72 downto 32) & sdata;
           state      := 7;
         --				elsif tep_audio(75 downto 73)="100" then
@@ -2080,16 +2080,16 @@ begin
           end if;
         --it's a hit, return to the source ip
         elsif out2(72 downto 72)="1" then
-          if dst_eq(out2, GFX_ID) then
+          if dst_eq(out2, GFX_TAG) then
             gfx_upres2 <= out2(MSG_WIDTH - 1 downto 0);
             state      := 9;
-          elsif dst_eq(out2, UART_ID) then
+          elsif dst_eq(out2, UART_TAG) then
             uart_upres3 <= out2(MSG_WIDTH - 1 downto 0);
             state       := 10;
-          elsif dst_eq(out2, USB_ID) then
+          elsif dst_eq(out2, USB_TAG) then
             usb_upres4 <= out2(MSG_WIDTH - 1 downto 0);
             state      := 11;
-          elsif dst_eq(out2, AUDIO_ID) then
+          elsif dst_eq(out2, AUDIO_TAG) then
             audio_upres5 <= out2(MSG_WIDTH - 1 downto 0);
             state        := 12;
           end if;
@@ -2205,34 +2205,34 @@ begin
           dst := get_dat(pwr_res_i);
 
           if get_cmd(pwr_res_i) = PWRDN_CMD then
-            if dst = pad32(GFX_ID) then
+            if dst = pad32(GFX_TAG) then
               gfxpoweron <= '0';
-            elsif dst = pad32(AUDIO_ID) then
+            elsif dst = pad32(AUDIO_TAG) then
               audiopoweron <= '0';
-            elsif dst = pad32(USB_ID) then
+            elsif dst = pad32(USB_TAG) then
               usbpoweron <= '0';
-            elsif dst = pad32(UART_ID) then
+            elsif dst = pad32(UART_TAG) then
               uartpoweron <= '0';
             end if;
           elsif get_cmd(pwr_res_i) = PWRUP_CMD then
             --report "pu";
-            if dst = pad32(GFX_ID) then
+            if dst = pad32(GFX_TAG) then
               --report "dst:gfx";
               gfxpoweron <= '1';
-            elsif dst = pad32(AUDIO_ID) then
+            elsif dst = pad32(AUDIO_TAG) then
               audiopoweron <= '1';
-            elsif dst = pad32(USB_ID) then
+            elsif dst = pad32(USB_TAG) then
               usbpoweron <= '1';
-            elsif dst = pad32(UART_ID) then
+            elsif dst = pad32(UART_TAG) then
               uartpoweron <= '1';
             end if;
           end if;
 
           src := get_adr(pwr_res_i);
-          if src = pad32(CPU0_ID) then
+          if src = pad32(CPU0_TAG) then
             --report "src:cpu0";
             pwr_res1_s <= pwr_res_i & ZERO_480;
-          elsif src = pad32(CPU1_ID) then
+          elsif src = pad32(CPU1_TAG) then
             pwr_res2_s <= pwr_res_i & ZERO_480;
           end if;
 

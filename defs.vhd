@@ -2,10 +2,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 package defs is
-  --constant RD_CMD : std_logic_vector(1 downto 0) := "01";
-  --constant WR_CMD : std_logic_vector(1 downto 0) := "10";
-  --constant WB_CMD : std_logic_vector(1 downto 0) := "11";
-  
   constant MSG_WIDTH : positive := 73;
   constant WMSG_WIDTH : positive := 76;
   constant BMSG_WIDTH : positive := 553;
@@ -28,10 +24,10 @@ package defs is
   
   constant READ_CMD  : CMD_T := "01000000";
   constant WRITE_CMD : CMD_T := "10000000";
-  constant PWRUP_CMD : CMD_T := "00100000";
+  constant PWRUP_CMD : CMD_T := "00100000"; --x"20";
   constant PWRDN_CMD : CMD_T := "01100000";
-  constant ZEROS_CMD : CMD_T := (others => '0');
-  constant ONES_CMD : CMD_T := (others => '1');
+  constant ZEROS_CMD : CMD_T := x"00";
+  constant ONES_CMD : CMD_T  := x"ff";
 
   constant ZERO_480 : std_logic_vector(479 downto 0) := (others => '0');
   
@@ -43,24 +39,25 @@ package defs is
   constant ADR_MASK : MSG_T := "0" & ZEROS_CMD & ONES32 & ZEROS32;
   constant DAT_MASK : MSG_T := "0" & ZEROS_CMD & ZEROS32 & ONES32;
 
-  subtype DEVID_T is std_logic_vector(2 downto 0);
-  constant CPU0_ID  : DEVID_T := "000";
-  constant GFX_ID   : DEVID_T := "001";
-  constant UART_ID  : DEVID_T := "010";
-  constant USB_ID   : DEVID_T := "011";
-  constant AUDIO_ID : DEVID_T := "100";
-  constant CPU1_ID  : DEVID_T := "101";  -- TODO should change to 001 but may
-                                         -- break stg else
+  subtype IPTAG_T is std_logic_vector(2 downto 0);
+  constant CPU0_TAG  : IPTAG_T := o"0";
+  constant GFX_TAG   : IPTAG_T := o"1";
+  constant UART_TAG  : IPTAG_T := o"2";
+  constant USB_TAG   : IPTAG_T := o"3";
+  constant AUDIO_TAG : IPTAG_T := o"4";
+  constant CPU1_TAG  : IPTAG_T := o"5";
+  -- TODO ips should b in order but b careful changing as it may break stg else!
 
-  constant GFX_MASK32 : DAT_T := X"0000000" & "1" & GFX_ID;
-  constant CPU0_MASK32 : ADR_T := X"0000000" & "1" & CPU0_ID;
-  constant CPU1_MASK32 : ADR_T := X"0000000" & "1" & CPU1_ID;
-  
-  constant CACHE0_ID : std_logic_vector(2 downto 0) := "110";
-  constant CACHE1_ID  : std_logic_vector(2 downto 0) := "111";
-  
-  --constant ZEROS72 : std_logic_vector(72 downto 0) := (others => '0');
-  --constant ZEROS75 : std_logic_vector(75 downto 0) := (others => '0');
+  subtype IP_VECT_T is std_logic_vector(11 downto 0);
+  type IP_T is (CPU0, CPU1, CACHE0, CACHE1,
+                SA, MEM, GFX, PMU,
+                AUDIO, USB, UART,
+                NONE);
+  type IP_VECT_ARRAY_T is array(IP_T) of IP_VECT_T;
+  constant ip_enc : IP_VECT_ARRAY_T := (x"001", x"002", x"004", x"008",
+                                        x"010", x"020", x"040", x"080",
+                                        x"100", x"200", x"400",
+                                        x"000");
   
   -- indices
   --constant MEM_FOUND_IDX : positive := 56;

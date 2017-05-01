@@ -67,7 +67,7 @@ begin
   --*    forwards res back to ic
   req_handler : process (reset, Clock)
     variable st: integer :=0;
-    variable dev : DEVID_T;
+    variable dev : IPTAG_T;
     variable tmp_req, tmp: MSG_T;
   begin
     if (reset = '1') then
@@ -92,15 +92,15 @@ begin
         re1 <= '0';
         if is_valid(out1) then
           tmp := out1;
-          if get_dat(out1) = pad32(GFX_ID) then
+          if get_dat(out1) = pad32(GFX_TAG) then
             --report "ready to send gfx req";
-            dev := GFX_ID;
-          elsif get_dat(out1) = pad32(AUDIO_ID) then
-            dev := AUDIO_ID;
-          elsif get_dat(out1) = pad32(USB_ID) then
-            dev := USB_ID;
-          elsif get_dat(out1) = pad32(UART_ID) then
-          	dev := UART_ID;
+            dev := GFX_TAG;
+          elsif get_dat(out1) = pad32(AUDIO_TAG) then
+            dev := AUDIO_TAG;
+          elsif get_dat(out1) = pad32(USB_TAG) then
+            dev := USB_TAG;
+          elsif get_dat(out1) = pad32(UART_TAG) then
+          	dev := UART_TAG;
           else
           	report "device id unkonwn 1";
           	
@@ -108,30 +108,30 @@ begin
           st := 2;
         end if;
       elsif st = 2 then -- output
-        if dev = GFX_ID then
+        if dev = GFX_TAG then
           --report "output gfx req";
           gfx_req_o <= tmp;
-        elsif dev = AUDIO_ID then
+        elsif dev = AUDIO_TAG then
           audio_req_o <= tmp;
-        elsif dev = USB_ID then
+        elsif dev = USB_TAG then
           usb_req_o <= tmp;
-        elsif dev = UART_ID then
+        elsif dev = UART_TAG then
           uart_req_o <= tmp;
         else
           report "device id unkonwn 2";
         end if;
         st := 3;
       elsif st = 3 then
-        if dev = GFX_ID then
+        if dev = GFX_TAG then
           tmp := gfx_res_i;
           gfx_req_o <= (others => '0');
-        elsif dev = AUDIO_ID then
+        elsif dev = AUDIO_TAG then
           tmp := audio_res_i;
           audio_req_o <= (others => '0');
-        elsif dev = USB_ID then
+        elsif dev = USB_TAG then
           tmp := usb_res_i;
           usb_req_o <= (others => '0');
-        elsif dev = UART_ID then
+        elsif dev = UART_TAG then
           tmp := uart_res_i;
           uart_req_o <= (others => '0');
         end if;

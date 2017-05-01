@@ -235,20 +235,24 @@ architecture tb of top is
   signal cpu1_pwr_req, cpu1_pwr_res, cpu2_pwr_req, cpu2_pwr_res : MSG_T;
   
 begin
-  cpu1 : entity work.cpu(rtl) port map(
+  cpu1_entity : entity work.cpu(rtl) port map(
     reset     => reset,
     Clock     => Clock,
-    cpu_id_i  => 1,
+
+    id_i      => CPU0,
+    
     cpu_res_i => cpu_res1,
     cpu_req_o => cpu_req1,
     full_c_i  => full_c1_u
    --done    => done1
     );
 
-  cpu2 : entity work.cpu(rtl) port map(
+  cpu2_entity : entity work.cpu(rtl) port map(
     reset     => reset,
     Clock     => Clock,
-    cpu_id_i  => 2,
+
+    id_i      => CPU1,
+    
     cpu_res_i => cpu_res2,
     cpu_req_o => cpu_req2,
     full_c_i  => full_c2_u
@@ -554,11 +558,13 @@ begin
     pwr_req_o        => ic_pwr_req
     );
 
-  gfx : entity work.peripheral(rtl) port map(
+  gfx_entity : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
 
-    devid_i     => GFX_ID,
+    id_i        => GFX,
+    
+    devid_i     => GFX_TAG,
     
     -- write address channel
     waddr_i      => waddr_gfx,
@@ -601,11 +607,13 @@ begin
     pwr_res_o    => pwr_gfx_res
     );
 
-  audio : entity work.peripheral(rtl) port map(
+  audio_entity : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
 
-    devid_i     => AUDIO_ID,
+    id_i        => AUDIO,
+    
+    devid_i     => AUDIO_TAG,
     
     -- write address channel
     waddr_i      => waddr_audio,
@@ -648,11 +656,13 @@ begin
     pwr_res_o    => pwr_audio_res
     );
 
-  usb : entity work.peripheral(rtl) port map(
+  usb_entity : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
 
-    devid_i     => USB_ID,
+    id_i        => USB,
+    
+    devid_i     => USB_TAG,
     
     -- write address channel
     waddr_i      => waddr_usb,
@@ -695,11 +705,13 @@ begin
     pwr_res_o    => pwr_usb_res
     );
 
-  uart : entity work.peripheral(rtl) port map(
+  uart_entity : entity work.peripheral(rtl) port map(
     Clock       => Clock,
     reset       => reset,
 
-    devid_i     => UART_ID,
+    id_i        => UART,
+    
+    devid_i     => UART_TAG,
     
     -- write address channel
     waddr_i      => waddr_uart,
@@ -1025,7 +1037,7 @@ begin
     variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
     variable zeros73 : MSG_T := (others => '0');
   begin
-    if is_tset(PWR_TEST) then
+    if is_tset(TEST(PWR)) then
       wait until cpu_res1 /= zeros73;
       report "PWR_TEST OK";
     end if;
@@ -1049,9 +1061,9 @@ begin
   --  variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
   --  variable zeros73 : MSG_T := (others => '0');
   --begin
-  --  if is_tset(CPU2_W_TEST) then
+  --  if is_tset(TEST(CPU2W)) then
   --    wait until cpu_res2 /= zeros73;
-  --    report "CPU2_W_TEST OK";
+  --    report "TEST(CPU2W) OK";
   --  ---- TODO ... more tests here ...
   --    --m := 510 ps;
   --    --wait for m - t;
@@ -1066,7 +1078,7 @@ begin
   --  variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
   --  variable zeros73 : std_logic_vector(72 downto 0) := (others => '0');
   --begin
-  --  if is_tset(CPU1_R_TEST) then
+  --  if is_tset(TEST(CPU1R)) then
   --    m := 70 ps;
   --    wait for m - t;
   --    t := m;

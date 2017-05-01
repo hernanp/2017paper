@@ -10,7 +10,9 @@ entity peripheral is
   Port(Clock      : in  std_logic;
        reset      : in  std_logic;
 
-       devid_i    : in DEVID_T;
+       id_i       : in IP_T;
+       
+       devid_i    : in IPTAG_T;
 
        ---write address channel
        waddr_i      : in  std_logic_vector(31 downto 0);
@@ -199,7 +201,7 @@ begin
     variable b : boolean := true;
   begin
     if sim_end = '1' and b then
-      report "per" & integer'image(to_integer(unsigned(devid_i))) & " sim ended, clock cycles is " & integer'image(count);
+      log(str(id_i) & " ended, clock cycles is " & str(count), INFO);
       b := false;
     elsif (rising_edge(clock)) then
       count := count + 1;
@@ -208,11 +210,11 @@ begin
   
   t1 : process(clock, reset) -- up read test
     variable dc, tc, st_nxt : natural := 0;
-    variable s : natural := to_integer(unsigned(devid_i));
+    variable s : natural := nat(id_i);
     variable st : natural := 0;
     variable b : boolean := true;
     variable t_adr : ADR_T;
-    variable cmd : CMD_T;
+    variable tcmd : CMD_T;
     variable offset : ADR_T;
 
     --HACKS
@@ -224,7 +226,7 @@ begin
   begin
       if reset = '1' then
         upreq_o <= (others => '0');
-        --ct := rand_nat(to_integer(unsigned(UREQ_TEST)));
+        --ct := rand_nat(to_integer(unsigned(TEST(UREQ))));
         st := 0;
       elsif(rising_edge(clock)) then
         if st = 1 then -- delay
@@ -233,10 +235,11 @@ begin
           upreq_o <= (others => '0');
           sim_end <= '1';
         elsif st = 0 then -- check
-          if is_tset(UREQ_TEST) then
+          if is_tset(TEST(UREQ)) and
+            ((UREQT_SRC and ip_enc(id_i)) /= ip_enc(NONE)) then
             if tc < UREQT_CNT then
+              log("sending req from " & str(id_i), DEBUG);
               tc := tc + 1;
-              --report integer'image(tc);
               st_nxt := 3;
               st := 1;
             else
@@ -246,24 +249,24 @@ begin
         elsif st = 3 then -- snd
           -- report integer'image(to_integer(unsigned(devid_i))) & " snd ureq";
           -- rmz adr
-          s := s + to_integer(unsigned(devid_i));
+          s := s + nat(id_i);
           --t_adr := std_logic_vector(to_unsigned(rand_nat(s), t_adr'length));
           --t_adr := rnd_adr(s);
 
           -- HACK 1 : force devices to request different addresses
-          if devid_i = GFX_ID then
+          if devid_i = GFX_TAG then
             t_adr := std_logic_vector(to_unsigned(c1, t_adr'length));
             c1 := c1 + 1;
             --t_adr := t_adr and X"000000FF";
-          elsif devid_i = USB_ID then
+          elsif devid_i = USB_TAG then
             t_adr := std_logic_vector(to_unsigned(c2, t_adr'length));
             c2 := c2 + 1;
             --t_adr := t_adr and X"0000FF00";
-          elsif devid_i = UART_ID then
+          elsif devid_i = UART_TAG then
             t_adr := std_logic_vector(to_unsigned(c3, t_adr'length));
             c3 := c3 + 1;
             --t_adr := t_adr and X"00FF0000";
-          elsif devid_i = AUDIO_ID then
+          elsif devid_i = AUDIO_TAG then
             t_adr := std_logic_vector(to_unsigned(c4, t_adr'length));
             c4 := c4 + 1;
             --t_adr := t_adr and X"FF000000";
@@ -273,15 +276,15 @@ begin
           t_adr := t_adr or X"80000000"; -- HACK 2 to make it go to memory
                    
           -- rmz cmd
-          if (devid_i = USB_ID) or
-            (devid_i = UART_ID) or
+          if (devid_i = USB_TAG) or
+            (devid_i = UART_TAG) or
             (rand_nat(s) mod 2) = 1 then
-            cmd := READ_CMD;
+            tcmd := READ_CMD;
           else
-            cmd := WRITE_CMD;
+            tcmd := WRITE_CMD;
           end if;
           
-          upreq_o <= "1" & cmd & t_adr & ZEROS32; -- TODO causes
+          upreq_o <= "1" & tcmd & t_adr & ZEROS32; -- TODO causes
                                                              -- warning when
                                                              -- reading adr 800..
                                                              -- (not happening when

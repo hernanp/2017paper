@@ -24,13 +24,14 @@ package util is
                   constant next_st : in natural);
 
   -- left pad
-  function pad32(v : DEVID_T) return ADR_T;
+  function pad32(v : IPTAG_T) return ADR_T;
 
   function rpad(v : MSG_T) return BMSG_T;
 
-  procedure dbug(constant n : in integer);
-
-  procedure dbug(constant s : in string);
+  -- Poor man's logger
+  type LOG_LEVEL_T is (OFF, ERROR, INFO, DEBUG);
+  constant LOG_LEVEL : LOG_LEVEL_T := INFO;
+  procedure log(constant s : in string; constant l : in LOG_LEVEL_T);
   
   procedure req(signal sig : out std_logic_vector;
                 constant v : in std_logic_vector;
@@ -38,7 +39,9 @@ package util is
 
   function str(n : integer) return string;
 
-  constant DBUG_FLG : boolean := false;
+  function str(n : IP_T) return string;
+
+  function nat(n : IP_T) return natural;
   
   --procedure clr(signal vector : out std_logic_vector);
 end util;
@@ -109,7 +112,7 @@ package body util is
   --  vector <= (others => '0');
   --end;
 
-  function pad32(v : DEVID_T) return ADR_T is
+  function pad32(v : IPTAG_T) return ADR_T is
   begin
     return X"0000000" & "0" & v;
   end;
@@ -120,14 +123,9 @@ package body util is
     return v & pad;
   end;
 
-  procedure dbug(constant n : in integer) is
+  procedure log(constant s : in string; constant l : in LOG_LEVEL_T) is
   begin
-    report integer'image(n);
-  end;
-
-  procedure dbug(constant s : in string) is
-  begin
-    if DBUG_FLG then
+    if LOG_LEVEL_T'pos(LOG_LEVEL) >= LOG_LEVEL_T'pos(l) then
       report s;
     end if;
   end;
@@ -143,13 +141,23 @@ package body util is
       cmd := "rd";
     end if;
 
-    report cmd & " to M[" & integer'image(to_integer(unsigned(get_adr(v)))) & "]: " & str;
+    log(cmd & " to M[" & str(to_integer(unsigned(get_adr(v)))) & "]: " & str, DEBUG);
     sig <= v;
   end;
 
   function str(n : integer) return string is
   begin
     return integer'image(n);
+  end;
+
+  function str(n : IP_T) return string is
+  begin
+    return IP_T'image(n);
+  end;
+
+  function nat(n : IP_T) return natural is
+  begin
+    return IP_T'pos(n);
   end;
   
 end util;

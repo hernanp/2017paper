@@ -9,37 +9,43 @@ package test is
   -- enable/disable tracing
   constant GEN_TRACE1 : boolean := true;
   
-  -- TESTS
-  constant TDW : positive := 64;
+  -- TESTS ***********************************
+  constant TDW : positive := 8;
   subtype TEST_T is std_logic_vector(TDW-1 downto 0);
-  constant ZERO_TEST : TEST_T := (others => '0');
+  type TCASE_T is (NONE, CPU1R, CPU2W, CPUW20,
+                   RW, UREQ, PWR, PETERSONS);
+  type TEST_MAP_T is array(TCASE_T) of TEST_T;
+  constant TEST : TEST_MAP_T := (x"00", x"01", x"02", x"04",
+                                 x"08", x"10", x"20", x"40");
 
-  --* cpu1 sends a read req
-  constant CPU1_R_TEST : TEST_T := (0=>'1', others=>'0');
-  --* cpu2 sends a write req
-  constant CPU2_W_TEST : TEST_T := (1=>'1', others => '0');
-  
-  --* cpu 1 and 2 send 20 rand write reqs (each)
-  constant CPU_W20_TEST : TEST_T := (2=>'1', others=>'0');
+  --******************************************
+  --* Tests description:
+  --* (tests started from cpus)
+  --* CPU1R: cpu1 sends 1 read req
+  --* CPU2W: cpu2 sends 1 write req
+  --* CPUW20: each cpu sends 20 rand write reqs
+  --* PWR: each cpu sends PWRT_CNT power req(s)
+  --* RW: each cpu sends RWT_CNT rnd(r/w) req(s) w/rnd delays
+  --* PETERSONS: each cpu runs a thread of petersons algorithm
+  --* (tests started from peripherals)
+  --* UREQ: peripherals send UREQT_CNT up rnd(r/w) requests
 
-  --* CPU1_RW_04_TEST cpu1 writes and reads to mem[0..4]
-  -- constant CPU1_RW_04_TEST : TEST_T := (3=>'1', others=>'0');
-  -- to enable, also need to uncomment code in cpu.vhd
-  
-  -- gfx upstream read req
-  --constant GFX_R_TEST : TEST_T := (4=>'1', others => '0');
-  
-  
+  --********* GLOBAL TEST OPTS ***************
+  constant MEM_DELAY : natural := 0;
   -- test delay flag, used by rnd_dlay fun to re-enable rndmz_flg 
   constant TDLAY_FLG : boolean := true;
 
-  --********* PWR TEST ************
-  constant PWR_TEST : TEST_T := (5=>'1', others => '0');
-  constant PWRT_CNT : natural := 10;
+  --********* PWR TEST OPTS ******************
+  constant PWRT_CNT : natural := 1;
 
-  --********* PETERSONS TEST ************
-  --* cpus 1 and 2 execute petersons algorithm
-  constant PETERSONS_TEST : TEST_T := (6=>'1', others => '0');
+  --********* RW TEST OPTS *******************
+  constant RWT_CNT : natural := 1;
+
+  --********* UREQ TEST OPTS *****************
+  constant UREQT_CNT : natural := 1;
+  constant UREQT_SRC : IP_VECT_T := ip_enc(USB); --or UART or AUDIO;
+  
+  --********* PETERSONS TEST OPTS ************
   constant PT_DELAY_FLAG : boolean := true;
   constant PT_ITERATIONS : natural := 500;
   -- petersons' shared variables
@@ -53,26 +59,15 @@ package test is
                      variable st : inout natural;
                      constant next_st : in natural);
 
-
-  --********* UREQ TEST ************
-  constant UREQ_TEST : TEST_T := (7=>'1', others => '0');
-  constant UREQT_CNT : natural := 10;
-
-  --********* RW TEST ************
-  -- sends rnd(rd|wr) reqs from cpu(0|1) w/rnd dlays
-  constant RW_TEST : TEST_T := (8=>'1', others => '0');
-  constant RWT_CNT : natural := 100;
+  --********************************************************************
+  --* Warning: don't enable tests that are triggered on the same signals
+  constant RUN_TEST : TEST_T := TEST(RW) or
+                                TEST(PWR);-- or
+                                --TEST(UREQ);
+                                --TEST(PETERSONS);
+                                --TEST(NONE);
+  --********************************************************************
   
-  constant MEM_DELAY : natural := 0;
-  
-  --* Warning: don't enable tests that are triggered on the same signals or
-  --* weird things will happen.
-  constant RUN_TEST : TEST_T := --RW_TEST or
-                                --PWR_TEST or
-                                --UREQ_TEST;
-                                PETERSONS_TEST;
-                                --ZERO_TEST;
-
   procedure rnd_dlay(variable rndmz_dlay : inout boolean; 
                      variable seed : inout natural;
                      variable cnt: inout natural; 
@@ -80,7 +75,7 @@ package test is
                      constant next_st : in natural);
   
   --* Checks if test is enabled
-  function is_tset(test: std_logic_vector) return boolean;
+  function is_tset(test: TEST_T) return boolean;
 
   --procedure check_inv(variable timer : inout time;
   --                    constant mark : in time;
@@ -97,7 +92,7 @@ package body test is
   begin
     if rndmz_dlay and st /= next_st then -- start
       --report "start";
-      cnt := rand_nat(to_integer(unsigned(PETERSONS_TEST)) + seed);
+      cnt := rand_nat(to_integer(unsigned(TEST(PETERSONS))) + seed);
       seed := seed + 1;
       rndmz_dlay := false;
 --      report "pt_delay.cnt" & integer'image(cnt);
@@ -141,7 +136,7 @@ package body test is
                      constant next_st : in natural) is
   begin
     if rndmz_dlay and st /= next_st then -- start
-      cnt := rand_nat(to_integer(unsigned(PETERSONS_TEST)) + seed);
+      cnt := rand_nat(to_integer(unsigned(TEST(PETERSONS))) + seed);
       seed := seed + 1;
       rndmz_dlay := false;
       delay(cnt, st, next_st);
@@ -154,9 +149,9 @@ package body test is
     end if;
   end;
   
-  function is_tset(test: std_logic_vector) return boolean is
+  function is_tset(test: TEST_T) return boolean is
   begin
-    if (RUN_TEST and test) /= ZERO_TEST then
+    if (RUN_TEST and test) /= x"00" then
       return true;
     end if;
     return false;
