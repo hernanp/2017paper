@@ -45,7 +45,7 @@ package test is
 
   --********* UREQ TEST OPTS *****************
   constant UREQT_CNT : natural := 1;
-  constant UREQT_SRC : IP_VECT_T := ip_enc(USB); --or UART or AUDIO;
+  constant UREQT_SRC : IP_VECT_T := ip_enc(USB) or ip_enc(UART) or ip_enc(AUDIO);
   
   --********* PETERSONS TEST OPTS ************
   constant PT_DELAY_FLAG : boolean := true;
@@ -63,9 +63,9 @@ package test is
 
   --********************************************************************
   --* Warning: don't enable tests that are triggered on the same signals
-  constant RUN_TEST : TEST_T := TEST(RW) or
-                                TEST(PWR);-- or
-                                --TEST(UREQ);
+  constant RUN_TEST : TEST_T := --TEST(RW) or
+                                --TEST(PWR);-- or
+                                TEST(UREQ);
                                 --TEST(PETERSONS);
                                 --TEST(NONE);
   --********************************************************************

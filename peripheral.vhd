@@ -12,8 +12,6 @@ entity peripheral is
 
        id_i       : in IP_T;
        
-       devid_i    : in IPTAG_T;
-
        ---write address channel
        waddr_i      : in  std_logic_vector(31 downto 0);
        wlen_i       : in  std_logic_vector(9 downto 0);
@@ -254,19 +252,19 @@ begin
           --t_adr := rnd_adr(s);
 
           -- HACK 1 : force devices to request different addresses
-          if devid_i = GFX_TAG then
+          if id_i = GFX then
             t_adr := std_logic_vector(to_unsigned(c1, t_adr'length));
             c1 := c1 + 1;
             --t_adr := t_adr and X"000000FF";
-          elsif devid_i = USB_TAG then
+          elsif id_i = USB then
             t_adr := std_logic_vector(to_unsigned(c2, t_adr'length));
             c2 := c2 + 1;
             --t_adr := t_adr and X"0000FF00";
-          elsif devid_i = UART_TAG then
+          elsif id_i = UART then
             t_adr := std_logic_vector(to_unsigned(c3, t_adr'length));
             c3 := c3 + 1;
             --t_adr := t_adr and X"00FF0000";
-          elsif devid_i = AUDIO_TAG then
+          elsif id_i = AUDIO then
             t_adr := std_logic_vector(to_unsigned(c4, t_adr'length));
             c4 := c4 + 1;
             --t_adr := t_adr and X"FF000000";
@@ -276,8 +274,8 @@ begin
           t_adr := t_adr or X"80000000"; -- HACK 2 to make it go to memory
                    
           -- rmz cmd
-          if (devid_i = USB_TAG) or
-            (devid_i = UART_TAG) or
+          if (id_i = USB) or
+            (id_i = UART) or
             (rand_nat(s) mod 2) = 1 then
             tcmd := READ_CMD;
           else

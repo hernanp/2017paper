@@ -564,8 +564,6 @@ begin
 
     id_i        => GFX,
     
-    devid_i     => GFX_TAG,
-    
     -- write address channel
     waddr_i      => waddr_gfx,
     wlen_i       => wlen_gfx,
@@ -612,8 +610,6 @@ begin
     reset       => reset,
 
     id_i        => AUDIO,
-    
-    devid_i     => AUDIO_TAG,
     
     -- write address channel
     waddr_i      => waddr_audio,
@@ -662,8 +658,6 @@ begin
 
     id_i        => USB,
     
-    devid_i     => USB_TAG,
-    
     -- write address channel
     waddr_i      => waddr_usb,
     wlen_i       => wlen_usb,
@@ -710,8 +704,6 @@ begin
     reset       => reset,
 
     id_i        => UART,
-    
-    devid_i     => UART_TAG,
     
     -- write address channel
     waddr_i      => waddr_uart,

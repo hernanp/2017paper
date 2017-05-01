@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Sat Apr 22 12:15:27 2017
+[*] Mon May  1 18:52:02 2017
 [*]
 [dumpfile] "/home/hpalombo/oven/soc/top.vcd"
-[dumpfile_mtime] "Sat Apr 22 12:05:09 2017"
-[dumpfile_size] 643935
+[dumpfile_mtime] "Mon May  1 18:37:23 2017"
+[dumpfile_size] 643583
 [savefile] "/home/hpalombo/oven/soc/sim/pwr.gtkw"
-[timestart] 511800
-[size] 1855 1056
+[timestart] 300000
+[size] 1920 1056
 [pos] -1 -1
-*-15.590152 719900 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-15.590152 438300 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] cache1.
 [treeopen] power.
 [sst_width] 225
@@ -25,10 +25,8 @@ reset
 cache1.cpu_req_fifo.datain[72:0]
 [color] 2
 cache1.cpu_req_fifo.dataout[72:0]
-@23
 [color] 7
 cache1.bus_req_o[72:0]
-@22
 +{(2) bus_req1[72:0]} bus_req1[72:0]
 +{(3) ic_pwr_req[72:0]} ic_pwr_req[72:0]
 [color] 3
@@ -39,10 +37,7 @@ power.pwr_req_fifo.dataout[72:0]
 power.gfx_req_o[72:0]
 +{(4) pwr_gfx_req[72:0]} pwr_gfx_req[72:0]
 +{(5) pwr_gfx_res[72:0]} pwr_gfx_res[72:0]
-[color] 3
-gfx.pwr_req_i[72:0]
 [color] 7
-gfx.pwr_res_o[72:0]
 +{(5) pwr_gfx_res[72:0]} pwr_gfx_res[72:0]
 [color] 3
 power.gfx_res_i[72:0]
