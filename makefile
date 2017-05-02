@@ -70,22 +70,22 @@ flow_docs:
 deps_docs:
 	graph-easy --input=doc/deps.txt --output=doc/deps.ascii
 test_docs:
-	graph-easy --input=doc/tests/cpu1r.txt --output=doc/test/cpu1r.ascii
+	graph-easy --input=doc/test/cpu1r.txt --output=doc/test/cpu1r.ascii
 	sed -i.old '1s;^;#cpu1_r_test\n\n;' doc/test/cpu1r.ascii
-	graph-easy --input=doc/tests/cpu2w.txt --output=doc/test/cpu2w.ascii
+	graph-easy --input=doc/test/cpu2w.txt --output=doc/test/cpu2w.ascii
 	sed -i.old '1s;^;#cpu2_w_test\n\n;' doc/test/cpu2w.ascii
-	graph-easy --input=doc/tests/ureq.txt --output=doc/test/ureq.ascii
+	graph-easy --input=doc/test/ureq.txt --output=doc/test/ureq.ascii
 	sed -i.old '1s;^;#gfx_r_test\n\n;' doc/test/ureq.ascii
-	graph-easy --input=doc/tests/pwr.txt --output=doc/test/pwr.ascii
+	graph-easy --input=doc/test/pwr.txt --output=doc/test/pwr.ascii
 	sed -i.old '1s;^;#ic_pwr_test\n\n;' doc/test/pwr.ascii
-	rm doc/*.old
+	rm doc/test/*.old
 block_docs:
 	graph-easy --input=doc/block/cpu.txt --output=doc/block/cpu.ascii
 	sed -i.old '1s;^;#cpu_block\n\n;' doc/block/cpu.ascii
 	graph-easy --input=doc/block/top.txt --output=doc/block/top.ascii
-	sed -i.old '1s;^;#top_block\n\n;' doc/top_block.ascii
+	sed -i.old '1s;^;#top_block\n\n;' doc/block/top.ascii
 	graph-easy --input=doc/block/cache.txt --output=doc/block/cache.ascii
 	sed -i.old '1s;^;#cache_block\n\n;' doc/block/cache.ascii
 	graph-easy --input=doc/block/ic.txt --output=doc/block/ic.ascii
 	sed -i.old '1s;^;#ic_block\n\n;' doc/block/ic.ascii
-	rm doc/*.old
+	rm doc/block/*.old
