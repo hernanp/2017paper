@@ -89,3 +89,6 @@ block_docs:
 	graph-easy --input=doc/block/ic.txt --output=doc/block/ic.ascii
 	sed -i.old '1s;^;#ic_block\n\n;' doc/block/ic.ascii
 	rm doc/block/*.old
+pcs_docs:
+	graph-easy --input=doc/pcs/cpu.txt --output=doc/pcs/cpu.ascii
+
