@@ -25,8 +25,7 @@ end cpu;
 
 architecture rtl of cpu is
   type states is (init, send, idle);
-  signal st, next_st : states;
-  signal addr,data: std_logic_vector(31 downto 0);
+  signal st : states;
   signal sim_end : std_logic := '0';
   
 begin
