@@ -164,7 +164,7 @@ begin
 
   --* Stores up snoop requests into fifo
   --* up_snp_req_i;; -> ;brf_in, brf_we;
-  up_snp_req_fifo_handler : process(Clock)
+  ureq_req_fifo_handler : process(Clock)
   begin
     if reset = '1' then
       brf_we <= '0';
@@ -436,7 +436,7 @@ begin
   --also when found, the write will be operated here directly, and return
   --nothing
   --if it's read, then the data will be returned to request source
-  up_snp_req_handler : process(reset, Clock)
+  ureq_req_handler : process(reset, Clock)
     variable state : integer := 0;
   begin
     if (reset = '1') then

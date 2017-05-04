@@ -7,7 +7,11 @@ parser = optparse.OptionParser(usage='usage: %prog [options] arguments')
 
 parser.add_option('-i', action='store', dest='inf', help='input file')
 parser.add_option('-o', action='store', dest='outf', help='output file')
-parser.add_option('-g', action='store_true', dest='graph', help='output graph format')
+parser.add_option('--graph', action='store_true', dest='graph', help='output graph format')
+parser.add_option('--print-sig', action='store_true', dest='print_sig',
+                  help='print signals')
+parser.add_option('--print-var', action='store_true', dest='print_var',
+                  help='print vars')
 
 opts, args = parser.parse_args()
 
@@ -20,7 +24,7 @@ if opts.outf:
 # TODO need to fix these REs because right now they match any var name substring
 # should consider that var names can only contain letters, numbers and underscore
 # and update REs accordingly
-re_pcs = r'(.*) : process\('
+re_pcs = r'(.*):\s*\bprocess\s*\('
 re_vars = r'variable (.*): .*'
 re_pcs_body = r'begin'
 re_sig_asmt = r'(.*)<=(.*)' # signal assignments 
@@ -76,12 +80,12 @@ def main():
                 lines.append(l)
 
             # find current block
-            if (blk != entity) and re.search(re_start_entity, l, re.I|re.M):
-                #print('start entity')
+            if (blk == 0) and re.search(re_start_entity, l, re.I|re.M):
+                #print('l' + str(cnt), '(se):', l)
                 blk = entity
 
             if (blk == entity) and re.search(re_end_entity, l, re.I|re.M):
-                #print('end entity')
+                #print('l' + str(cnt), '(ee):', l)
                 blk = 0
                 
             if (blk != arch) and re.search(re_start_arch, l, re.I|re.M):
@@ -89,7 +93,7 @@ def main():
                 blk = arch
 
             if (blk == arch) and re.search(re_start_arch_body, l, re.I|re.M):
-                #print('end arch')
+                #print('l' + str(cnt), '(sab):', l)
                 blk = arch_body
 
             if blk == entity:
@@ -129,7 +133,7 @@ def main():
                                   Rwset(set(), set(), set())))
                     last = ps[-1]
                     blk = pcs
-                    #print('p:', str(cnt), l)
+                    #print('l' + str(cnt), '(sp):', l)
 
             elif blk == pcs:
                 m_vars = re.search(re_vars, l, re.I|re.M)
@@ -194,7 +198,7 @@ def main():
                 if re.search(re_end_pcs, l, re.I|re.M):
                     last.end = cnt
                     blk = arch_body
-                    #print('ep:',l)
+                    #print('l' + str(cnt), '(ep):', l)
                         
             cnt += 1
         # end lines loop
@@ -232,18 +236,21 @@ def print_layout1():
     
     print('in:', ', '.join(ports.i))
     print('out:', ', '.join(ports.o))
-    print('sig:', ', '.join(signals))
+    if opts.print_sig:
+        print('sig:', ', '.join(signals))
     print('~used:', ', '.join(unused))
     print()
     for p in ps:
         print('pcs:', p.name)
         print('io_rs:', ', '.join(p.readset.io))
         print('io_ws:', ', '.join(p.writeset.io))
-        print('sig_rs:', ', '.join(p.readset.sig))
-        print('sig_ws:', ', '.join(p.writeset.sig))
-        #print('vars:', ', '.join(p.vars))
-        #print('vrs:', ', '.join(p.vrs))
-        #print('vws:', ', '.join(p.vws))
+        if opts.print_sig:
+            print('sig_rs:', ', '.join(p.readset.sig))
+            print('sig_ws:', ', '.join(p.writeset.sig))
+        if opts.print_var:
+            print('vars:', ', '.join(p.vars))
+            print('vrs:', ', '.join(p.vrs))
+            print('vws:', ', '.join(p.vws))
         print()
         
 def print_graph(unused) :
