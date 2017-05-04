@@ -59,36 +59,36 @@ wave:
 	gtkwave top.vcd
 html_docs:
 	vhdocl *.vhd
-sm_docs: # generate state machines
-	graph-easy --input=doc/arbiter2_sm.txt --output=doc/arbiter2.ascii
-	graph-easy --input=doc/arbiter2_ack_sm.txt --output=doc/arbiter2_ack.ascii
-	graph-easy --input=doc/cpu_sm.txt --output=doc/cpu.ascii
+# sm_docs: # generate state machines
+# 	graph-easy --input=doc/arbiter2_sm.txt --output=doc/arbiter2.ascii
+# 	graph-easy --input=doc/arbiter2_ack_sm.txt --output=doc/arbiter2_ack.ascii
+# 	graph-easy --input=doc/cpu_sm.txt --output=doc/cpu.ascii
 flow_docs:
-	graph-easy --input=doc/flow/pwr.txt --output=doc/flow/pwr.ascii
-	graph-easy --input=doc/flow/upr.txt --output=doc/flow/upr.ascii
-	graph-easy --input=doc/flow/dnr.txt --output=doc/flow/dnr.ascii
+	graph-easy --input=doc/flow/pwr.ge --output=doc/flow/pwr.ascii
+	graph-easy --input=doc/flow/upr.ge --output=doc/flow/upr.ascii
+	graph-easy --input=doc/flow/dnr.ge --output=doc/flow/dnr.ascii
 deps_docs:
-	graph-easy --input=doc/deps.txt --output=doc/deps.ascii
+	graph-easy --input=doc/deps.ge --output=doc/deps.ascii
 test_docs:
-	graph-easy --input=doc/test/cpu1r.txt --output=doc/test/cpu1r.ascii
+	graph-easy --input=doc/test/cpu1r.ge --output=doc/test/cpu1r.ascii
 	sed -i.old '1s;^;#cpu1_r_test\n\n;' doc/test/cpu1r.ascii
-	graph-easy --input=doc/test/cpu2w.txt --output=doc/test/cpu2w.ascii
+	graph-easy --input=doc/test/cpu2w.ge --output=doc/test/cpu2w.ascii
 	sed -i.old '1s;^;#cpu2_w_test\n\n;' doc/test/cpu2w.ascii
-	graph-easy --input=doc/test/ureq.txt --output=doc/test/ureq.ascii
+	graph-easy --input=doc/test/ureq.ge --output=doc/test/ureq.ascii
 	sed -i.old '1s;^;#gfx_r_test\n\n;' doc/test/ureq.ascii
-	graph-easy --input=doc/test/pwr.txt --output=doc/test/pwr.ascii
+	graph-easy --input=doc/test/pwr.ge --output=doc/test/pwr.ascii
 	sed -i.old '1s;^;#ic_pwr_test\n\n;' doc/test/pwr.ascii
 	rm doc/test/*.old
 block_docs:
-	graph-easy --input=doc/block/cpu.txt --output=doc/block/cpu.ascii
+	graph-easy --input=doc/block/cpu.ge --output=doc/block/cpu.ascii
 	sed -i.old '1s;^;#cpu_block\n\n;' doc/block/cpu.ascii
-	graph-easy --input=doc/block/top.txt --output=doc/block/top.ascii
+	graph-easy --input=doc/block/top.ge --output=doc/block/top.ascii
 	sed -i.old '1s;^;#top_block\n\n;' doc/block/top.ascii
-	graph-easy --input=doc/block/cache.txt --output=doc/block/cache.ascii
+	graph-easy --input=doc/block/cache.ge --output=doc/block/cache.ascii
 	sed -i.old '1s;^;#cache_block\n\n;' doc/block/cache.ascii
-	graph-easy --input=doc/block/ic.txt --output=doc/block/ic.ascii
+	graph-easy --input=doc/block/ic.ge --output=doc/block/ic.ascii
 	sed -i.old '1s;^;#ic_block\n\n;' doc/block/ic.ascii
 	rm doc/block/*.old
 pcs_docs:
-	graph-easy --input=doc/pcs/cpu.txt --output=doc/pcs/cpu.ascii
+	graph-easy --input=doc/pcs/cpu.ge --output=doc/pcs/cpu.ascii
 
