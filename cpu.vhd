@@ -174,7 +174,7 @@ begin
         -- send a random msg
         if t1 and (id_i = CPU0) then
           log("cpu0_r_test @ " & str(time'pos(now)), DEBUG);
-          cpu_req_o <= "1" & READ_CMD & X"80000000" & ZEROS32;
+          cpu_req_o<="1" & READ_CMD & X"80000000" & ZEROS32;
           st := 2;
         elsif t2 and (id_i = CPU1) then
           log("cpu1_w_test @ " & str(time'pos(now)), DEBUG);

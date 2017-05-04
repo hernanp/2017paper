@@ -164,7 +164,7 @@ begin
 
   --* Stores up snoop requests into fifo
   --* up_snp_req_i;; -> ;brf_in, brf_we;
-  ureq_req_fifo_handler : process(Clock)
+  ureq_req_fifo_p : process(Clock)
   begin
     if reset = '1' then
       brf_we <= '0';
@@ -242,7 +242,7 @@ begin
   
   --* Stores cpu requests into fifo
   --* cpu_req_i;; -> ;crf_in, crf_we;
-  cpu_req_fifo_handler : process(Clock)
+  cpu_req_fifo_p : process(Clock)
   begin
     if reset = '1' then
       crf_we <= '0';
@@ -258,7 +258,7 @@ begin
 
   --* Stores snoop requests into fifo
   --* snp_req_i;; -> ;srf_in, srf_we;
-  snp_req_fifo_handler : process(Clock)
+  snp_req_fifo_p : process(Clock)
   begin
     if reset = '1' then
       srf_we <= '0';
@@ -275,7 +275,7 @@ begin
   
   --* Stores bus response into fifo
   --* bus_res_i;; -> ;bsf_in, bsf_we;
-  bus_res_fifo_handler : process(Clock)
+  bus_res_fifo_p : process(Clock)
   begin
     if reset = '1' then
       bsf_we <= '0';
@@ -295,7 +295,7 @@ begin
   --*  -> ;cpu_res1, mcu_write_req, crf_re, snp_c_req1, cpu_mem_ack, cpu_mem_hit,
   --*      tmp_cpu_res1, cpu_res1, snp_req, snp_c_ack1;
   --*     bus_req_o
-  cpu_req_handler : process(reset, Clock)
+  cpu_req_p : process(reset, Clock)
     -- TODO should they be signals instead of variables?
     variable nilreq : MSG_T := (others => '0');
     variable st  : integer := 0;
@@ -389,7 +389,7 @@ begin
   end process;
 
   --* Process snoop requests (from another cache)
-  snp_req_handler : process(reset, Clock)
+  snp_req_p : process(reset, Clock)
     variable nilreq1 : std_logic_vector(552 downto 0) := (others => '0');
     variable addr    : std_logic_vector(31 downto 0);
     variable state   : integer                        := 0;
@@ -436,7 +436,7 @@ begin
   --also when found, the write will be operated here directly, and return
   --nothing
   --if it's read, then the data will be returned to request source
-  ureq_req_handler : process(reset, Clock)
+  ureq_req_p : process(reset, Clock)
     variable state : integer := 0;
   begin
     if (reset = '1') then
@@ -492,7 +492,7 @@ begin
   end process;
 
   --* Process pwr response
-  --pwr_res_handler : process(reset,clock)
+  --pwr_res_p : process(reset,clock)
   --  variable tmp_msg : MSG_T;
   --begin
   --  if reset='1' then
@@ -506,7 +506,7 @@ begin
   --end process;
   
   --* Process snoop response (to snoop request issued by this cache)
-  bus_res_handler : process(reset, Clock)
+  bus_res_p : process(reset, Clock)
     variable state  : integer := 0;
   begin
     if reset = '1' then

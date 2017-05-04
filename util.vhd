@@ -1,6 +1,8 @@
 library ieee;
-use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use std.textio.all;
+use ieee.std_logic_textio.all;
 use work.defs.all;
 
 package util is
@@ -19,6 +21,8 @@ package util is
 
   function is_pwr_cmd(msg : std_logic_vector) return boolean;
 
+  function is_mem_req(msg: std_logic_vector) return boolean;
+  
   procedure delay(variable cnt: inout natural;
                   variable st : inout natural;
                   constant next_st : in natural);
@@ -42,6 +46,12 @@ package util is
   function str(n : IP_T) return string;
 
   function nat(n : IP_T) return natural;
+
+  procedure log(constant v : in std_logic_vector);
+
+  procedure log_chg(constant s : in string;
+                    constant st : in integer;
+                    variable prev_st : inout integer);
   
   --procedure clr(signal vector : out std_logic_vector);
 end util;
@@ -107,6 +117,14 @@ package body util is
     return false;
   end;
 
+  function is_mem_req(msg: std_logic_vector) return boolean is
+  begin
+    if msg(63 downto 63) = "1" then
+      return true;
+    end if;
+    return false;
+  end;
+  
   --procedure clr(signal vector : out std_logic_vector) is
   --begin
   --  vector <= (others => '0');
@@ -127,6 +145,23 @@ package body util is
   begin
     if LOG_LEVEL_T'pos(LOG_LEVEL) >= LOG_LEVEL_T'pos(l) then
       report s;
+    end if;
+  end;
+
+  procedure log(constant v : in std_logic_vector) is
+    variable l : line;
+  begin
+    hwrite(l, v);
+    writeline(output, l);
+  end;
+
+  procedure log_chg(constant s: in string;
+                    constant st : in integer;
+                    variable prev_st : inout integer) is
+  begin
+    if st /= prev_st then
+      log(s & " " & str(st), INFO);
+      prev_st := st;
     end if;
   end;
   

@@ -352,7 +352,7 @@ begin
       Empty   => emp2
       );
   
-  gfx_fifo_handler : process(reset, Clock)
+  gfx_fifo_p : process(reset, Clock)
     variable valid : MSG_T :=
       '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
   begin
@@ -383,7 +383,7 @@ begin
       Empty   => emp13
     );
   
-  audio_fifo_handler : process(reset, Clock)
+  audio_fifo_p : process(reset, Clock)
   begin
     if reset = '1' then
       we13 <= '0';
@@ -412,7 +412,7 @@ begin
       Empty   => emp14
     );
   
-  usb_fifo_handler : process(reset, Clock)
+  usb_fifo_p : process(reset, Clock)
   begin
     if reset = '1' then
       we14 <= '0';
@@ -441,7 +441,7 @@ begin
       Empty   => emp15
     );
   
-  uart_fifo_handler : process(reset, Clock)
+  uart_fifo_p : process(reset, Clock)
   begin
     if reset = '1' then
       we15 <= '0';
@@ -458,7 +458,7 @@ begin
   --* handles up requests
   --* rs: gfx_fifo_re, gfx_fifo_dout, gfx_fifo_emp
   --* ws: gfx_fifo_re, snp1_2
-  gfx_upreq_handler : process(reset, Clock)
+  gfx_upreq_p : process(reset, Clock)
     variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
     variable st  : natural := 0;
   variable count: integer:=0;
@@ -487,7 +487,7 @@ begin
     end if;
   end process;
 
-  audio_upreq_handler : process(reset, Clock)
+  audio_upreq_p : process(reset, Clock)
     variable stage : integer := 0;
   begin
     if reset = '1' then
@@ -514,7 +514,7 @@ begin
     end if;
   end process;
 
-  usb_upreq_handler : process(reset, Clock)
+  usb_upreq_p : process(reset, Clock)
     variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
     variable stage  : integer                       := 0;
   variable count: integer:=0;
@@ -543,7 +543,7 @@ begin
     end if;
   end process;
 
-  uart_upreq_handler : process(reset, Clock)
+  uart_upreq_p : process(reset, Clock)
     variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
     variable stage  : integer                       := 0;
   variable count: integer:=0;
@@ -595,7 +595,7 @@ begin
       ack   => mem_ack
       );
 
- tomem_channel : process(reset, Clock)
+ tomem_chan_p : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
     variable state   : integer                        := 0;
@@ -761,32 +761,38 @@ begin
       ack 	=> gfx_ack
       );
 
- togfx_channel : process(reset, Clock)
+ togfx_chan_p : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
     variable state   : integer                        := 20; -- TODO hack?
     variable lp      : integer                        := 0;
     variable tep_gfx1 : std_logic_vector(75 downto 0);
     variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
-	 variable slot : integer :=0;
+    variable slot : integer :=0;
+    variable prev_st : integer := -1;
   begin
     if reset = '1' then
       rvalid_gfx  <= '0';
       rdready_gfx <= '0';
     elsif rising_edge(Clock) then
-		if state =0 then
-			gfx_ack <='1';
-			state :=20;
-    	elsif state = 20 then
-    	  gfx_ack <='0';
+      --log_chg("togfx_chan_p", state, prev_st);
+      if state =0 then
+        gfx_ack <='1';
+        state :=20;
+      elsif state = 20 then
+        gfx_ack <='0';
         bus_res1_2   <= nullreq;
         bus_res2_2   <= nullreq;
         --gfx_upres2 <= (others => '0');
         uart_upres2  <= (others => '0');
         audio_upres2 <= (others => '0');
         usb_upres2   <= (others => '0');
-        if (is_valid(togfx_p) and(
-            cmd_eq(togfx_p, READ_CMD) or togfx_p(75 downto 73)="000" or togfx_p(75 downto 73)="101")) then
+        if (is_valid(togfx_p) and
+          cmd_eq(togfx_p, READ_CMD)) then
+          -- HP: I believe the following code is incorrect:
+          --or
+          --togfx_p(75 downto 73)="000" or -- msg is invalid
+          --togfx_p(75 downto 73)="101")) then -- valid and read
           tep_gfx1 := togfx_p;
           state   := 6;
         elsif (is_valid(togfx_p) and
@@ -794,12 +800,12 @@ begin
           gfx_write1<=togfx_p;
           state   := 9;
         end if;
-      elsif state = 6 then
+      elsif state = 6 then -- process read cmd to gfx
         if rready_gfx = '1' then
           ---gfx_ack <= '0';
           rvalid_gfx <= '1';
           raddr_gfx  <= tep_gfx1(63 downto 32);
-			 slot := to_integer(unsigned(tep_gfx1(35 downto 32)));
+          slot := to_integer(unsigned(tep_gfx1(35 downto 32)));
           if (dst_eq(tep_gfx1, CPU0_TAG) or
               dst_eq(tep_gfx1, CPU1_TAG)) then
             rlen_gfx <= "00000" & "10000";
@@ -817,11 +823,11 @@ begin
         if rdvalid_gfx = '1' and rres_gfx = "00" then
           if (dst_eq(tep_gfx1, CPU0_TAG) or
               dst_eq(tep_gfx1, CPU1_TAG)) then
-				if lp=slot and cmd_eq(tep_gfx1, WRITE_CMD) then
-					tdata(lp * 32 + 31 downto lp * 32) := tep_gfx1(31 downto 0);
-				else
-					tdata(lp * 32 + 31 downto lp * 32) := rdata_gfx;
-				end if;
+            if lp=slot and cmd_eq(tep_gfx1, WRITE_CMD) then
+              tdata(lp * 32 + 31 downto lp * 32) := tep_gfx1(31 downto 0);
+            else
+              tdata(lp * 32 + 31 downto lp * 32) := rdata_gfx;
+            end if;
             rdready_gfx                        <= '0';
             lp                                 := lp + 1;
             if rlast_gfx = '1' then
@@ -836,7 +842,7 @@ begin
           end if;
 
         end if;
-      elsif state = 3 then
+      elsif state = 3 then -- handle response from bus
         --gfx_ack <= '1';
         if dst_eq(tep_gfx1, CPU0_TAG) then
           bus_res1_2 <= tep_gfx1(72 downto 32) & tdata;
@@ -886,11 +892,12 @@ begin
         if gfx_write_ack1 ='1' then
           gfx_write1<=(others=>'0');
           state := 0;
-          --gfx_ack <='1';
+        --gfx_ack <='1';
         end if;
       end if;
     end if;
   end process;
+
   mem_write:process(reset, Clock)
     variable state:integer :=0;
     variable tep_mem:std_logic_vector(75 downto 0);
@@ -990,24 +997,26 @@ begin
     end if;
   end process;
   
-  gfx_write : process(reset, Clock)
+  gfx_write_p : process(reset, Clock)
     variable state:integer :=0;
     variable tep_gfx:std_logic_vector(75 downto 0);
     variable tep_gfx_l:std_logic_vector(552 downto 0);
     variable flag:std_logic;
     variable tdata :std_logic_vector(511 downto 0);
     variable lp:integer :=0;
+    variable prev_st : integer := -1;
   ----if flag is 1, then return gfx write 2
   begin
     if reset ='1' then
       flag :='0';
     elsif rising_edge(Clock)then
+      log_chg("gfx_write_p", state, prev_st);
       if state = 0 then
         lp :=0;
         gfx_write_ack1<='0';
         gfx_write_ack2<='0';
         gfx_write_ack3<='0';
-        if gfx_write1(72 downto 72)="1" then
+        if is_valid(gfx_write1) then
           state := 1;
           tep_gfx:=gfx_write1;
     		 gfx_write_ack1<='1';
@@ -1089,7 +1098,7 @@ begin
     end if;
   end process;
   
-  uart_write:process(reset, Clock)
+  uart_write_p : process(reset, Clock)
     variable state:integer :=0;
     variable tep_uart:std_logic_vector(75 downto 0);
     variable tep_uart_l:std_logic_vector(552 downto 0);
@@ -1217,7 +1226,7 @@ begin
       ack	=> usb_ack
       );
 
-  audio_write:process(reset, Clock)
+  audio_write_p : process(reset, Clock)
     variable state:integer :=0;
     variable tep_audio:std_logic_vector(75 downto 0);
     variable tep_audio_l:std_logic_vector(552 downto 0);
@@ -1231,9 +1240,9 @@ begin
     elsif rising_edge(Clock)then
       if state = 0 then
         lp :=0;
-        audio_write_ack1<='0';
-        audio_write_ack2<='0';
-        audio_write_ack3<='0';
+        audio_write_ack1 <= '0';
+        audio_write_ack2 <= '0';
+        audio_write_ack3 <= '0';
         if is_valid(audio_write1) then
           state := 1;
           tep_audio:=audio_write1;
@@ -1315,7 +1324,7 @@ begin
     end if;
   end process;
 
-  tousb_channel : process(reset, Clock)
+  tousb_chan_p : process(reset, Clock)
     variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
     variable state   : integer                        := 20;
@@ -1442,7 +1451,8 @@ begin
       end if;
     end if;
   end process;
-  usb_write:process(reset, Clock)
+    
+  usb_write_p : process(reset, Clock)
     variable state:integer :=0;
     variable tep_usb:std_logic_vector(75 downto 0);
     variable tep_usb_l:std_logic_vector(552 downto 0);
@@ -1456,24 +1466,24 @@ begin
     elsif rising_edge(Clock)then
       if state = 0 then
         lp :=0;
-        usb_write_ack1<='0';
-        usb_write_ack2<='0';
-        usb_write_ack3<='0';
+        usb_write_ack1 <= '0';
+        usb_write_ack2 <= '0';
+        usb_write_ack3 <= '0';
         if is_valid(usb_write1) then
           state := 1;
           tep_usb:=usb_write1;
-    		 usb_write_ack1<='1';
+    		 usb_write_ack1 <= '1';
         elsif usb_write2(552 downto 552)="1" then
           state := 4;
           tep_usb_l :=usb_write2;
-          usb_write_ack2<='1';
+          usb_write_ack2 <= '1';
         elsif usb_write3(552 downto 552)="1" then
           state := 4;
-          tep_usb_l :=usb_write3;
-          usb_write_ack2<='1';
+          tep_usb_l := usb_write3;
+          usb_write_ack2 <= '1';
         end if;
       elsif state =1 then
-    	usb_write_ack1<='0';
+    	usb_write_ack1 <= '0';
         if wready_usb = '1' then -- MERGE durw: [1/0]
           wvalid_usb <= '1';
           waddr_usb  <= tep_usb(63 downto 32);
@@ -1503,7 +1513,8 @@ begin
           wrready_usb <= '0';
         end if;
       elsif state =4 then
-    	usb_write_ack2<='0';usb_write_ack3<='0';
+    	usb_write_ack2 <= '0';
+        usb_write_ack3 <= '0';
         if wready_usb = '1' then -- MERGE durw: [1/0]
           wvalid_usb <= '1';
           waddr_usb  <= mem_wb(543 downto 512);
@@ -1553,7 +1564,7 @@ begin
       ack	=> uart_ack
       );
 
-   touart_channel : process(reset, Clock)
+   touart_chan_p : process(reset, Clock)
     variable tdata    : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata    : std_logic_vector(31 downto 0)  := (others => '0');
     variable state    : integer                        := 20; -- TODO hack?
@@ -1871,7 +1882,7 @@ begin
       dout => audio_wb
       );
 
-   toaudio_channel : process(reset, Clock)
+   toaudio_chan_p : process(reset, Clock)
     variable tdata     : std_logic_vector(511 downto 0) := (others => '0');
     variable sdata     : std_logic_vector(31 downto 0)  := (others => '0');
     variable state     : integer                        := 20; -- TODO hack?
@@ -2028,7 +2039,7 @@ begin
       dout => uart_wb
       );
 
-  snp_res1_fifo_handler : process(reset, Clock)
+  snp_res1_fifo_p : process(reset, Clock)
   begin
     if reset = '1' then
       we2 <= '0';
@@ -2047,7 +2058,7 @@ begin
     end if;
   end process;
 
-  snp_res1_handler : process(reset, Clock)
+  snp_res1_p : process(reset, Clock)
     variable state : integer := 0;
   begin
     if reset = '1' then
@@ -2192,7 +2203,7 @@ begin
       dout  => pwr_req_o
       );
     
-  pwr_res_handler : process(reset, Clock)
+  pwr_res_p : process(reset, Clock)
     variable st : natural;
     variable src : ADR_T;
     variable dst : DAT_T;
@@ -2255,7 +2266,7 @@ begin
   ----this need to be edited, 
   ----1. axi protocl
   ----2. more than 2 ips
-  wb_1_handler : process(reset, Clock)
+  wb_1_p : process(reset, Clock)
     variable state : integer;
     variable tdata:std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -2319,7 +2330,7 @@ begin
   end process;
 
   ----write_back process
-  wb_2_handler : process(reset, Clock)
+  wb_2_p : process(reset, Clock)
     variable state : integer;
     variable tdata:std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -2384,17 +2395,26 @@ begin
     end if;
   end process;
 
-  cache_req1_handler : process(reset, Clock)
+  cache_req1_p : process(reset, Clock)
     variable nilreq  : MSG_T  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
+    variable b: boolean := true;
+    variable prev_st : integer := -1;
   begin
     if reset = '1' then
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
+      --log_chg(state, prev_st);
       if state = 0 then
+        if b and cache1_req_i /= nilreq then
+          --report "got pwr req!";
+          --log("000" & cache1_req_i);
+          b := false;
+        end if;
         if is_valid(cache1_req_i) and is_pwr_cmd(cache1_req_i) then
+          --report "valid!";
           pwr_req1 <= cache1_req_i;
           state    := 4;
           --TODO CHECK THE CASE BELOW, SEEMS WRONG
@@ -2406,15 +2426,14 @@ begin
         --  -----
         --  bus_res1_7 <= '1' & "11111111" & nildata;
         elsif is_valid(cache1_req_i) then
-          adr_0 <= cache1_req_i(63 downto 32);
+          adr_0 <= get_adr(cache1_req_i);
     		 tmp_cache_req1 <= cache1_req_i;
           state := 2;
         else
           state := 0;
         end if;
       elsif state = 2 then
-        if tmp_cache_req1(63 downto 63) = "1" then -- mem request
-          ---this belongs to the memory					
+        if is_mem_req(tmp_cache_req1) then				
           tomem1 <= "000" & tmp_cache_req1; -- TODO hard-coded cpu1 id?
           state  := 5;
         elsif tmp_cache_req1(62 downto 61) = "00" then
@@ -2469,7 +2488,7 @@ begin
   end process;
 
   ----deal with cache request
-  cache_req2_handler : process(reset, Clock)
+  cache_req2_p : process(reset, Clock)
     variable nilreq  : MSG_T  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;

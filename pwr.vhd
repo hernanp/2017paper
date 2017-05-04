@@ -48,7 +48,7 @@ begin
       Empty=>emp1
       );
   
-  pwr_req_fifo_handler: process (Clock)      
+  pwr_req_fifo_p: process (Clock)      
   begin
     if reset='1' then
       we1<='0';
@@ -65,7 +65,7 @@ begin
   --* Forwards req from ic to dev,
   --*    waits for resp from dev, and
   --*    forwards res back to ic
-  req_handler : process (reset, Clock)
+  req_p : process (reset, Clock)
     variable st: integer :=0;
     variable dev : IPTAG_T;
     variable tmp_req, tmp: MSG_T;

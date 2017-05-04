@@ -1,19 +1,33 @@
 from __future__ import print_function
 from random import randint
-import optparse, re, sys
+import optparse, re, sys, logging
 from recordtype import recordtype
 
 parser = optparse.OptionParser(usage='usage: %prog [options] arguments')
 
 parser.add_option('-i', action='store', dest='inf', help='input file')
 parser.add_option('-o', action='store', dest='outf', help='output file')
+parser.add_option('-d', action='store_true', dest='debug', help='output debugging info')
 parser.add_option('--graph', action='store_true', dest='graph', help='output graph format')
-parser.add_option('--print-sig', action='store_true', dest='print_sig',
+parser.add_option('--io', action='store_true', dest='print_io',
+                  help='print io signals')
+parser.add_option('--sig', action='store_true', dest='print_sig',
                   help='print signals')
-parser.add_option('--print-var', action='store_true', dest='print_var',
+parser.add_option('--var', action='store_true', dest='print_var',
                   help='print vars')
+parser.add_option('--unused', action='store_true', dest='print_unused',
+                  help='print unused signals')
+parser.add_option('--links', action='store', dest='links',
+                  help='print communication links between a pair of processes')
 
 opts, args = parser.parse_args()
+
+if opts.debug:
+    logging.basicConfig(level=logging.INFO)
+else:
+    logging.basicConfig(level=logging.WARNING)
+#logging.Formatter('%(levelname)s - %(message)s')
+log = logging.getLogger(__name__)
 
 if not opts.inf:
     parser.error('input file is required')
@@ -21,6 +35,9 @@ if not opts.inf:
 if opts.outf:
     sys.stdout = open(opts.outf,'w')
 
+if opts.links:
+    links = opts.links.split(',')
+    
 # TODO need to fix these REs because right now they match any var name substring
 # should consider that var names can only contain letters, numbers and underscore
 # and update REs accordingly
@@ -47,7 +64,7 @@ in_arch = False
 Ports = recordtype('Ports', 'i o')
 
 ports = Ports(set(),set())
-ps = [] # processes
+ps = {} # processes
 
 signals = set()
 
@@ -81,11 +98,11 @@ def main():
 
             # find current block
             if (blk == 0) and re.search(re_start_entity, l, re.I|re.M):
-                #print('l' + str(cnt), '(se):', l)
+                log.info('l%d (se): %s', cnt, l)
                 blk = entity
 
             if (blk == entity) and re.search(re_end_entity, l, re.I|re.M):
-                #print('l' + str(cnt), '(ee):', l)
+                log.info('l%d (ee): %s', cnt, l)
                 blk = 0
                 
             if (blk != arch) and re.search(re_start_arch, l, re.I|re.M):
@@ -93,7 +110,7 @@ def main():
                 blk = arch
 
             if (blk == arch) and re.search(re_start_arch_body, l, re.I|re.M):
-                #print('l' + str(cnt), '(sab):', l)
+                log.info('l%d (sab): %s', cnt, l)
                 blk = arch_body
 
             if blk == entity:
@@ -128,13 +145,13 @@ def main():
                 # find start pcs
                 m1 = re.search(re_pcs, l, re.I|re.M)
                 if m1:
-                    ps.append(Pcs(m1.group(1).strip(), cnt, 0, set(),
-                                  Rwset(set(), set(), set()),
-                                  Rwset(set(), set(), set())))
-                    last = ps[-1]
+                    ps[m1.group(1).strip()] = Pcs(m1.group(1).strip(), cnt, 0, set(),
+                                                  Rwset(set(), set(), set()),
+                                                  Rwset(set(), set(), set()))
+                    last = ps[m1.group(1).strip()]
                     blk = pcs
-                    #print('l' + str(cnt), '(sp):', l)
-
+                    log.info('l%d (sp): %s', cnt, l)
+                    
             elif blk == pcs:
                 m_vars = re.search(re_vars, l, re.I|re.M)
                 if m_vars:
@@ -198,7 +215,7 @@ def main():
                 if re.search(re_end_pcs, l, re.I|re.M):
                     last.end = cnt
                     blk = arch_body
-                    #print('l' + str(cnt), '(ep):', l)
+                    log.info('l%d (ep): %s', cnt, l)
                         
             cnt += 1
         # end lines loop
@@ -216,6 +233,30 @@ def main():
     else:
         print_layout1()
 
+    if opts.links:
+        # ass. links's size is 2
+        print(links[0],':',links[1])
+        print('--> ', end='')
+        b = True
+        for s in ps[links[0]].writeset.sig:
+            if s in ps[links[1]].readset.sig:
+                if not b:
+                    print('    ', end='')
+                else:
+                    b = False
+                print(s)
+        print()
+        print('<-- ', end='')
+        b = True
+        for s in ps[links[1]].writeset.sig:
+            if s in ps[links[0]].readset.sig:
+                if not b:
+                    print('    ', end='')
+                else:
+                    b = False
+                print(s)
+        print()
+                
 def find_word(w):
     return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
         
@@ -233,25 +274,30 @@ def add2readset(lnum, sig):
 
 def print_layout1():
     print('file:', opts.inf)
-    
-    print('in:', ', '.join(ports.i))
-    print('out:', ', '.join(ports.o))
+
+    if opts.print_io:
+        print('in:', ', '.join(ports.i))
+        print('out:', ', '.join(ports.o))
     if opts.print_sig:
         print('sig:', ', '.join(signals))
-    print('~used:', ', '.join(unused))
+    if opts.print_unused:
+        print('~used:', ', '.join(unused))
     print()
-    for p in ps:
-        print('pcs:', p.name)
-        print('io_rs:', ', '.join(p.readset.io))
-        print('io_ws:', ', '.join(p.writeset.io))
+    i = 0
+    for k in sorted(ps):
+        print('(' + str(i) + ') pcs:', ps[k].name)
+        if opts.print_io:
+            print('io_rs:', ', '.join(ps[k].readset.io))
+            print('io_ws:', ', '.join(ps[k].writeset.io))
         if opts.print_sig:
-            print('sig_rs:', ', '.join(p.readset.sig))
-            print('sig_ws:', ', '.join(p.writeset.sig))
+            print('sig_rs:', ', '.join(ps[k].readset.sig))
+            print('sig_ws:', ', '.join(ps[k].writeset.sig))
         if opts.print_var:
-            print('vars:', ', '.join(p.vars))
-            print('vrs:', ', '.join(p.vrs))
-            print('vws:', ', '.join(p.vws))
+            print('vars:', ', '.join(ps[k].vars))
+            print('var_rs:', ', '.join(ps[k].readset.var))
+            print('var_ws:', ', '.join(ps[k].writeset.var))
         print()
+        i += 1
         
 def print_graph(unused) :
     for s in ports.i:

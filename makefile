@@ -7,7 +7,7 @@ list:
 all:
 # types and funs
 	ghdl -a defs.vhd
-	ghdl -a util.vhd
+	ghdl -a --ieee=synopsys util.vhd
 	ghdl -a --ieee=synopsys rand.vhd # dependency for [usb,gfx,cpu,memory,uart].vhd
 	ghdl -a --ieee=synopsys test.vhd # Test configuration
 # data structs
@@ -18,11 +18,11 @@ all:
 	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
 # modules
 #	ghdl -a gfx.vhd
-	ghdl -a pwr.vhd # uses fifo
+	ghdl -a --ieee=synopsys pwr.vhd # uses fifo
 	ghdl -a --ieee=synopsys mem.vhd
-	ghdl -a -fexplicit cache.vhd # uses fifo, arbiter2
+	ghdl -a -fexplicit --ieee=synopsys cache.vhd # uses fifo, arbiter2
 	ghdl -a --ieee=synopsys cpu.vhd
-	ghdl -a pwr.vhd
+#	ghdl -a pwr.vhd
 	ghdl -a arbiter6.vhd
 	ghdl -a arbiter6_ack.vhd
 	ghdl -a arbiter61.vhd
