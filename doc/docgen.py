@@ -85,139 +85,153 @@ def main():
     blk = 0
 
     with open(opts.inf,"r") as f:
-        for l in f:
-            l = l.rstrip('\n')
+        for ls in f:
+            for l in ls.split(';'): # handle case multiple statements in 1 line                
+                l = l.rstrip('\n')
 
-            # rm comments
-            l = re.sub(re_comments,'',l)
+                # rm comments
+                l = re.sub(re_comments,'',l)
 
-            l = l.strip() # rm whitespace
+                l = l.strip() # rm whitespace
 
-            if l: # if line not empty
-                lines.append(l)
+                if l: # if line not empty
+                    lines.append(l)
 
-            # find current block
-            if (blk == 0) and re.search(re_start_entity, l, re.I|re.M):
-                log.info('l%d (se): %s', cnt, l)
-                blk = entity
+                    # find current block
+                    if ((blk == 0) and
+                        re.search(re_start_entity, l, re.I|re.M)):
+                        log.info('l%d (se): %s', cnt, l)
+                        blk = entity
 
-            if (blk == entity) and re.search(re_end_entity, l, re.I|re.M):
-                log.info('l%d (ee): %s', cnt, l)
-                blk = 0
-                
-            if (blk != arch) and re.search(re_start_arch, l, re.I|re.M):
-                #print('in arch')
-                blk = arch
+                    if ((blk == entity) and
+                        re.search(re_end_entity, l, re.I|re.M)):
+                        log.info('l%d (ee): %s', cnt, l)
+                        blk = 0
 
-            if (blk == arch) and re.search(re_start_arch_body, l, re.I|re.M):
-                log.info('l%d (sab): %s', cnt, l)
-                blk = arch_body
+                    if ((blk != arch) and
+                        re.search(re_start_arch, l, re.I|re.M)):
+                        #print('in arch')
+                        blk = arch
 
-            if blk == entity:
-                # find ports
-                m4 = re.search(re_pts, l, re.I|re.M)
-                if m4:
-                    dir = m4.group(2).strip()
-                    m4b =  re.search(r'port\(+(.*)',m4.group(1),re.I|re.M)
-                    if m4b:
-                        name = [s.strip() for s in m4b.group(1).split(',')]
-                    else:
-                        name = [s.strip() for s in m4.group(1).split(',')]
+                    if ((blk == arch) and
+                        re.search(re_start_arch_body, l, re.I|re.M)):
+                        log.info('l%d (sab): %s', cnt, l)
+                        blk = arch_body
 
-                    for n in name:
-                        if dir == 'in':
-                            ports.i.add(n)
-                        else:
-                            ports.o.add(n)
+                    if blk == entity:
+                        # find ports
+                        m4 = re.search(re_pts, l, re.I|re.M)
+                        if m4:
+                            dir = m4.group(2).strip()
+                            m4b =  re.search(r'port\(+(.*)',
+                                             m4.group(1), re.I|re.M)
+                            if m4b:
+                                name = [s.strip() for s in
+                                        m4b.group(1).split(',')]
+                            else:
+                                name = [s.strip() for s in
+                                        m4.group(1).split(',')]
 
-                        # add all ports as unused, will be removed if used
-                        unused.add(n)
-                
-            elif blk == arch:
-                # find signals
-                m5 = re.search(re_sig, l, re.I|re.M)
-                if m5:
-                    sigs = [s.strip() for s in m5.group(1)[:-1].split(',')]
-                    signals.update(sigs)
-                    unused.update(sigs)
+                            for n in name:
+                                if dir == 'in':
+                                    ports.i.add(n)
+                                else:
+                                    ports.o.add(n)
 
-            elif blk == arch_body:
-                # find start pcs
-                m1 = re.search(re_pcs, l, re.I|re.M)
-                if m1:
-                    ps[m1.group(1).strip()] = Pcs(m1.group(1).strip(), cnt, 0, set(),
-                                                  Rwset(set(), set(), set()),
-                                                  Rwset(set(), set(), set()))
-                    last = ps[m1.group(1).strip()]
-                    blk = pcs
-                    log.info('l%d (sp): %s', cnt, l)
-                    
-            elif blk == pcs:
-                m_vars = re.search(re_vars, l, re.I|re.M)
-                if m_vars:
-                    #print(str(cnt),':',m_vars.group(1).strip())
-                    last.vars.add(m_vars.group(1).strip())
-                
-                if re.search(re_pcs_body, l, re.I|re.M):
-                    blk = pcs_body
-                    #print('pb:', str(cnt), l)
-                    
-            if blk == pcs_body:
-                # write set
-                #signal asmts
-                m_sig_asmt = re.search(re_sig_asmt, l, re.I|re.M)
-                m_var_asmt = re.search(re_var_asmt, l, re.I|re.M)
-                rhs = l # right hand side of asmt
-                                
-                if m_sig_asmt:
-                    rhs = m_sig_asmt.group(2).strip()
-                    #print 'line', str(cnt) + ':',  m2.group(1).strip()
-                    sig = m_sig_asmt.group(1).strip()
-                    # if (last and # some process p has been matched
-                    #     last.start <= cnt and # current cnt is btwn start and end of p
-                    #     (last.end == 0 or last.end >= cnt)) :
-                    if sig in ports.o:
-                        last.writeset.io.add(sig)
-                    elif sig in ports.i:
-                        print('warning: writing to input signal', sig, 'on line', cnt)
-                    else:
-                        last.writeset.sig.add(sig)
-                        
-                    unused.discard(sig)
-                    # if not (var.endswith('_i') or
-                    #         var.endswith('_o')):
-                    #     signals.add(var)
-                    
-                elif m_var_asmt:
-                    rhs = m_var_asmt.group(2).strip()
-                    var = m_var_asmt.group(1).strip()
-                    last.writeset.var.add(var)
-                    unused.discard(var)
+                                # add all ports as unused,
+                                #  will be removed if used
+                                unused.add(n)
 
-                #update readsets
-                for s in ports.i:
-                    if find_word(s)(rhs):
-                        last.readset.io.add(s)
-                        unused.discard(s)
-                # for s in ports.o:
-                #     if find_word(s)(rhs):
-                #         print('warning: reading output signal', s, 'on line', cnt)
-                for s in signals:
-                    if find_word(s)(rhs):
-                        last.readset.sig.add(s)
-                        unused.discard(s)
-                for s in last.vars:
-                    if find_word(s)(rhs):
-                        last.readset.var.add(s)
-                        unused.discard(s)
-                        
-                # find end pcs
-                if re.search(re_end_pcs, l, re.I|re.M):
-                    last.end = cnt
-                    blk = arch_body
-                    log.info('l%d (ep): %s', cnt, l)
-                        
-            cnt += 1
+                    elif blk == arch:
+                        # find signals
+                        m5 = re.search(re_sig, l, re.I|re.M)
+                        if m5:
+                            sigs = [s.strip() for s in
+                                    m5.group(1)[:-1].split(',')]
+                            signals.update(sigs)
+                            unused.update(sigs)
+
+                    elif blk == arch_body:
+                        # find start pcs
+                        m1 = re.search(re_pcs, l, re.I|re.M)
+                        if m1:
+                            ps[m1.group(1).strip()] = Pcs(m1.group(1).strip(),
+                                                          cnt, 0, set(),
+                                                          Rwset(set(), set(), set()),
+                                                          Rwset(set(), set(), set()))
+                            last = ps[m1.group(1).strip()]
+                            blk = pcs
+                            log.info('l%d (sp): %s', cnt, l)
+
+                    elif blk == pcs:
+                        m_vars = re.search(re_vars, l, re.I|re.M)
+                        if m_vars:
+                            #print(str(cnt),':',m_vars.group(1).strip())
+                            last.vars.add(m_vars.group(1).strip())
+
+                        if re.search(re_pcs_body, l, re.I|re.M):
+                            blk = pcs_body
+                            #print('pb:', str(cnt), l)
+
+                    if blk == pcs_body:
+                        # write set
+                        #signal asmts
+                        m_sig_asmt = re.search(re_sig_asmt, l, re.I|re.M)
+                        m_var_asmt = re.search(re_var_asmt, l, re.I|re.M)
+                        rhs = l # right hand side of asmt
+
+                        if m_sig_asmt:
+                            rhs = m_sig_asmt.group(2).strip()
+                            #print 'line', str(cnt) + ':',  m2.group(1).strip()
+                            sig = m_sig_asmt.group(1).strip()
+                            # if (last and # some process p has been matched
+                            #     last.start <= cnt and # current cnt is btwn
+                            #                           #     start and end of p
+                            #     (last.end == 0 or last.end >= cnt)) :
+                            if sig in ports.o:
+                                last.writeset.io.add(sig)
+                            elif sig in ports.i:
+                                print('warning: writing to input signal',
+                                      sig, 'on line', cnt)
+                            else:
+                                last.writeset.sig.add(sig)
+
+                            unused.discard(sig)
+                            # if not (var.endswith('_i') or
+                            #         var.endswith('_o')):
+                            #     signals.add(var)
+
+                        elif m_var_asmt:
+                            rhs = m_var_asmt.group(2).strip()
+                            var = m_var_asmt.group(1).strip()
+                            last.writeset.var.add(var)
+                            unused.discard(var)
+
+                        #update readsets
+                        for s in ports.i:
+                            if find_word(s)(rhs):
+                                last.readset.io.add(s)
+                                unused.discard(s)
+                        # for s in ports.o:
+                        #     if find_word(s)(rhs):
+                        #         print('warning: reading output signal',
+                        #               s, 'on line', cnt)
+                        for s in signals:
+                            if find_word(s)(rhs):
+                                last.readset.sig.add(s)
+                                unused.discard(s)
+                        for s in last.vars:
+                            if find_word(s)(rhs):
+                                last.readset.var.add(s)
+                                unused.discard(s)
+
+                        # find end pcs
+                        if re.search(re_end_pcs, l, re.I|re.M):
+                            last.end = cnt
+                            blk = arch_body
+                            log.info('l%d (ep): %s', cnt, l)
+
+                    cnt += 1
         # end lines loop
     # done with file
 

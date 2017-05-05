@@ -154,7 +154,7 @@ package body util is
     hwrite(l, v);
     writeline(output, l);
   end;
-
+  
   procedure log_chg(constant s: in string;
                     constant st : in integer;
                     variable prev_st : inout integer) is
@@ -176,7 +176,8 @@ package body util is
       cmd := "rd";
     end if;
 
-    log(cmd & " to M[" & str(to_integer(unsigned(get_adr(v)))) & "]: " & str, DEBUG);
+    log(cmd & " to M[" &
+        str(to_integer(unsigned(get_adr(v)))) & "]: " & str, DEBUG);
     sig <= v;
   end;
 

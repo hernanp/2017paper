@@ -7,6 +7,7 @@ use ieee.std_logic_textio.all;
 
 use work.defs.all;
 use work.rand.all;
+use work.util.all;
 use work.test.all;
 
 entity top is
@@ -1025,13 +1026,28 @@ begin
   end process;
 
   pwr_test_mon : process
-    variable m, t : time := 0 ps;
-    variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
-    variable zeros73 : MSG_T := (others => '0');
+    variable c : natural := 0;
+    variable r : MSG_T;
   begin
     if is_tset(TEST(PWR)) then
-      wait until cpu_res1 /= zeros73;
-      report "PWR_TEST OK";
+      wait until is_pwr_cmd(cpu_req1);
+      r := cpu_req1;
+      --c := c + 1;
+      --wait until bus_req1 = r;
+      --c := c + 1;
+      --wait until ic_pwr_req = r;
+      --c := c + 1;
+      ---- ..
+      --wait until ic_pwr_res = r;
+      --c := c + 1;
+      --wait until bus_res1 = rpad(r);
+      --c := c + 1;
+      --wait until cpu_res1 = r;
+      --c := c + 1;
+      wait until is_pwr_cmd(cpu_res1);
+      log("000" & r);
+      log("000" & cpu_res1);
+      report str(c) & " PWR_TEST OK";
     end if;
     wait;
   end process;
