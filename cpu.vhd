@@ -34,7 +34,7 @@ begin
     variable b : boolean := true;
   begin
     if sim_end = '1' and b then
-      report str(id_i) & " ended, clock cycles is " & str(count);
+      inf(str(id_i) & " ended, clock cycles is " & str(count));
       b := false;
     elsif (rising_edge(clock)) then
       count := count + 1;

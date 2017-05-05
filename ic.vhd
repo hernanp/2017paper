@@ -1010,7 +1010,7 @@ begin
     if reset ='1' then
       flag :='0';
     elsif rising_edge(Clock)then
-      log_chg("gfx_write_p", state, prev_st);
+      --log_chg("gfx_write_p", state, prev_st);
       if state = 0 then
         lp :=0;
         gfx_write_ack1<='0';

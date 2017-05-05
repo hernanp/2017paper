@@ -1045,9 +1045,9 @@ begin
       --wait until cpu_res1 = r;
       --c := c + 1;
       wait until is_pwr_cmd(cpu_res1);
-      log("000" & r);
-      log("000" & cpu_res1);
-      report str(c) & " PWR_TEST OK";
+      dbg("000" & r);
+      dbg("000" & cpu_res1);
+      inf(str(c) & " PWR_TEST OK");
     end if;
     wait;
   end process;
