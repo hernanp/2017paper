@@ -236,7 +236,7 @@ architecture tb of top is
   signal cpu1_pwr_req, cpu1_pwr_res, cpu2_pwr_req, cpu2_pwr_res : MSG_T;
   
 begin
-  proc1_ent : entity work.proc(rtl) port map(
+  proc0_ent : entity work.proc(rtl) port map(
     reset     => reset,
     Clock     => Clock,
 

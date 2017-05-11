@@ -523,7 +523,8 @@ begin
       elsif state = 1 then -- 
         bsf_re <= '0';        
         if upd_ack = '1' then
-          cpu_res2 <= '1' & upd_res;
+          cpu_res2 <= '1' & upd_res;    -- TODO resp should include original
+                                        -- data when req was a pwr req
           state    := 2;
         end if;
       elsif state = 2 then -- 
@@ -726,7 +727,10 @@ begin
 		ROM_array(idx+1) <= "101" & bus_res(543 downto 526) & bus_res(63 downto 32);
 		ROM_array(idx) <= "101" & bus_res(543 downto 526) & bus_res(31 downto 0);
         upd_ack         <= '1';
-        upd_res         <= bus_res(551 downto 512)&bus_res(to_integer(unsigned(bus_res(515 downto 512)))*32+31 downto to_integer(unsigned(bus_res(515 downto 512)))*32 );
+        upd_res         <= bus_res(551 downto 512) &
+                           bus_res(to_integer(unsigned(bus_res(515 downto 512)))
+                                   * 32+31 downto
+                                   to_integer(unsigned(bus_res(515 downto 512))) * 32 );
         write_ack       <= '0';
       end if;
       

@@ -19,6 +19,7 @@ package util is
   function get_cmd(msg: MSG_T) return CMD_T;
 
   function is_pwr_cmd(msg : std_logic_vector) return boolean;
+  function is_rw_cmd(msg : std_logic_vector) return boolean;
   --* returns true if adr's msb is 1
   function is_mem_req(msg: std_logic_vector) return boolean;
 
@@ -27,6 +28,12 @@ package util is
                   variable st : inout natural;
                   constant next_st : in natural);
 
+  procedure delay(constant rnd : in natural;
+                  variable flg : inout boolean; 
+                  variable cnt: inout natural; 
+                  variable st : inout natural;
+                  constant next_st : in natural);
+  
   --* left pad
   function pad32(v : IPTAG_T) return ADR_T;
 
@@ -61,6 +68,7 @@ package util is
   function str(n : IP_T) return string;
   function nat(n : IP_T) return natural;
   function uint(v : std_logic_vector) return integer;
+  function sint(v : std_logic_vector) return integer;
   
   --procedure clr(signal vector : out std_logic_vector);
 end util;
@@ -109,7 +117,6 @@ package body util is
                   variable st : inout natural;
                   constant next_st : in natural) is
   begin
---    report "delay is " & integer'image(cnt);
     if cnt > 0 then
       cnt := cnt - 1;
     else
@@ -117,6 +124,37 @@ package body util is
     end if;
   end;
 
+  procedure delay(constant rnd : in natural;
+                  variable flg : inout boolean;
+                  variable cnt: inout natural; 
+                  variable st : inout natural;
+                  constant next_st : in natural) is
+  begin
+    if flg and st /= next_st then -- start
+      cnt := rnd;
+      flg := false;
+      delay(cnt, st, next_st);
+    elsif (flg = false) then -- count
+      delay(cnt, st, next_st);
+    end if;
+    
+    if st = next_st then -- if done, set flag back to true
+      flg := true;
+    end if;
+  end;
+
+        -- if dflg then
+        --   dcnt := 1;
+        --   dflg := false;
+        -- end if;
+        -- if dcnt > 0 then
+        --   dcnt := dcnt - 1;
+        -- else
+        --   dflg := true;
+        --   st := st_nxt;
+        -- end if;
+        --st := st_nxt;
+  
   function is_pwr_cmd(msg : std_logic_vector) return boolean is
   begin
     if (get_cmd(msg) = PWRUP_CMD) or
@@ -126,6 +164,15 @@ package body util is
     return false;
   end;
 
+  function is_rw_cmd(msg : std_logic_vector) return boolean is
+  begin
+    if (get_cmd(msg) = READ_CMD) or
+      (get_cmd(msg) = WRITE_CMD) then
+      return true;
+    end if;
+    return false;
+  end;
+  
   function is_mem_req(msg: std_logic_vector) return boolean is
   begin
     if msg(63 downto 63) = "1" then
@@ -253,6 +300,11 @@ package body util is
   function uint(v : std_logic_vector) return integer is
   begin
     return to_integer(unsigned(v));
+  end;
+
+  function sint(v : std_logic_vector) return integer is
+  begin
+    return to_integer(signed(v));
   end;
   
 end util;

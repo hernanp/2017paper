@@ -44,7 +44,7 @@ architecture rtl of proc is
   signal sim_end : std_logic := '0';
   
   signal rwt_req, rwt_res : MSG_T;
-  signal rwt_req_ack : std_logic;
+  signal rwt_req_ack, rwt_en : std_logic;
   signal rwt_done : std_logic := '0';
 
   signal pwrt_req, pwrt_res : MSG_T;
@@ -52,7 +52,7 @@ architecture rtl of proc is
   signal pwrt_done : std_logic := '0';
   
 begin
-
+  
   cpu_ent : entity work.cpu(rtl) port map(
    reset     => reset,
    Clock     => Clock,
@@ -99,9 +99,10 @@ begin
     );
 
   rwt_ent : entity work.cpu_test(rwt) port map(
-   reset     => reset,
-   Clock     => Clock,
-
+   rst     => reset,
+   clk     => Clock,
+   en      => is_tset(RW),
+   
    id_i      => id_i,
     
    cpu_res_i => rwt_res,
@@ -111,8 +112,9 @@ begin
    );
 
   pwrt_ent : entity work.cpu_test(pwrt) port map(
-   reset     => reset,
-   Clock     => Clock,
+   rst     => reset,
+   clk     => Clock,
+   en      => is_tset(PWR),
 
    id_i      => id_i,
     
@@ -137,8 +139,11 @@ begin
    din6  => ZERO_MSG,
    dout  => req
    );
-
+  
   cpu_req_o <= req;
   cpu_res_o <= cpu_res;
-    
+
+  rwt_res <= cpu_res when is_rw_cmd(cpu_res) else ZERO_MSG;
+  pwrt_res <= cpu_res when is_pwr_cmd(cpu_res) else ZERO_MSG;
+  
 end rtl;

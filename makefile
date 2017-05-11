@@ -18,7 +18,9 @@ all:
 	ghdl -a arbiter6_ack.vhd
 	ghdl -a arbiter61.vhd
 	ghdl -a arbiter7.vhd
-	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vh
+	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
+# random number generator
+	ghdl -a --ieee=synopsys rndgen.vhd
 # tests
 	ghdl -a --ieee=synopsys cpu_test.vhd
 # modules
@@ -86,5 +88,7 @@ block_docs:
 	sed -i.old '1s;^;#ic_block\n\n;' doc/block/ic.ascii
 	rm doc/block/*.old
 pcs_docs:
-	graph-easy --input=doc/pcs/cpu.ge --output=doc/pcs/cpu.ascii
+	python doc/docgen.py -i cpu.vhd -o doc/pcs/cpu_pcs.txt 
+	python doc/docgen.py -i cache.vhd -o doc/pcs/cache_pcs.txt 
+#	graph-easy --input=doc/pcs/cpu.ge --output=doc/pcs/cpu.ascii
 

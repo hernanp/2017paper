@@ -36,15 +36,17 @@ package test is
   constant TDLAY_FLG : boolean := true;
 
   --********* PWR TEST OPTS ******************
-  constant PWRT_CNT : natural := 1;
-  constant PWRT_SRC : IP_VECT_T := ip_enc(CPU0);
+  constant PWRT_CNT : natural := 10;
+  constant PWRT_SRC : IP_VECT_T := ip_enc(CPU0) or ip_enc(CPU1);
+  --constant PWRT_MAXDELAY : natural := 0;  --NOT IMPLEMENTED YET
   
   --********* RW TEST OPTS *******************
-  constant RWT_CNT : natural := 1;
-  constant RWT_SRC : IP_VECT_T := ip_enc(CPU0); -- or ip_enc(CPU1);
+  constant RWT_CNT : natural := 10;
+  constant RWT_SRC : IP_VECT_T := ip_enc(CPU0) or ip_enc(CPU1);
   --constant RWT_DST : IP_VECT_T := ip_enc(GFX); -- NOT IMPLEMENTED YET
+  --constant RWT_MAXDELAY : natural := 10;  -- NOT IMPLEMENTED YET
   constant RWT_WAITRES : boolean := true;
-  constant RWT_CMD : CMD_T := READ_CMD or
+  constant RWT_CMD : CMD_T := --READ_CMD or
                               WRITE_CMD;
 
   --********* UREQ TEST OPTS *****************
@@ -67,13 +69,14 @@ package test is
 
   --********************************************************************
   --* Warning: don't enable tests that are triggered on the same signals
-  constant RUN_TEST : TEST_T := TEST(RW);-- or
-                                --TEST(PWR) or
+  constant RUN_TEST : TEST_T := TEST(RW) or
+                                TEST(PWR);-- or
                                 --TEST(UREQ);
                                 --TEST(PETERSONS);
                                 --TEST(NONE);
   --********************************************************************
-  
+
+  -- TODO should rm this fun from here
   procedure rnd_dlay(variable rndmz_dlay : inout boolean; 
                      variable seed : inout natural;
                      variable cnt: inout natural; 
@@ -82,7 +85,8 @@ package test is
   
   --* Checks if test is enabled
   function is_tset(test: TEST_T) return boolean;
-
+  function is_tset(tc: TCASE_T) return std_logic;
+  
   --procedure check_inv(variable timer : inout time;
   --                    constant mark : in time;
   --                    constant cond : in boolean;
@@ -112,11 +116,6 @@ package body test is
       --report "done";
       rndmz_dlay := true;
     end if;
-
-    --report integer'image(cnt) & "," &
-    --  integer'image(st) & "," &
-    --  integer'image(next_st) & "," &
-    --  boolean'image(rndmz_dlay);
   end;
 
   -- A generalized version of pt_delay
@@ -163,6 +162,14 @@ package body test is
     return false;
   end function;
 
+  function is_tset(tc: TCASE_T) return std_logic is
+  begin
+    if (RUN_TEST and TEST(tc)) /= x"00" then
+      return '1';
+    end if;
+    return '0';
+  end function;
+  
   --procedure check_inv(variable timer : inout time;
   --                    constant mark : in time;
   --                    constant cond : in boolean;
