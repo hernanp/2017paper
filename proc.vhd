@@ -29,10 +29,11 @@ entity proc is
 
     bus_req_o    : out MSG_T :=
       (others => '0'); -- a down req
-
+    
     -- for observation only:
+    done_o       : out std_logic;
     cpu_req_o    : out MSG_T;
-    cpu_res_o    : out MSG_T    
+    cpu_res_o    : out MSG_T
     );
 
 end proc;
@@ -145,5 +146,6 @@ begin
 
   rwt_res <= cpu_res when is_rw_cmd(cpu_res) else ZERO_MSG;
   pwrt_res <= cpu_res when is_pwr_cmd(cpu_res) else ZERO_MSG;
-  
+
+  done_o <= rwt_done and pwrt_done;
 end rtl;

@@ -1,19 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Sat Apr 22 16:52:40 2017
+[*] Thu May 11 17:39:26 2017
 [*]
-[dumpfile] "/home/hpalombo/oven/soc/top.vcd"
-[dumpfile_mtime] "Sat Apr 22 16:50:57 2017"
-[dumpfile_size] 1079658
-[savefile] "/home/hpalombo/oven/soc/sim/rw.gtkw"
-[timestart] 0
-[size] 1855 1056
-[pos] 1144 -835
-*-16.721180 508600 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[dumpfile] "/home/hernan/oven/soc/top.vcd"
+[dumpfile_mtime] "Thu May 11 17:38:14 2017"
+[dumpfile_size] 689658
+[savefile] "/home/hernan/oven/soc/sim/rw.gtkw"
+[timestart] 230000
+[size] 1219 776
+[pos] -1 -1
+*-15.721180 276900 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] proc0_ent.
+[treeopen] proc0_ent.rwt_ent.
 [sst_width] 225
 [signals_width] 435
 [sst_expanded] 1
-[sst_vpaned_height] 688
+[sst_vpaned_height] 519
 @28
 clock
 @22
@@ -23,10 +25,7 @@ clock
 +{(4) bus_req1[72:0]} bus_req1[72:0]
 @28
 +{(5) rvalid} rvalid
-@22
 [color] 7
-mem.rdata[31:0]
-@28
 +{(6) rdvalid} rdvalid
 @22
 +{(7) bus_res1[552:0]} bus_res1[552:0]
@@ -35,14 +34,12 @@ mem.rdata[31:0]
 -(8) is high at 508600 fs
 -Mem signals
 @28
-mem.rvalid_in
+reset
 @22
-mem.raddr[31:0]
-mem.rlen[9:0]
-mem.rsize[9:0]
+proc0_ent.pwrt_ent.r[31:0]
 @28
-mem.rvalid_in
-@29
-mem.rdready
++{rwt_done} proc0_ent.rwt_ent.done_o
++{pwrt_done} proc0_ent.pwrt_ent.done_o
+proc0_ent.done_o
 [pattern_trace] 1
 [pattern_trace] 0
