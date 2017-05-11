@@ -44,7 +44,7 @@ package test is
   constant RWT_SRC : IP_VECT_T := ip_enc(CPU0); -- or ip_enc(CPU1);
   --constant RWT_DST : IP_VECT_T := ip_enc(GFX); -- NOT IMPLEMENTED YET
   constant RWT_WAITRES : boolean := true;
-  constant RWT_CMD : CMD_T := READ_CMD; or
+  constant RWT_CMD : CMD_T := READ_CMD or
                               WRITE_CMD;
 
   --********* UREQ TEST OPTS *****************
