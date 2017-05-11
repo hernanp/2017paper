@@ -69,6 +69,8 @@ begin
     Clock       => Clock,
     reset       => reset,
 
+    id_i        => id_i,
+    
     cpu_req_i  => req,
     cpu_res_o => cpu_res,
 

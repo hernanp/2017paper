@@ -49,7 +49,7 @@ package util is
                     variable prev_st : inout integer);
 
   --+ info funs: only ouptut if logging level is INFO
-  procedure inf(constant s : in string);
+  procedure info(constant s : in string);
   
   --+ debugging funs: only output if logging level is DEBUG
   procedure dbg(constant s : in string);
@@ -221,7 +221,7 @@ package body util is
     end if;
   end;
 
-  procedure inf(constant s : in string) is
+  procedure info(constant s : in string) is
   begin
     if LOG_LEVEL_T'pos(LOG_LEVEL) >= LOG_LEVEL_T'pos(INFO) then
       report s;

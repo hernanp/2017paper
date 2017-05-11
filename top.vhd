@@ -234,6 +234,8 @@ architecture tb of top is
   signal rres_audio    : std_logic_vector(1 downto 0);
 
   signal cpu1_pwr_req, cpu1_pwr_res, cpu2_pwr_req, cpu2_pwr_res : MSG_T;
+
+  signal proc0_done, proc1_done, usb_done, uart_done, gfx_done, audio_done : std_logic;
   
 begin
   proc0_ent : entity work.proc(rtl) port map(
@@ -260,56 +262,40 @@ begin
     wb_req_o      => wb_req1,
 
     -- for observation:
+    done_o => proc0_done,
     cpu_req_o  => cpu_req1,
     cpu_res_o => cpu_res1
 
     );
 
-
-  cpu2_ent : entity work.cpu(rtl) port map(
+  proc1_ent : entity work.proc(rtl) port map(
     reset     => reset,
     Clock     => Clock,
 
     id_i      => CPU1,
-    
-    cpu_res_i => cpu_res2,
-    cpu_req_o => cpu_req2,
-    full_c_i  => full_c2_u
-   --done    => done2
-    );
-  
-  cache2 : entity work.l1_cache(rtl) port map(
-    Clock       => Clock,
-    reset       => reset,
 
-    cpu_req_i  => cpu_req2,
-    cpu_res_o => cpu_res2,
+    snp_req_i  => snp_req2, -- snoop req from cache 2
+    snp_hit_o => snp_hit2,
+    snp_res_o => snp_res2,
 
-    snp_req_o => snp_req1,
-    snp_hit_i  => snp_hit1,
-    snp_res_i  => snp_res1,
-    
-    snp_req_i   => snp_req2,
-    snp_hit_o  => snp_hit2,
-    snp_res_o  => snp_res2,
+    -- TODO not implemented yet:
+    up_snp_req_i  => zero75, -- upstream snoop req 
+    --up_snp_hit_o => ,
+    --up_snp_res_o => ,
 
-    bus_req_o  => bus_req2,
-    bus_res_i   => bus_res2,
+    snp_req_o => snp_req1, -- fwd snp req to other cache
+    snp_hit_i => snp_hit1,
+    snp_res_i => snp_res1,
 
-    up_snp_req_i   => zero75,   -- TODO not implemented yet
-    up_snp_res_o   => zero75,
-    --up_snp_hit_out => zero,
+    bus_req_o  => bus_req2, -- mem or pwr req to ic
+    bus_res_i   => bus_res2, -- mem or pwr resp from ic    
 
-    wb_req_o       => wb_req2,
+    wb_req_o      => wb_req2,
 
-    -- full flags of fifo queues
-    crf_full_o     => full_c2_u, -- o, cpu req fifo full
-    bsf_full_o     => full_brs2, -- o - bus resp fifo full
-    srf_full_o     => full_srs1,
-    --full_srq    => zero,
-    full_crq_i     => full_crq2,
-    full_wb_i      => full_wb2,
-    full_srs_i     => full_srs2
+    -- for observation:
+    done_o => proc1_done,
+    cpu_req_o  => cpu_req2,
+    cpu_res_o => cpu_res2
     );
 
   power : entity work.pwr(rtl) port map(
@@ -549,7 +535,9 @@ begin
 
     -- power
     pwr_req_i    => pwr_gfx_req,
-    pwr_res_o    => pwr_gfx_res
+    pwr_res_o    => pwr_gfx_res,
+
+    done_o       => gfx_done
     );
 
   audio_entity : entity work.peripheral(rtl) port map(
@@ -596,7 +584,9 @@ begin
 
     -- power
     pwr_req_i    => pwr_audio_req,
-    pwr_res_o    => pwr_audio_res
+    pwr_res_o    => pwr_audio_res,
+
+    done_o       => audio_done
     );
 
   usb_entity : entity work.peripheral(rtl) port map(
@@ -643,7 +633,9 @@ begin
 
     -- power
     pwr_req_i    => pwr_usb_req,
-    pwr_res_o    => pwr_usb_res
+    pwr_res_o    => pwr_usb_res,
+
+    done_o       => usb_done
     );
 
   uart_entity : entity work.peripheral(rtl) port map(
@@ -690,7 +682,9 @@ begin
 
     -- power
     pwr_req_i    => pwr_uart_req,
-    pwr_res_o    => pwr_uart_res
+    pwr_res_o    => pwr_uart_res,
+
+    done_o       => uart_done
     );
 
   mem : entity work.Memory(rtl) port map(
@@ -731,43 +725,8 @@ begin
   -- -- Clock generation, starts at 0
   tb_clk <= not tb_clk after tb_period/2 when tb_sim_ended /= '1' else '0';
   Clock <= tb_clk;
-  
-  ----log_up_snp : process(tb_clk)
-  ----  variable l : line;
-  ----  constant SEP : String(1 to 1) := ",";
-  ----  file log_file : TEXT open write_mode is "up_snp.log";
-  ----begin
-  ----  if rising_edge(tb_clk) then
-  ----    write(l, gfx_upreq);
-  ----    write(l, SEP);
-  ----    write(l, up_snp_req);
-  ----    write(l, SEP);
-  ----    write(l, snp_req2);
-  ----    write(l, SEP);
-  ----    write(l, snp_res2);
-  ----    write(l, SEP);
-  ----    write(l, up_snp_res);
-  ----    write(l, SEP);
-  ----    write(l, rvalid);
-  ----    write(l, SEP);
-  ----    write(l, rres);
-  ----    writeline(log_file, l); 
-  ----  end if;
-  ----end process;
-
-  ----rand_template: process(tb_clk)
-  ----  variable b : boolean := true;
-  ----  variable max : positive := 255;
-  ----begin
-  ----  if b then
-  ----    report integer'image(time'pos(now));
-  ----    report integer'image(to_int(max'instance_name));
-  ----    report integer'image(rand_int(max,to_int(max'instance_name)));
-  ----    b := false;
-  ----  end if;
-  ----end process;
-  
-  logger : process(tb_clk)
+    
+  logger_p : process(tb_clk)
     file trace_file : TEXT open write_mode is "trace1.txt";
     variable l : line;
     constant SEP : String(1 to 1) := ",";
@@ -971,7 +930,7 @@ begin
     end if;
   end process;
 
-  pwr_test_mon : process
+  pwrt_mon_p : process
     variable c : natural := 0;
     variable r : MSG_T;
   begin
@@ -993,23 +952,11 @@ begin
       wait until is_pwr_cmd(cpu_res1);
       dbg("000" & r);
       dbg("000" & cpu_res1);
-      inf(str(c) & " PWR_TEST OK");
+      info(str(c) & " PWR_TEST OK");
     end if;
     wait;
   end process;
-
-  --gfx_r_mon : process
-  --  variable m, t : time := 0 ps;
-  --  variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
-  --  variable zeros73 : MSG_T := (others => '0');
-  --begin
-  --  if is_tset(GFX_R_TEST) then
-  --    wait until gfx_upres /= zeros73;
-  --    report "GFX_R_TEST OK";
-  --  end if;
-  --  wait;
-  --end process;
-  
+ 
   --cpu2_w_mon : process
   --  variable m, t : time := 0 ps;
   --  variable zeros553 : std_logic_vector(552 downto 0) := (others => '0');
@@ -1083,7 +1030,9 @@ begin
     reset <= '1';
     wait for 15 ps;
     reset <= '0';
-    
-    wait;
+    wait until tb_sim_ended = '1';
+    report "SIM END";
   end process;
+
+  tb_sim_ended <= proc0_done and proc1_done and usb_done and uart_done and gfx_done and audio_done;
 end tb;

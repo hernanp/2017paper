@@ -48,7 +48,10 @@ entity peripheral is
        -- up req
        upreq_o       : out MSG_T;
        upres_i       : in  MSG_T;
-       upreq_full_i  : in  std_logic
+       upreq_full_i  : in  std_logic;
+
+       -- for debugging only:
+       done_o        : out std_logic
        );
 end peripheral;
 
@@ -75,7 +78,7 @@ begin
   --    dout  => upreq_o
   --    );
 
-  write_req_handler : process(Clock, reset)
+  write_req_p : process(Clock, reset)
     variable address : integer;
     variable len     : integer;
     variable size    : std_logic_vector(9 downto 0);
@@ -125,7 +128,7 @@ begin
     end if;
   end process;
 --
-  read_req_handler : process(Clock, reset)
+  read_req_p : process(Clock, reset)
     variable address : integer;
     variable len     : integer;
     variable size    : std_logic_vector(9 downto 0);
@@ -175,7 +178,7 @@ begin
     end if;
   end process;
 
-  pwr_req_handler : process(Clock)
+  pwr_req_p : process(Clock)
     variable pwr_req : MSG_T;
   begin
     if reset = '1' then
@@ -206,7 +209,7 @@ begin
     end if;
   end process;
   
-  t1 : process(clock, reset) -- up read test
+  ureqt_p : process(clock, reset) -- up read test
     variable dc, tc, st_nxt : natural := 0;
     variable s : natural := nat(id_i);
     variable st : natural := 0;
@@ -296,4 +299,6 @@ begin
         end if;
       end if;
   end process;  
+
+  done_o <= (not is_tset(UREQ)) or sim_end;
 end rtl;

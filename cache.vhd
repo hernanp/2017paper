@@ -9,6 +9,9 @@ entity l1_cache is
   port(
     Clock                : in  std_logic;
     reset                : in  std_logic;
+
+    id_i                 : in IP_T;
+
     cpu_req_i              : in  MSG_T;
     snp_req_i              : in  MSG_T;
     bus_res_i              : in  BMSG_T;
@@ -299,6 +302,7 @@ begin
     -- TODO should they be signals instead of variables?
     variable nilreq : MSG_T := (others => '0');
     variable st  : integer := 0;
+    variable prev_st : integer := -1;
     variable idx :integer :=0;
     variable tmp: std_logic_vector(72 downto 0);
   begin
@@ -311,6 +315,7 @@ begin
       snp_c_req1 <=(others =>'0');
     --tmp_write_req <= nilreq;
     elsif rising_edge(Clock) then
+      --dbg_chg("cpu_req_p(" & str(id_i) & ")", st, prev_st);
       if st = 0 then -- wait_fifo
         bus_req_o <= nilreq;
 

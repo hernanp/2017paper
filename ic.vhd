@@ -216,7 +216,7 @@ architecture rtl of ic is
   signal we2, we6, we7, re7, re2, re6 : std_logic := '0';
   signal emp2, emp6, emp7, ful2       : std_logic := '0';
 
-  signal bus_res_mem_to_c0, bus_res_gfx_to_c0, bus_res2_1, bus_res2_2 : BMSG_T;
+  signal bus_res_mem_to_c0, bus_res_gfx_to_c0, bus_res_mem_to_c1, bus_res2_2 : BMSG_T;
   signal mem_ack1, mem_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2 : std_logic;
   signal mem_ack, mem_ack3, mem_ack4, mem_ack5, mem_ack6                : std_logic;
 
@@ -611,14 +611,14 @@ begin
       rdready <= '0';
 		state :=0;
     elsif rising_edge(Clock) then
-      --dbg_chg("tomem_chan_p", state, prev_st);
+      dbg_chg("tomem_chan_p", state, prev_st);
       if state = 0 then
 			mem_ack <= '1';
 			state :=20;
       elsif state = 20 then
 			mem_ack <='0';
         bus_res_mem_to_c0   <= nullreq;
-        bus_res2_1   <= nullreq;
+        bus_res_mem_to_c1   <= nullreq;
         gfx_upres1   <= (others => '0');
         uart_upres1  <= (others => '0');
         audio_upres1 <= (others => '0');
@@ -689,7 +689,7 @@ begin
           bus_res_mem_to_c0 <= tep_mem(72 downto 32) & tdata;
           state      := 4;
         elsif dst_eq(tep_mem, CPU1_TAG) then
-          bus_res2_1 <= tep_mem(72 downto 32) & tdata;
+          bus_res_mem_to_c1 <= tep_mem(72 downto 32) & tdata;
           state      := 4;
         elsif dst_eq(tep_mem, GFX_TAG) then
           gfx_upres1 <= tep_mem(72 downto 32) & sdata;
@@ -707,7 +707,7 @@ begin
 
       elsif state = 4 then
         if brs2_ack1 = '1' then
-          bus_res2_1 <= nullreq;
+          bus_res_mem_to_c1 <= nullreq;
           state      := 0;
         elsif brs1_ack1 = '1' then
           bus_res_mem_to_c0 <= nullreq;
@@ -919,13 +919,22 @@ begin
     variable flag:std_logic;
     variable tdata :std_logic_vector(511 downto 0);
     variable lp:integer :=0;
+    constant MEMOP_TIMEOUT : integer := 10;
+    variable timeout_cnt : integer := 0;
   ---- if flag is 1, then return mem write 2
   begin
     if reset ='1' then
       flag :='0';
     elsif rising_edge(Clock)then
       --dbg_chg("mem_write_p", state, prev_st);
-      if state = 0 then
+      if state = -1 then                -- TIMEOUT_ST
+        info("mem_write_p timeout");    -- TODO THIS IS A HACK
+        mem_write_ack1 <= '1';
+        -- mem_write_ack2 <= '1';
+        -- mem_write_ack3 <= '1';
+        timeout_cnt := 0;
+        state := 0;
+      elsif state = 0 then
         lp :=0;
         mem_write_ack1<='0';
         mem_write_ack2<='0';
@@ -950,6 +959,11 @@ begin
           wsize  <= "00001" & "00000";
           --wdata_audio := tep_mem(31 downto 0);
           state      := 2;
+        else
+          timeout_cnt := timeout_cnt + 1;
+        end if;
+        if timeout_cnt = MEMOP_TIMEOUT then
+          state := -1;
         end if;
       elsif state = 2 then
     		wvalid <= '0'; -- MERGE durw: [*/]
@@ -971,6 +985,11 @@ begin
           ---this is a successful write back, yayyy
           end if;
           wrready <= '0';
+        else
+          timeout_cnt := timeout_cnt + 1;
+        end if;
+        if timeout_cnt = MEMOP_TIMEOUT then
+          state := -1;
         end if;
       elsif state =4 then
         if wready = '1' then -- MERGE durw: [1/0]
@@ -1724,7 +1743,7 @@ begin
     port map(
       clock => Clock,
       reset => reset,
-      din1  => bus_res2_1, -- tomem chan
+      din1  => bus_res_mem_to_c1, -- tomem chan
       ack1  => brs2_ack1,
       din2  => bus_res2_2, -- togfx chan
       ack2  => brs2_ack2,
