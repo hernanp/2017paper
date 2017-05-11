@@ -611,7 +611,7 @@ begin
       rdready <= '0';
 		state :=0;
     elsif rising_edge(Clock) then
-      dbg_chg("tomem_chan_p", state, prev_st);
+      --dbg_chg("tomem_chan_p", state, prev_st);
       if state = 0 then
 			mem_ack <= '1';
 			state :=20;
@@ -2416,7 +2416,7 @@ begin
     end if;
   end process;
 
-  cache_req1_p : process(reset, Clock)
+  cache1_req_p : process(reset, Clock)
     variable nilreq  : MSG_T  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
@@ -2427,7 +2427,7 @@ begin
     if reset = '1' then
     --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
-      dbg_chg("cache_req1_p",state, prev_st);
+      --dbg_chg("cache_req1_p",state, prev_st);
       if state = 0 then
         if b and cache1_req_i /= nilreq then
           --report "got pwr req!";
@@ -2510,7 +2510,7 @@ begin
   end process;
 
   ----deal with cache request
-  cache_req2_p : process(reset, Clock)
+  cache2_req_p : process(reset, Clock)
     variable nilreq  : MSG_T  := (others => '0');
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;

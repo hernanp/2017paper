@@ -18,7 +18,9 @@ all:
 	ghdl -a arbiter6_ack.vhd
 	ghdl -a arbiter61.vhd
 	ghdl -a arbiter7.vhd
-	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
+	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vh
+# tests
+	ghdl -a --ieee=synopsys cpu_test.vhd
 # modules
 	ghdl -a --ieee=synopsys pwr.vhd # uses fifo
 	ghdl -a --ieee=synopsys mem.vhd
