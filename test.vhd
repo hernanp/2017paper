@@ -41,7 +41,11 @@ package test is
   
   --********* RW TEST OPTS *******************
   constant RWT_CNT : natural := 1;
-  constant RWT_SRC : IP_VECT_T := ip_enc(CPU0);
+  constant RWT_SRC : IP_VECT_T := ip_enc(CPU0); -- or ip_enc(CPU1);
+  --constant RWT_DST : IP_VECT_T := ip_enc(GFX); -- NOT IMPLEMENTED YET
+  constant RWT_WAITRES : boolean := true;
+  constant RWT_CMD : CMD_T := READ_CMD; or
+                              WRITE_CMD;
 
   --********* UREQ TEST OPTS *****************
   constant UREQT_CNT : natural := 1;
@@ -63,9 +67,9 @@ package test is
 
   --********************************************************************
   --* Warning: don't enable tests that are triggered on the same signals
-  constant RUN_TEST : TEST_T := TEST(RW) or
+  constant RUN_TEST : TEST_T := TEST(RW);-- or
                                 --TEST(PWR) or
-                                TEST(UREQ);
+                                --TEST(UREQ);
                                 --TEST(PETERSONS);
                                 --TEST(NONE);
   --********************************************************************

@@ -14,24 +14,18 @@ all:
 	ghdl -a arbiter.vhd
 	ghdl -a arbiter2.vhd
 	ghdl -a arbiter2_ack.vhd
-#	ghdl -a arbiter3.vhd # not used
-	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
-# modules
-#	ghdl -a gfx.vhd
-	ghdl -a --ieee=synopsys pwr.vhd # uses fifo
-	ghdl -a --ieee=synopsys mem.vhd
-	ghdl -a -fexplicit --ieee=synopsys cache.vhd # uses fifo, arbiter2
-	ghdl -a --ieee=synopsys cpu.vhd
-#	ghdl -a pwr.vhd
 	ghdl -a arbiter6.vhd
 	ghdl -a arbiter6_ack.vhd
 	ghdl -a arbiter61.vhd
 	ghdl -a arbiter7.vhd
+	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
+# modules
+	ghdl -a --ieee=synopsys pwr.vhd # uses fifo
+	ghdl -a --ieee=synopsys mem.vhd
+	ghdl -a -fexplicit --ieee=synopsys cache.vhd # uses fifo, arbiter2
+	ghdl -a --ieee=synopsys cpu.vhd
+	ghdl -a --ieee=synopsys proc.vhd
 	ghdl -a --ieee=synopsys ic.vhd # uses fifo, arbiter2,6,61,7
-#	ghdl -a --ieee=synopsys gfx.vhd
-#	ghdl -a audio.vhd
-#	ghdl -a usb.vhd
-#	ghdl -a uart.vhd
 	ghdl -a --ieee=synopsys peripheral.vhd # generic peripheral
 # simulation
 	ghdl -a --ieee=synopsys top.vhd

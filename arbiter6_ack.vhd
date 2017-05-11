@@ -11,25 +11,25 @@ entity arbiter6_ack is
             reset: in std_logic;
             
             din1: 	in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
-            ack1: 	out STD_LOGIC;
+            ack1_o: out STD_LOGIC;
             
             din2:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
-            ack2:	out std_logic;
+            ack2_o:	out std_logic;
             
             din3:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
-            ack3:	out std_logic;
+            ack3_o:	out std_logic;
             
             din4:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
-            ack4:	out std_logic;
+            ack4_o:	out std_logic;
             
             din5:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
-            ack5:	out std_logic;
+            ack5_o:	out std_logic;
             
             din6:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
-            ack6:	out std_logic;
+            ack6_o:	out std_logic;
             
             dout:	out std_logic_vector(DATA_WIDTH - 1 downto 0);
-            ack: 	in std_logic
+            ack_i: 	in std_logic
      );
 end arbiter6_ack;
 
@@ -95,47 +95,47 @@ begin
 	            end if;
 	    elsif state =1 then
 			dout <= nilreq;
-			if ack ='1' then
+			if ack_i ='1' then
 	    		s_ack1 <= '1';
 				state :=0;
 			end if;
 	    elsif state =2 then
 		 dout <= nilreq;
-	    		if ack ='1' then
+	    		if ack_i ='1' then
 	    		s_ack2 <= '1';
 				state :=0;
 			end if;								
 	    elsif state =3 then
 		 dout <= nilreq;
-	    		if ack ='1' then
+	    		if ack_i ='1' then
 	    		s_ack3 <= '1';
 				state :=0;
 			end if;
 	    elsif state =4 then
 		 dout <= nilreq;
-	    	if ack ='1' then
+	    	if ack_i ='1' then
 	    		s_ack4 <= '1';
 				state :=0;
 			end if;
 	    elsif state =5 then
 		 dout <= nilreq;
-	    	if ack ='1' then
+	    	if ack_i ='1' then
 	    		s_ack5 <= '1';
 				state :=0;
 			end if;
 	    elsif state =6 then
 		 dout <= nilreq;
-	    	if ack ='1' then
+	    	if ack_i ='1' then
 	    		s_ack6 <= '1';
 				state :=0;
 			end if;
 	    end if;
         end if;
-        ack1 <= s_ack1;
-        ack2 <= s_ack2;
-        ack3 <= s_ack3;
-        ack4 <= s_ack4;
-        ack5 <= s_ack5;
-        ack6 <= s_ack6;
+        ack1_o <= s_ack1;
+        ack2_o <= s_ack2;
+        ack3_o <= s_ack3;
+        ack4_o <= s_ack4;
+        ack5_o <= s_ack5;
+        ack6_o <= s_ack6;
     end process;
 end architecture rtl;   

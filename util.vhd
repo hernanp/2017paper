@@ -34,16 +34,12 @@ package util is
 
   --+ Poor man's logger
   type LOG_LEVEL_T is (OFF, ERROR, INFO, DEBUG);
-  constant LOG_LEVEL : LOG_LEVEL_T := INFO;
+  constant LOG_LEVEL : LOG_LEVEL_T := DEBUG;
   procedure log(constant s : in string; constant l : in LOG_LEVEL_T);
   procedure log(constant v : in std_logic_vector);
   procedure log_chg(constant s : in string;
                     constant st : in integer;
                     variable prev_st : inout integer);
-  --* log request
-  procedure req(signal sig : out std_logic_vector;
-                constant v : in std_logic_vector;
-                constant str : in string);
 
   --+ info funs: only ouptut if logging level is INFO
   procedure inf(constant s : in string);
@@ -54,11 +50,17 @@ package util is
   procedure dbg_chg(constant s : in string;
                     constant st : in integer;
                     variable prev_st : inout integer);
-    
+
+  --* log request
+  procedure req(signal sig : out std_logic_vector;
+                constant v : in std_logic_vector;
+                constant str : in string);
+  
   --+ type casting
   function str(n : integer) return string;
   function str(n : IP_T) return string;
   function nat(n : IP_T) return natural;
+  function uint(v : std_logic_vector) return integer;
   
   --procedure clr(signal vector : out std_logic_vector);
 end util;
@@ -201,7 +203,7 @@ package body util is
   begin
     if st /= prev_st then
       if LOG_LEVEL_T'pos(LOG_LEVEL) >= LOG_LEVEL_T'pos(DEBUG) then
-        log(s & " " & str(st), INFO);
+        log(s & " " & str(st), DEBUG);
       end if;
       prev_st := st;
     end if;
@@ -232,7 +234,7 @@ package body util is
     log(cmd & msg & str, DEBUG);
     sig <= v;
   end;
-
+  
   function str(n : integer) return string is
   begin
     return integer'image(n);
@@ -246,6 +248,11 @@ package body util is
   function nat(n : IP_T) return natural is
   begin
     return IP_T'pos(n);
+  end;
+
+  function uint(v : std_logic_vector) return integer is
+  begin
+    return to_integer(unsigned(v));
   end;
   
 end util;

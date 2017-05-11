@@ -236,74 +236,11 @@ architecture tb of top is
   signal cpu1_pwr_req, cpu1_pwr_res, cpu2_pwr_req, cpu2_pwr_res : MSG_T;
   
 begin
-  cpu1_entity : entity work.cpu(rtl) port map(
+  proc1_ent : entity work.proc(rtl) port map(
     reset     => reset,
     Clock     => Clock,
 
     id_i      => CPU0,
-    
-    cpu_res_i => cpu_res1,
-    cpu_req_o => cpu_req1,
-    full_c_i  => full_c1_u
-   --done    => done1
-    );
-
-  cpu2_entity : entity work.cpu(rtl) port map(
-    reset     => reset,
-    Clock     => Clock,
-
-    id_i      => CPU1,
-    
-    cpu_res_i => cpu_res2,
-    cpu_req_o => cpu_req2,
-    full_c_i  => full_c2_u
-   --done    => done2
-    );
-
-  ----proc1 : entity work.proc(rtl) port map(
-  ----  reset => reset,
-  ----  clock => clock,
-  ----  -- cpu ports
-  ----  proc_id_i => 1,
-  ----  cpu_req_dbg_o => cpu_req1,
-  ----  -- cache ports
-  ----  cpu_res_o => cpu_res1,
-
-  ----  snp_req_i  => snp_req1, -- snoop req from cache 2
-  ----  snp_hit_o => snp_hit1,
-  ----  snp_res_o => snp_res1,
-
-  ----  up_snp_req_i  => up_snp_req, -- upstream snoop req 
-  ----  up_snp_hit_o => up_snp_hit,
-  ----  up_snp_res_o => up_snp_res,
-
-  ----  snp_req_o => snp_req2, -- fwd snp req to other cache
-  ----  snp_hit_i => snp_hit2,
-  ----  snp_res_i => snp_res2,
-
-  ----  ----------------------------------------------------------
-  ----  dn_snp_req_o  => bus_req1, -- snp req to ic
-  ----  dn_snp_res_i   => bus_res1, -- snp resp from ic    
-
-  ----  wb_req_o      => wb_req1, -- TODO what is it doing?
-  ----                          -- is it supposed be implemented outside cache?
-    
-  ----  bsf_full_o    => full_brs1, -- bus resp fifo full
-  ----  srf_full_o    => full_srs2, 
-  ----  crf_full_o    => full_c1_u,
-	 
-  ----  full_crq_i    => full_crq1,
-  ----  full_wb_i     => full_wb1,  -- TODO are these outputs not implemented yet?
-  ----  full_srs_i    => full_srs1
-  ----  );
-  
-  cache1 : entity work.l1_cache(rtl) port map(
-    Clock       => Clock,
-    reset       => reset,
-
-    cpu_req_i  => cpu_req1,
-    cpu_res_o => cpu_res1,
-    -- o - cpu req fifo full
 
     snp_req_i  => snp_req1, -- snoop req from cache 2
     snp_hit_o => snp_hit1,
@@ -320,18 +257,27 @@ begin
     bus_req_o  => bus_req1, -- mem or pwr req to ic
     bus_res_i   => bus_res1, -- mem or pwr resp from ic    
 
-    wb_req_o      => wb_req1, -- TODO what is it doing?
-                            -- is it supposed be implemented outside cache?
-    
-    bsf_full_o    => full_brs1, -- bus resp fifo full
-    srf_full_o    => full_srs2, 
-    crf_full_o    => full_c1_u,
-	 
-    full_crq_i    => full_crq1,
-    full_wb_i     => full_wb1,  -- TODO are these outputs not implemented yet?
-    full_srs_i    => full_srs1
+    wb_req_o      => wb_req1,
+
+    -- for observation:
+    cpu_req_o  => cpu_req1,
+    cpu_res_o => cpu_res1
+
     );
 
+
+  cpu2_ent : entity work.cpu(rtl) port map(
+    reset     => reset,
+    Clock     => Clock,
+
+    id_i      => CPU1,
+    
+    cpu_res_i => cpu_res2,
+    cpu_req_o => cpu_req2,
+    full_c_i  => full_c2_u
+   --done    => done2
+    );
+  
   cache2 : entity work.l1_cache(rtl) port map(
     Clock       => Clock,
     reset       => reset,
@@ -420,7 +366,7 @@ begin
     wdvalid          => wdvalid,
     wdataready       => wdataready,
     wrready          => wrready,
-    wrvalid_o      => wrvalid,
+    wrvalid_i        => wrvalid, -- write resp
     wrsp             => wrsp,
     -- read
     raddr            => raddr,
