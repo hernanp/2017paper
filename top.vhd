@@ -249,7 +249,7 @@ begin
     snp_res_o => snp_res1,
 
     up_snp_req_i  => up_snp_req, -- upstream snoop req 
-    up_snp_hit_o => up_snp_hit,
+    bus_res_hit_o => up_snp_hit,
     up_snp_res_o => up_snp_res,
 
     snp_req_o => snp_req2, -- fwd snp req to other cache

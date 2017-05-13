@@ -8,7 +8,7 @@ use work.rand.all;
 
 entity proc is
   port(
-    Clock        : in  std_logic;
+    clock        : in  std_logic;
     reset        : in  std_logic;
 
     id_i         : in IP_T;
@@ -21,10 +21,8 @@ entity proc is
     --goes to cache controller ask for data
     snp_req_o    : out MSG_T;
     snp_res_i    : in  MSG_T;
-    snp_hit_i    : in  std_logic;
     up_snp_req_i : in  WMSG_T; --TODO rename to ureq
     up_snp_res_o : out WMSG_T;
-    up_snp_hit_o : out std_logic;
     wb_req_o     : out BMSG_T;
 
     bus_req_o    : out MSG_T :=
@@ -33,7 +31,21 @@ entity proc is
     -- for observation only:
     done_o       : out std_logic;
     cpu_req_o    : out MSG_T;
-    cpu_res_o    : out MSG_T
+    cpu_res_o    : out MSG_T;
+
+    -- new --------------------------
+    --bus_res_i        : in BMESSAGE_T;
+    --bus_req_o        : out MESSAGE_T;
+    bus_res_hit_o    : out std_logic;
+
+    --bus_req_i        : in MESSAGE_T;
+    --bus_res_o        : out MESSAGE_T;
+    
+    --snp_res_i        : in MESSAGE_T;
+    --snp_req_o        : out MESSAGE_T;
+
+    snp_hit_i        : in  std_logic
+    
     );
 
 end proc;
@@ -51,22 +63,30 @@ architecture rtl of proc is
   signal pwrt_req, pwrt_res : MSG_T;
   signal pwrt_req_ack : std_logic;
   signal pwrt_done : std_logic := '0';
-  
+    
 begin
   
-  cpu_ent : entity work.cpu(rtl) port map(
+  cpu_e : entity work.cpu(rtl) port map(
    reset     => reset,
-   Clock     => Clock,
+   clock     => clock,
 
    id_i      => id_i,
     
    cpu_res_i => cpu_res,
    cpu_req_o => cpu_req,
-   full_c_i  => '0' --NOT IMPLEMENTED
+   full_c_i  => '0', --NOT IMPLEMENTED
+
+   res_i     => (val => '0',
+                 cmd => READ_CMD,
+                 tag => x"60",
+                 id  => x"FF",
+                 adr => x"00000000",
+                 dat => (others => '0'))
+                 
    );
 
-  cache_ent : entity work.l1_cache(rtl) port map(
-    Clock       => Clock,
+  cache_e : entity work.l1_cache(rtl) port map(
+    clock       => clock,
     reset       => reset,
 
     id_i        => id_i,
@@ -79,7 +99,7 @@ begin
     snp_res_o => snp_res_o,
 
     up_snp_req_i  => up_snp_req_i, -- upstream snoop req 
-    up_snp_hit_o => up_snp_hit_o,
+    up_snp_hit_o => bus_res_hit_o,
     up_snp_res_o => up_snp_res_o,
 
     snp_req_o => snp_req_o, -- fwd snp req to other cache
@@ -101,7 +121,7 @@ begin
     full_srs_i    => '0'
     );
 
-  rwt_ent : entity work.cpu_test(rwt) port map(
+  rwt_e : entity work.cpu_test(rwt) port map(
    rst     => reset,
    clk     => Clock,
    en      => is_tset(RW),
@@ -114,7 +134,7 @@ begin
    done_o    => rwt_done
    );
 
-  pwrt_ent : entity work.cpu_test(pwrt) port map(
+  pwrt_e : entity work.cpu_test(pwrt) port map(
    rst     => reset,
    clk     => Clock,
    en      => is_tset(PWR),
@@ -128,7 +148,7 @@ begin
    );
   
   cpu_req_arbiter : entity work.arbiter6(rtl) port map(
-   clock => Clock,
+   clock => clock,
    reset => reset,
    din1  => cpu_req,
    --ack1  =>
@@ -150,4 +170,5 @@ begin
   pwrt_res <= cpu_res when is_pwr_cmd(cpu_res) else ZERO_MSG;
 
   done_o <= rwt_done and pwrt_done;
+  
 end rtl;

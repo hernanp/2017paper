@@ -7,7 +7,7 @@ use work.util.all;
 
 entity l1_cache is
   port(
-    Clock                : in  std_logic;
+    clock                : in  std_logic;
     reset                : in  std_logic;
 
     id_i                 : in IP_T;
@@ -36,8 +36,8 @@ entity l1_cache is
     full_crq_i   : in  std_logic; --TODO what is this? not implemented?
     full_wb_i    : in  std_logic;
     full_srs_i   : in  std_logic; --TODO where is this coming from? not implemented?
-    bus_req_o : out MSG_T :=
-      (others => '0') -- a req going to the other cache
+
+    bus_req_o : out MESSAGE_T;          -- down request
 	);
 
 end l1_cache;
@@ -50,10 +50,6 @@ architecture rtl of l1_cache is
   type rom_type is
     array (natural(2 ** 14 - 1) downto 0) of std_logic_vector(52 downto 0);
   signal ROM_array : rom_type  := (others => (others => '0'));
-
-  -- Naming conventions:
-  -- [c|s|b]rf is [cpu|snoop|bus]_req fifo
-  -- [us|s]sf is [upstream-snoop|snoop]_resp fifo
   
   -- FIFO queues inputs
   -- write_enable signals for FIFO queues
@@ -97,14 +93,6 @@ architecture rtl of l1_cache is
   signal ack1, ack2                     : std_logic;
   signal snp_c_req1, snp_c_req2         : MSG_T:=(others => '0');
   signal snp_c_ack1, snp_c_ack2         : std_logic;
-
-  signal prc          : std_logic_vector(1 downto 0);
-  signal tmp_cpu_res1 : MSG_T := (others => '0');
-  signal tmp_snp_res  : MSG_T:=(others => '0');
-  signal tmp_hit      : std_logic;
-  signal tmp_mem      : std_logic_vector(40 downto 0):=(others => '0');
-  ---this one is important!!!!
-  
   
   signal tidx : integer :=0;
   signal content: std_logic_vector(52 downto 0);
@@ -117,6 +105,25 @@ architecture rtl of l1_cache is
   signal snp_wt: std_logic_vector(72 downto 0);
   signal snp_wt_ack: std_logic;
   
+  --***** cache_controller_p signals *****
+  type mcu_cache_chan_t is record           -- (cache_controller_p, mcu_controller_p)
+    ack : std_logic;
+    hit : std_logic;
+    res : MESSAGE_T;
+  end record mcu_cache_chan_t;
+  signal mcu_ichan : req_mcu_chan_t;
+  signal mcu_wr_req : MESSAGE_T;
+  
+  -- type snp_cache_chan_t is record         -- (req_controller_p, snp_cache)
+  --   res : MESSAGE_T;
+  --   ack : std_logic;
+  -- end record snp_cache_chan_t;
+  -- signal snp_ichan : snp_cache_chan_t;
+  signal snp_req : MESSAGE_T;
+  signal snp_ack : std_logic;
+  
+  --signal cpu_res      : MESSAGE_T;
+  --signal snp_req      : MESSAGE_T;
   
 begin
   cpu_req_fifo : entity work.fifo(rtl)
@@ -504,7 +511,7 @@ begin
   --  elsif rising_edge(Clock) then
   --    tmp_msg := bus_res(BMSG_WIDTH-1 downto BMSG_WIDTH - MSG_WIDTH);
   --    if is_valid(tmp_msg) and is_pwr_cmd(tmp_msg) then
-  --      report integer'image(BMSG_WIDTH - MSG_WIDTH);
+  --      report integer'image(BMSG_WIDTH - MSGtmp__WIDTH);
   --      cpu_res2 <= tmp_msg; -- TODO should be cpu_res3
   --    end if;
   --  end if;
@@ -743,4 +750,131 @@ begin
     end if;
   end process;
 
+
+--*************** CPU REQUESTS ********************
+  cpu_req_buf_e : entity work.fifo(rtl)
+    generic map(
+      DATA_WIDTH => MSG_WIDTH,
+      FIFO_DEPTH => DEFAULT_FIFO_DEPTH
+      )
+    port map(
+      clk     => clock,
+      rst     => reset,
+      DataIn  => crf_in,
+      WriteEn => crf_we,
+      ReadEn  => crf_re,
+      DataOut => bufd_cpu_req,
+      Full    => crf_full_o,
+      Empty   => crf_emp
+      );
+
+  --* Buffers cpu requests
+  --* sig_rs: cpu_req
+  --* sig_ws: crf_we, crf_in
+  cpu_req_buf_p : process(Clock)
+  begin
+    if reset = '1' then
+      crf_we <= '0';
+    elsif rising_edge(Clock) then
+      if is_valid(cpu_req) then
+        crf_in <= cpu_req;
+        crf_we <= '1';
+      else
+        crf_we <= '0';
+      end if;
+    end if;
+  end process;
+
+  --* Handle cpu requests
+  --* sig_rs: crf_emp,
+  --          cpu_mem_ack, cpu_mem_hit, cpu_mem_res -- mcu channel
+  --* sig_ws: cpu_res,
+  --          crf_re,
+  --          mcu_write_req
+  cpu_req_p : process(reset, clock)
+    variable st : (INIT, PCS, WR_HIT, DONE, MISS, WAIT_SNP_RES, WAIT_WR_ACK) := INIT;
+    --variable prev_st : integer := -1;
+    signal tmp_cpu_res : MSG_T := (others => '0');
+  begin
+    if (reset = '1') then
+      -- reset signals
+      cpu_res_o <= ZERO_MESSAGE;
+      bus_req_o <= (others => '0');
+      snp_req <= (others =>'0');      
+      crf_re <= '0';
+    elsif rising_edge(Clock) then
+      --dbg_chg("cpu_req_p(" & str(id_i) & ")", st, prev_st);
+      if st = INIT then -- wait_fifo
+        bus_req_o <= (others => '0');
+        if crf_re = '0' and -- if not ready to read output
+          crf_emp = '0' then -- and fifo is not empty
+          crf_re   <= '1';
+          st := PCS;
+        end if;
+
+      elsif st = PCS then -- access
+        crf_re <= '0';
+
+        if mcu_ichan.ack = '1' then
+          if mcu_ichan.hit = '1' then
+            if cmd_eq(mcu_ichan.res, WRITE_CMD) then
+              mcu_wr_req <= '1' & mcu_ichan.res;
+              tmp_cpu_res <= '1' & mcu_ichan.res;
+              st := WR_HIT;
+            else -- read hit
+              cpu_res_o <= '1' & mcu_ichan.res;
+              st := DONE;
+            end if;
+          else -- it's a miss, output snp req
+            snp_req_o <= '1' & cpu_mem_res;
+            snp_req <= '1' & cpu_mem_res;
+            st := MISS;
+          end if;
+        end if;
+       
+      elsif st = WR_HIT then -- get_resp_from_mcu
+        if mcu_ichan.ack = '1' then
+          mcu_wr_req <= (others => '0');
+          cpu_res_o  <= tmp_cpu_res;
+          st := MISS;                   -- TODO shouldn't send snp req out here
+        end if;
+      elsif st = DONE then -- clr cpu_res
+        if ack1 = '1' then
+          cpu_res_o <= (others => '0');
+          st := INIT;
+        end if;
+      elsif st = MISS then -- get_snp_req_ack
+        if snp_ack = '1' then
+          snp_req_o <= (others => '0');  -- subd: snp_req_o / snp_c_req
+          st := WAIT_SNP_RES;
+        end if;
+      --now we wait for the snoop response
+      elsif st = WAIT_SNP_RES then -- get_snp_resp
+        if is_valid(snp_res_i) then
+          --if we get a snoop response  and the address is the same  =>
+          -- TODO add snp res to snp_res_buf
+          if snp_res_i(63 downto 32) = snpreq(63 downto 32) then  -- if = adr
+            if snp_hit_i = '1' then
+              st := WAIT_SNP_WR_ACK;    -- TODO why wait for snp_wr_ack?
+              snp_wt <= snp_res_i;
+              tmp := snp_res_i;
+            else
+              bus_req_o <= snp_res_i;
+              st := INIT;
+            end if;
+          end if;
+        end if;
+     elsif st = WAIT_SNP_WR_ACK then -- wait for snp_write_ack and clr
+     	if snp_wt_ack = '1' then
+     		snp_wt <= (others =>'0');
+     		cpu_res <= tmp;
+     		st := DONE;
+     	end if;
+      end if;
+    end if;
+  end process;
+
+  
+
+  
 end rtl;

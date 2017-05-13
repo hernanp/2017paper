@@ -8,14 +8,14 @@ entity fifo is
     constant FIFO_DEPTH	: positive := 256
 	);
   Port ( 
-    CLK		: in  STD_LOGIC;
-    RST		: in  STD_LOGIC;
+    CLK		  : in  STD_LOGIC;
+    RST		  : in  STD_LOGIC;
     WriteEn	: in  STD_LOGIC;
     DataIn	: in  STD_LOGIC_VECTOR (DATA_WIDTH - 1 downto 0);
     ReadEn	: in  STD_LOGIC;
     DataOut	: out STD_LOGIC_VECTOR (DATA_WIDTH - 1 downto 0);
-    Empty	: out STD_LOGIC;
-    Full	: out STD_LOGIC := '0'
+    Empty	  : out STD_LOGIC;
+    Full	  : out STD_LOGIC := '0'
 	);
 end fifo;
 

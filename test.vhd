@@ -36,7 +36,7 @@ package test is
   constant TDLAY_FLG : boolean := true;
 
   --********* PWR TEST OPTS ******************
-  constant PWRT_CNT : natural := 2;
+  constant PWRT_CNT : natural := 1;
   constant PWRT_SRC : IP_VECT_T := --ip_enc(CPU0) or
                                    ip_enc(CPU1);
   --constant PWRT_MAXDELAY : natural := 0;  --NOT IMPLEMENTED YET
@@ -70,8 +70,8 @@ package test is
 
   --********************************************************************
   --* Warning: don't enable tests that are triggered on the same signals
-  constant RUN_TEST : TEST_T := TEST(RW);-- or
-                                --TEST(PWR);-- or
+  constant RUN_TEST : TEST_T := --TEST(RW);-- or
+                                TEST(PWR);-- or
                                 --TEST(UREQ);
                                 --TEST(PETERSONS);
                                 --TEST(NONE);

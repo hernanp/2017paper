@@ -5,6 +5,30 @@ package defs is
   constant MSG_WIDTH : positive := 73;
   constant WMSG_WIDTH : positive := 76;
   constant BMSG_WIDTH : positive := 553;
+
+  type MESSAGE_T is record
+    val       : std_logic;                     -- valid bit
+    cmd       : std_logic_vector(7 downto 0);
+    tag       : std_logic_vector(7 downto 0);  -- src
+    id        : std_logic_vector(7 downto 0);  -- sequence id
+    adr       : std_logic_vector(31 downto 0);
+    dat       : std_logic_vector(31 downto 0);
+  end record MESSAGE_T;
+  constant ZERO_MESSAGE : MESSAGE_T := ('0',
+                                        (others => '0'),
+                                        (others => '0'),
+                                        (others => '0'),
+                                        (others => '0'),
+                                        (others => '0'));
+
+  type BMESSAGE_T is record
+    val       : std_logic;                     -- valid bit
+    cmd       : std_logic_vector(7 downto 0);
+    tag       : std_logic_vector(7 downto 0);  -- src
+    id        : std_logic_vector(7 downto 0);  -- sequence id
+    adr       : std_logic_vector(31 downto 0);
+    dat       : std_logic_vector(511 downto 0);
+  end record BMESSAGE_T;
   
   constant CMD_WIDTH : positive := 8;
   constant ADR_WIDTH : positive := 32;
