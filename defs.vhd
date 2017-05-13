@@ -9,6 +9,31 @@ package defs is
   constant CMD_WIDTH : positive := 8;
   constant ADR_WIDTH : positive := 32;
   constant DAT_WIDTH : positive := 32;
+
+  type MSG_TYP is record
+   val       : std_logic;                     -- valid bit;
+   cmd       : std_logic_vector(7 downto 0);
+   tag       : std_logic_vector(7 downto 0);  -- src
+   id        : std_logic_vector(7 downto 0);  --sequence id
+   adr       : std_logic_vector(31 downto 0);
+   dat       : std_logic_vector(31 downto 0);
+  end record MSG_TYP;
+
+  type BMSG_TYP is record
+   val       : std_logic;                     -- valid bit;
+   cmd       : std_logic_vector(7 downto 0);
+   tag       : std_logic_vector(7 downto 0);  -- src
+   id        : std_logic_vector(7 downto 0);  --sequence id
+   adr       : std_logic_vector(31 downto 0);
+   dat       : std_logic_vector(31 downto 0);
+  end record BMSG_TYP;
+  
+  constant ZEROS_MSG : MSG_TYP := ('0',
+                                        (others => '0'),
+                                        (others => '0'),
+                                        (others => '0'),
+                                        (others => '0'),
+                                        (others => '0'));
   
   subtype MSG_T is std_logic_vector(MSG_WIDTH-1 downto 0);
   subtype CMD_T is std_logic_vector(CMD_WIDTH-1 downto 0);
