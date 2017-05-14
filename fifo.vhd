@@ -1,19 +1,19 @@
 library IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
+use work.defs.all;
 
 entity fifo is
   Generic (
-    constant DATA_WIDTH  : positive := 553;
     constant FIFO_DEPTH	: positive := 256
 	);
   Port ( 
     CLK		: in  STD_LOGIC;
     RST		: in  STD_LOGIC;
     WriteEn	: in  STD_LOGIC;
-    DataIn	: in  STD_LOGIC_VECTOR (DATA_WIDTH - 1 downto 0);
+    DataIn	: in  MSG_T;
     ReadEn	: in  STD_LOGIC;
-    DataOut	: out STD_LOGIC_VECTOR (DATA_WIDTH - 1 downto 0);
+    DataOut	: out MSG_T;
     Empty	: out STD_LOGIC;
     Full	: out STD_LOGIC := '0'
 	);
@@ -23,9 +23,9 @@ architecture rtl of fifo is
 
 begin
   -- Memory Pointer Process
-  fifo_proc : process (CLK)
+  fifo_proc : process (clk)
     type FIFO_Memory is
-      array (0 to FIFO_DEPTH - 1) of STD_LOGIC_VECTOR (DATA_WIDTH - 1 downto 0);
+      array (0 to FIFO_DEPTH - 1) of MSG_T;
     variable Memory : FIFO_Memory;
     
     variable Head : natural range 0 to FIFO_DEPTH - 1;
@@ -72,7 +72,7 @@ begin
             end if;
           end if;
         else 
-          DataOut <= (others => '0');
+          DataOut <= ZERO_MSG;
         end if;
         
         -- Update Empty and Full flags
@@ -91,3 +91,4 @@ begin
   end process;
   
 end rtl;
+

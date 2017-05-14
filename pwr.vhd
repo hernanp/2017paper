@@ -34,7 +34,6 @@ begin
 
   pwr_req_fifo: entity work.fifo(rtl) 
 	generic map(
-      DATA_WIDTH => MSG_WIDTH,
       FIFO_DEPTH => 16
      )
 	port map(
@@ -53,7 +52,7 @@ begin
     if reset='1' then
       we1<='0';
     elsif rising_edge(Clock) then
-      if is_valid(req_i) then
+      if req_i.val = '1' then
         in1 <= req_i;
         we1 <= '1';
       else
@@ -71,18 +70,18 @@ begin
     variable tmp_req, tmp: MSG_T;
   begin
     if (reset = '1') then
-      gfx_req_o <= (others => '0');
-      audio_req_o <= (others => '0');
-      usb_req_o <= (others => '0');
-      uart_req_o <= (others => '0');
-  elsif rising_edge(Clock) then
+      gfx_req_o <= ZERO_MSG;
+      audio_req_o <= ZERO_MSG;
+      usb_req_o <= ZERO_MSG;
+      uart_req_o <= ZERO_MSG;
+  elsif rising_edge(clock) then
   	test <= tmp;
-      res_o <= (others => '0');
+      res_o <= ZERO_MSG;
       if st =0 then
-        gfx_req_o <= (others => '0');
-        audio_req_o <= (others => '0');
-        usb_req_o <= (others => '0');
-        uart_req_o <= (others => '0');
+        gfx_req_o <= ZERO_MSG;
+        audio_req_o <= ZERO_MSG;
+        usb_req_o <= ZERO_MSG;
+        uart_req_o <= ZERO_MSG;
         if re1 = '0' and emp1 ='0' then
           re1 <= '1';
           st := 1;
@@ -90,16 +89,16 @@ begin
         
       elsif st = 1 then -- wait output (out1) from fifo
         re1 <= '0';
-        if is_valid(out1) then
+        if out1.val = '1' then
           tmp := out1;
-          if get_dat(out1) = pad32(GFX_TAG) then
+          if out1.dat = pad32(GFX_TAG) then
             --report "ready to send gfx req";
             dev := GFX_TAG;
-          elsif get_dat(out1) = pad32(AUDIO_TAG) then
+          elsif out1.dat = pad32(AUDIO_TAG) then
             dev := AUDIO_TAG;
-          elsif get_dat(out1) = pad32(USB_TAG) then
+          elsif out1.dat = pad32(USB_TAG) then
             dev := USB_TAG;
-          elsif get_dat(out1) = pad32(UART_TAG) then
+          elsif out1.dat = pad32(UART_TAG) then
           	dev := UART_TAG;
           else
           	report "device id unkonwn 1";
@@ -124,19 +123,19 @@ begin
       elsif st = 3 then
         if dev = GFX_TAG then
           tmp := gfx_res_i;
-          gfx_req_o <= (others => '0');
+          gfx_req_o <= ZERO_MSG;
         elsif dev = AUDIO_TAG then
           tmp := audio_res_i;
-          audio_req_o <= (others => '0');
+          audio_req_o <= ZERO_MSG;
         elsif dev = USB_TAG then
           tmp := usb_res_i;
-          usb_req_o <= (others => '0');
+          usb_req_o <= ZERO_MSG;
         elsif dev = UART_TAG then
           tmp := uart_res_i;
-          uart_req_o <= (others => '0');
+          uart_req_o <= ZERO_MSG;
         end if;
         
-        if is_valid(tmp) then
+        if tmp.val = '1' then
           res_o <= tmp;
           st :=0;
         end if;

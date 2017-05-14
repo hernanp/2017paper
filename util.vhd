@@ -6,22 +6,10 @@ use ieee.std_logic_textio.all;
 use work.defs.all;
 
 package util is
-  --* Returns true if data (73 bit long) has msb set to 1
-  function is_valid(msg : std_logic_vector) return boolean;
-  --* Returns true if CMD part of data matches cmd
-  function cmd_eq(msg, cmd : std_logic_vector) return boolean;
-  --* Returns true if DST part of data matches dev_id
-  function dst_eq(msg, dev_id : std_logic_vector) return boolean;
-
-  --+ getters
-  function get_dat(msg: MSG_T) return DAT_T;
-  function get_adr(msg: MSG_T) return ADR_T;
-  function get_cmd(msg: MSG_T) return CMD_T;
-
-  function is_pwr_cmd(msg : std_logic_vector) return boolean;
-  function is_rw_cmd(msg : std_logic_vector) return boolean;
+  function is_pwr_cmd(msg : MSG_T) return boolean;
+  function is_rw_cmd(msg : MSG_T) return boolean;
   --* returns true if adr's msb is 1
-  function is_mem_req(msg: std_logic_vector) return boolean;
+  function is_mem_req(msg: MSG_T) return boolean;
 
   --* delay st transition for cnt clock cycles
   procedure delay(variable cnt: inout natural;
@@ -37,7 +25,7 @@ package util is
   --* left pad
   function pad32(v : IPTAG_T) return ADR_T;
 
-  function rpad(v : MSG_T) return BMSG_T;
+  -- function rpad(v : MSG_T) return BMSG_T;
 
   --+ Poor man's logger
   type LOG_LEVEL_T is (OFF, ERROR, INFO, DEBUG);
@@ -59,8 +47,8 @@ package util is
                     variable prev_st : inout integer);
 
   --* log request
-  procedure req(signal sig : out std_logic_vector;
-                constant v : in std_logic_vector;
+  procedure req(signal sig : out MSG_T;
+                constant v : in MSG_T;
                 constant str : in string);
   
   --+ type casting
@@ -74,45 +62,7 @@ package util is
 end util;
 
 package body util is
-  function is_valid(msg : std_logic_vector) return boolean is
-  begin
-    if msg(MSG_WIDTH -1 downto MSG_WIDTH -1) = "1" then
-      return true;
-    end if;
-    return false;
-  end function;
-
-  function cmd_eq(msg, cmd : std_logic_vector) return boolean is
-  begin
-    if msg(MSG_WIDTH - 2 downto MSG_WIDTH -9) = cmd then
-      return true;
-    end if;
-    return false;
-  end function;
-
-  function dst_eq(msg, dev_id : std_logic_vector) return boolean is
-  begin
-    if msg(WMSG_WIDTH - 1 downto WMSG_WIDTH - 3) = dev_id then
-      return true;
-    end if;
-    return false;
-  end function;
-
-  function get_dat(msg: MSG_T) return DAT_T is
-  begin
-    return msg(MSG_DAT_IDX + DAT_WIDTH - 1 downto MSG_DAT_IDX);
-  end function;
-  
-  function get_adr(msg: MSG_T) return ADR_T is
-  begin
-    return msg(MSG_ADR_IDX + ADR_WIDTH - 1 downto MSG_ADR_IDX);
-  end function;
-  
-  function get_cmd(msg: MSG_T) return CMD_T is
-  begin
-    return msg(MSG_CMD_IDX + CMD_WIDTH - 1 downto MSG_CMD_IDX);
-  end function;
-  
+    
   procedure delay(variable cnt: inout natural;
                   variable st : inout natural;
                   constant next_st : in natural) is
@@ -155,27 +105,27 @@ package body util is
         -- end if;
         --st := st_nxt;
   
-  function is_pwr_cmd(msg : std_logic_vector) return boolean is
+  function is_pwr_cmd(msg : MSG_T) return boolean is
   begin
-    if (get_cmd(msg) = PWRUP_CMD) or
-      (get_cmd(msg) = PWRDN_CMD) then
+    if (msg.cmd = PWRUP_CMD) or
+      (msg.cmd = PWRDN_CMD) then
       return true;
     end if;
     return false;
   end;
 
-  function is_rw_cmd(msg : std_logic_vector) return boolean is
+  function is_rw_cmd(msg : MSG_T) return boolean is
   begin
-    if (get_cmd(msg) = READ_CMD) or
-      (get_cmd(msg) = WRITE_CMD) then
+    if (msg.cmd = READ_CMD) or
+      (msg.cmd = WRITE_CMD) then
       return true;
     end if;
     return false;
   end;
   
-  function is_mem_req(msg: std_logic_vector) return boolean is
+  function is_mem_req(msg: MSG_T) return boolean is
   begin
-    if msg(63 downto 63) = "1" then
+    if msg.val = '1' then
       return true;
     end if;
     return false;
@@ -191,11 +141,11 @@ package body util is
     return X"0000000" & "0" & v;
   end;
 
-  function rpad(v : MSG_T) return BMSG_T is
-    variable pad : std_logic_vector(479 downto 0) := (others => '0');
-  begin
-    return v & pad;
-  end;
+  -- function rpad(v : MSG_T) return BMSG_T is
+  --   variable pad : std_logic_vector(479 downto 0) := (others => '0');
+  -- begin
+  --   return (v.adr & pad);
+  -- end;
 
   procedure log(constant s : in string; constant l : in LOG_LEVEL_T) is
   begin
@@ -256,26 +206,26 @@ package body util is
     end if;
   end;
   
-  procedure req(signal sig : out std_logic_vector;
-                constant v : in std_logic_vector;
+  procedure req(signal sig : out MSG_T;
+                constant v : in MSG_T;
                 constant str : in string) is
     variable cmd : string(1 to 2);
     variable msg : string(1 to 6);
   begin
-    if get_cmd(v) = WRITE_CMD then
+    if v.cmd = WRITE_CMD then
       cmd := "wr";
-      msg := " to M[" & str(to_integer(unsigned(get_adr(v)))) & "]: ";
-    elsif get_cmd(v) = READ_CMD then
+      msg := " to M[" & str(to_integer(unsigned(v.adr))) & "]: ";
+    elsif v.cmd = READ_CMD then
       cmd := "rd";
-      msg := " to M[" & str(to_integer(unsigned(get_adr(v)))) & "]: ";
-    elsif get_cmd(v) = PWRUP_CMD then
+      msg := " to M[" & str(to_integer(unsigned(v.adr))) & "]: ";
+    elsif v.cmd = PWRUP_CMD then
       cmd := "pu";
-      msg := " " & str(to_integer(unsigned(get_adr(v)))) &
-             " -> " & str(to_integer(unsigned(get_dat(v)))) & " : ";
-    elsif get_cmd(v) = PWRDN_CMD then
+      msg := " " & str(to_integer(unsigned(v.adr))) &
+             " -> " & str(to_integer(unsigned(v.dat))) & " : ";
+    elsif v.cmd = PWRDN_CMD then
       cmd := "pd";
-      msg := " " & str(to_integer(unsigned(get_adr(v)))) &
-             " -> " & str(to_integer(unsigned(get_dat(v)))) & " : ";
+      msg := " " & str(to_integer(unsigned(v.adr))) &
+             " -> " & str(to_integer(unsigned(v.dat))) & " : ";
     end if;
 
     log(cmd & msg & str, DEBUG);

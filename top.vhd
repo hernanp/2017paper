@@ -25,16 +25,16 @@ architecture tb of top is
   
   signal full_c1_u, full_c2_u, full_b_m : std_logic;
   signal cpu_res1, cpu_res2, cpu_req1, cpu_req2 : MSG_T;
-  signal bus_res1, bus_res2 : std_logic_vector(552 downto 0);
+  signal bus_res1, bus_res2 : BMSG_T;
   signal snp_hit1, snp_hit2 : std_logic;
   signal snp_req1, snp_req2 : MSG_T;
   signal snp_res1, snp_res2 : MSG_T;
-  signal snp_req            : WMSG_T;
+  signal snp_req            : MSG_T;
   ---this should be DATA_WIDTH - 1
-  signal snp_res : WMSG_T;
+  signal snp_res : MSG_T;
   signal snp_hit : std_logic;
   signal bus_req1, bus_req2 : MSG_T;
-  signal memres, tomem      : WMSG_T;
+  signal memres, tomem      : MSG_T;
   signal full_crq1, full_srq1, full_brs1,
          full_wb1, full_srs1, full_crq2,
          full_brs2, full_wb2, full_srs2 : std_logic;
@@ -46,7 +46,7 @@ architecture tb of top is
   signal ic_pwr_res : MSG_T;
   signal pwr_req_full                   : std_logic;
 
-  signal gfx_b, togfx                 : WMSG_T;
+  signal gfx_b, togfx                 : MSG_T;
   signal gfx_upreq, gfx_upres, gfx_wb : MSG_T;
   signal gfx_upreq_full, gfx_wb_ack   : std_logic;
 
@@ -60,28 +60,26 @@ architecture tb of top is
   signal audio_upreq, audio_upres, audio_wb : MSG_T;
   signal audio_upreq_full, audio_wb_ack     : std_logic;
 
-  signal usb_b, tousb                 : WMSG_T;
+  signal usb_b, tousb                 : MSG_T;
   signal usb_upreq, usb_upres, usb_wb : MSG_T;
   signal usb_upreq_full, usb_wb_ack   : std_logic;
 
   signal zero   : std_logic := '0';
-  signal zero72 : MSG_T := (others => '0');
-  signal zero75 : WMSG_T := (others => '0');
   
-  signal uart_b, touart                  : WMSG_T;
+  signal uart_b, touart                  : MSG_T;
   signal uart_upreq, uart_upres, uart_wb : MSG_T;
   signal uart_upreq_full, uart_wb_ack    : std_logic;
 
-  signal up_snp_req, up_snp_res : WMSG_T;
+  signal up_snp_req, up_snp_res : MSG_T;
   signal up_snp_hit           : std_logic;
 
-  signal waddr      : std_logic_vector(31 downto 0);
+  signal waddr      : ADR_T;
   signal wlen       : std_logic_vector(9 downto 0);
   signal wsize      : std_logic_vector(9 downto 0);
   signal wvalid     : std_logic;
   signal wready     : std_logic;
   -- -write data channel
-  signal wdata      : std_logic_vector(31 downto 0);
+  signal wdata      : DAT_T;
   signal wtrb       : std_logic_vector(3 downto 0);
   signal wlast      : std_logic;
   signal wdvalid    : std_logic;
@@ -92,13 +90,13 @@ architecture tb of top is
   signal wrsp       : std_logic_vector(1 downto 0);
 
   -- -read address channel
-  signal raddr   : std_logic_vector(31 downto 0);
+  signal raddr   : ADR_T;
   signal rlen    : std_logic_vector(9 downto 0);
   signal rsize   : std_logic_vector(9 downto 0);
   signal rvalid  : std_logic;
   signal rready  : std_logic;
   -- -read data channel
-  signal rdata   : std_logic_vector(31 downto 0);
+  signal rdata   : DAT_T;
   signal rstrb   : std_logic_vector(3 downto 0);
   signal rlast   : std_logic;
   signal rdvalid : std_logic;
@@ -107,7 +105,7 @@ architecture tb of top is
 
   --GFX
   ---_gfx write address channel
-  signal waddr_gfx      : std_logic_vector(31 downto 0);
+  signal waddr_gfx      : ADR_T;
   signal wlen_gfx       : std_logic_vector(9 downto 0);
   signal wsize_gfx      : std_logic_vector(9 downto 0);
   signal wvalid_gfx     : std_logic;
@@ -124,13 +122,13 @@ architecture tb of top is
   signal wrsp_gfx       : std_logic_vector(1 downto 0);
 
   --_gfx-read address channel
-  signal raddr_gfx   : std_logic_vector(31 downto 0);
+  signal raddr_gfx   : ADR_T;
   signal rlen_gfx    : std_logic_vector(9 downto 0);
   signal rsize_gfx   : std_logic_vector(9 downto 0);
   signal rvalid_gfx  : std_logic;
   signal rready_gfx  : std_logic;
   --_gfx-read data channel
-  signal rdata_gfx   : std_logic_vector(31 downto 0);
+  signal rdata_gfx   : DAT_T;
   signal rstrb_gfx   : std_logic_vector(3 downto 0);
   signal rlast_gfx   : std_logic;
   signal rdvalid_gfx : std_logic;
@@ -139,13 +137,13 @@ architecture tb of top is
 
   -- UART
   -- _uart-write address channel
-  signal waddr_uart      : std_logic_vector(31 downto 0);
+  signal waddr_uart      : ADR_T;
   signal wlen_uart       : std_logic_vector(9 downto 0);
   signal wsize_uart      : std_logic_vector(9 downto 0);
   signal wvalid_uart     : std_logic;
   signal wready_uart     : std_logic;
   --_uart-write data channel
-  signal wdata_uart      : std_logic_vector(31 downto 0);
+  signal wdata_uart      : DAT_T;
   signal wtrb_uart       : std_logic_vector(3 downto 0);
   signal wlast_uart      : std_logic;
   signal wdvalid_uart    : std_logic;
@@ -156,13 +154,13 @@ architecture tb of top is
   signal wrsp_uart       : std_logic_vector(1 downto 0);
 
   --_uart-read address channel
-  signal raddr_uart   : std_logic_vector(31 downto 0);
+  signal raddr_uart   : ADR_T;
   signal rlen_uart    : std_logic_vector(9 downto 0);
   signal rsize_uart   : std_logic_vector(9 downto 0);
   signal rvalid_uart  : std_logic;
   signal rready_uart  : std_logic;
   --_uart-read data channel
-  signal rdata_uart   : std_logic_vector(31 downto 0);
+  signal rdata_uart   : DAT_T;
   signal rstrb_uart   : std_logic_vector(3 downto 0);
   signal rlast_uart   : std_logic;
   signal rdvalid_uart : std_logic;
@@ -171,13 +169,13 @@ architecture tb of top is
 
   -- USB
   -- _usb-write address channel
-  signal waddr_usb      : std_logic_vector(31 downto 0);
+  signal waddr_usb      : ADR_T;
   signal wlen_usb       : std_logic_vector(9 downto 0);
   signal wsize_usb      : std_logic_vector(9 downto 0);
   signal wvalid_usb     : std_logic;
   signal wready_usb     : std_logic;
   --_usb-write data channel
-  signal wdata_usb      : std_logic_vector(31 downto 0);
+  signal wdata_usb      : DAT_T;
   signal wtrb_usb       : std_logic_vector(3 downto 0);
   signal wlast_usb      : std_logic;
   signal wdvalid_usb    : std_logic;
@@ -188,13 +186,13 @@ architecture tb of top is
   signal wrsp_usb       : std_logic_vector(1 downto 0);
 
   --_usb-read address channel
-  signal raddr_usb   : std_logic_vector(31 downto 0);
+  signal raddr_usb   : ADR_T;
   signal rlen_usb    : std_logic_vector(9 downto 0);
   signal rsize_usb   : std_logic_vector(9 downto 0);
   signal rvalid_usb  : std_logic;
   signal rready_usb  : std_logic;
   --_usb-read data channel
-  signal rdata_usb   : std_logic_vector(31 downto 0);
+  signal rdata_usb   : DAT_T;
   signal rstrb_usb   : std_logic_vector(3 downto 0);
   signal rlast_usb   : std_logic;
   signal rdvalid_usb : std_logic;
@@ -203,13 +201,13 @@ architecture tb of top is
 
   -- AUDIO
   --_audio-write address channel
-  signal waddr_audio      : std_logic_vector(31 downto 0);
+  signal waddr_audio      : ADR_T;
   signal wlen_audio       : std_logic_vector(9 downto 0);
   signal wsize_audio      : std_logic_vector(9 downto 0);
   signal wvalid_audio     : std_logic;
   signal wready_audio     : std_logic;
   --_audio-write data channel
-  signal wdata_audio      : std_logic_vector(31 downto 0);
+  signal wdata_audio      : DAT_T;
   signal wtrb_audio       : std_logic_vector(3 downto 0);
   signal wlast_audio      : std_logic;
   signal wdvalid_audio    : std_logic;
@@ -220,13 +218,13 @@ architecture tb of top is
   signal wrsp_audio       : std_logic_vector(1 downto 0);
 
   --_audio-read address channel
-  signal raddr_audio   : std_logic_vector(31 downto 0);
+  signal raddr_audio   : ADR_T;
   signal rlen_audio    : std_logic_vector(9 downto 0);
   signal rsize_audio   : std_logic_vector(9 downto 0);
   signal rvalid_audio  : std_logic;
   signal rready_audio  : std_logic;
   --_audio-read data channel
-  signal rdata_audio   : std_logic_vector(31 downto 0);
+  signal rdata_audio   : DAT_T;
   signal rstrb_audio   : std_logic_vector(3 downto 0);
   signal rlast_audio   : std_logic;
   signal rdvalid_audio : std_logic;
@@ -238,65 +236,65 @@ architecture tb of top is
   signal proc0_done, proc1_done, usb_done, uart_done, gfx_done, audio_done : std_logic;
   
 begin
-  proc0_ent : entity work.proc(rtl) port map(
-    reset     => reset,
-    Clock     => Clock,
+  -- proc0_e : entity work.proc(rtl) port map(
+  --   reset     => reset,
+  --   Clock     => Clock,
 
-    id_i      => CPU0,
+  --   id_i      => CPU0,
 
-    snp_req_i  => snp_req1, -- snoop req from cache 2
-    snp_hit_o => snp_hit1,
-    snp_res_o => snp_res1,
+  --   snp_req_i  => snp_req1, -- snoop req from cache 2
+  --   snp_hit_o => snp_hit1,
+  --   snp_res_o => snp_res1,
 
-    up_snp_req_i  => up_snp_req, -- upstream snoop req 
-    up_snp_hit_o => up_snp_hit,
-    up_snp_res_o => up_snp_res,
+  --   up_snp_req_i  => up_snp_req, -- upstream snoop req 
+  --   up_snp_hit_o => up_snp_hit,
+  --   up_snp_res_o => up_snp_res,
 
-    snp_req_o => snp_req2, -- fwd snp req to other cache
-    snp_hit_i => snp_hit2,
-    snp_res_i => snp_res2,
+  --   snp_req_o => snp_req2, -- fwd snp req to other cache
+  --   snp_hit_i => snp_hit2,
+  --   snp_res_i => snp_res2,
 
-    bus_req_o  => bus_req1, -- mem or pwr req to ic
-    bus_res_i   => bus_res1, -- mem or pwr resp from ic    
+  --   bus_req_o  => bus_req1, -- mem or pwr req to ic
+  --   bus_res_i   => bus_res1, -- mem or pwr resp from ic    
 
-    wb_req_o      => wb_req1,
+  --   wb_req_o      => wb_req1,
 
-    -- for observation:
-    done_o => proc0_done,
-    cpu_req_o  => cpu_req1,
-    cpu_res_o => cpu_res1
+  --   -- for observation:
+  --   done_o => proc0_done,
+  --   cpu_req_o  => cpu_req1,
+  --   cpu_res_o => cpu_res1
 
-    );
+  --   );
 
-  proc1_ent : entity work.proc(rtl) port map(
-    reset     => reset,
-    Clock     => Clock,
+  -- proc1_e : entity work.proc(rtl) port map(
+  --   reset     => reset,
+  --   Clock     => Clock,
 
-    id_i      => CPU1,
+  --   id_i      => CPU1,
 
-    snp_req_i  => snp_req2, -- snoop req from cache 2
-    snp_hit_o => snp_hit2,
-    snp_res_o => snp_res2,
+  --   snp_req_i  => snp_req2, -- snoop req from cache 2
+  --   snp_hit_o => snp_hit2,
+  --   snp_res_o => snp_res2,
 
-    -- TODO not implemented yet:
-    up_snp_req_i  => zero75, -- upstream snoop req 
-    --up_snp_hit_o => ,
-    --up_snp_res_o => ,
+  --   -- TODO not implemented yet:
+  --   up_snp_req_i  => zero75, -- upstream snoop req 
+  --   --up_snp_hit_o => ,
+  --   --up_snp_res_o => ,
 
-    snp_req_o => snp_req1, -- fwd snp req to other cache
-    snp_hit_i => snp_hit1,
-    snp_res_i => snp_res1,
+  --   snp_req_o => snp_req1, -- fwd snp req to other cache
+  --   snp_hit_i => snp_hit1,
+  --   snp_res_i => snp_res1,
 
-    bus_req_o  => bus_req2, -- mem or pwr req to ic
-    bus_res_i   => bus_res2, -- mem or pwr resp from ic    
+  --   bus_req_o  => bus_req2, -- mem or pwr req to ic
+  --   bus_res_i   => bus_res2, -- mem or pwr resp from ic    
 
-    wb_req_o      => wb_req2,
+  --   wb_req_o      => wb_req2,
 
-    -- for observation:
-    done_o => proc1_done,
-    cpu_req_o  => cpu_req2,
-    cpu_res_o => cpu_res2
-    );
+  --   -- for observation:
+  --   done_o => proc1_done,
+  --   cpu_req_o  => cpu_req2,
+  --   cpu_res_o => cpu_res2
+  --   );
 
   power : entity work.pwr(rtl) port map(
     Clock     => Clock,
@@ -320,176 +318,176 @@ begin
     gfx_res_i    => pwr_gfx_res
     );
 
-  interconnect : entity work.ic(rtl) port map(
-    Clock            => Clock,
-    reset            => reset,
+  -- interconnect : entity work.ic(rtl) port map(
+  --   Clock            => Clock,
+  --   reset            => reset,
     
-    gfx_upreq_i      => gfx_upreq,
-    gfx_upres_o      => gfx_upres,
-    gfx_upreq_full_o => gfx_upreq_full,
+  --   gfx_upreq_i      => gfx_upreq,
+  --   gfx_upres_o      => gfx_upres,
+  --   gfx_upreq_full_o => gfx_upreq_full,
     
-    audio_upreq_i      => audio_upreq,
-    audio_upres_o      => audio_upres,
-    audio_upreq_full_o => audio_upreq_full,
+  --   audio_upreq_i      => audio_upreq,
+  --   audio_upres_o      => audio_upres,
+  --   audio_upreq_full_o => audio_upreq_full,
 
-    usb_upreq_i        => usb_upreq,
-    usb_upres_o        => usb_upres,
-    usb_upreq_full_o   => usb_upreq_full,
+  --   usb_upreq_i        => usb_upreq,
+  --   usb_upres_o        => usb_upres,
+  --   usb_upreq_full_o   => usb_upreq_full,
 
-    uart_upreq_i       => uart_upreq,
-    uart_upres_o       => uart_upres,
-    uart_upreq_full_o  => uart_upreq_full,
+  --   uart_upreq_i       => uart_upreq,
+  --   uart_upres_o       => uart_upres,
+  --   uart_upreq_full_o  => uart_upreq_full,
 
-    -- write
-    waddr            => waddr,
-    wlen             => wlen,
-    wsize            => wsize,
-    wvalid           => wvalid,
-    wready           => wready,
-    wdata            => wdata,
-    wtrb             => wtrb,
-    wlast            => wlast,
-    wdvalid          => wdvalid,
-    wdataready       => wdataready,
-    wrready          => wrready,
-    wrvalid_i        => wrvalid, -- write resp
-    wrsp             => wrsp,
-    -- read
-    raddr            => raddr,
-    rlen             => rlen,
-    rsize            => rsize,
-    rvalid_o       => rvalid,
-    rready           => rready,
-    rdata            => rdata,
-    rstrb            => rstrb,
-    rlast            => rlast,
-    rdvalid_i       => rdvalid,
-    rdready          => rdready,
-    rres             => rres,
+  --   -- write
+  --   waddr            => waddr,
+  --   wlen             => wlen,
+  --   wsize            => wsize,
+  --   wvalid           => wvalid,
+  --   wready           => wready,
+  --   wdata            => wdata,
+  --   wtrb             => wtrb,
+  --   wlast            => wlast,
+  --   wdvalid          => wdvalid,
+  --   wdataready       => wdataready,
+  --   wrready          => wrready,
+  --   wrvalid_i        => wrvalid, -- write resp
+  --   wrsp             => wrsp,
+  --   -- read
+  --   raddr            => raddr,
+  --   rlen             => rlen,
+  --   rsize            => rsize,
+  --   rvalid_o       => rvalid,
+  --   rready           => rready,
+  --   rdata            => rdata,
+  --   rstrb            => rstrb,
+  --   rlast            => rlast,
+  --   rdvalid_i       => rdvalid,
+  --   rdready          => rdready,
+  --   rres             => rres,
 
-    waddr_gfx        => waddr_gfx,
-    wlen_gfx         => wlen_gfx,
-    wsize_gfx        => wsize_gfx,
-    wvalid_gfx       => wvalid_gfx,
-    wready_gfx       => wready,
-    wdata_gfx        => wdata_gfx,
-    wtrb_gfx         => wtrb_gfx,
-    wlast_gfx        => wlast_gfx,
-    wdvalid_gfx      => wdvalid_gfx,
-    wdataready_gfx   => wdataready_gfx,
-    wrready_gfx      => wrready_gfx,
-    wrvalid_gfx      => wrvalid_gfx,
-    wrsp_gfx         => wrsp_gfx,
+  --   waddr_gfx        => waddr_gfx,
+  --   wlen_gfx         => wlen_gfx,
+  --   wsize_gfx        => wsize_gfx,
+  --   wvalid_gfx       => wvalid_gfx,
+  --   wready_gfx       => wready,
+  --   wdata_gfx        => wdata_gfx,
+  --   wtrb_gfx         => wtrb_gfx,
+  --   wlast_gfx        => wlast_gfx,
+  --   wdvalid_gfx      => wdvalid_gfx,
+  --   wdataready_gfx   => wdataready_gfx,
+  --   wrready_gfx      => wrready_gfx,
+  --   wrvalid_gfx      => wrvalid_gfx,
+  --   wrsp_gfx         => wrsp_gfx,
 
-    raddr_gfx        => raddr_gfx,
-    rlen_gfx         => rlen_gfx,
-    rsize_gfx        => rsize_gfx,
-    rvalid_gfx       => rvalid_gfx,
-    rready_gfx       => rready_gfx,
-    rdata_gfx        => rdata_gfx,
-    rstrb_gfx        => rstrb_gfx,
-    rlast_gfx        => rlast_gfx,
-    rdvalid_gfx      => rdvalid_gfx,
-    rdready_gfx      => rdready_gfx,
-    rres_gfx         => rres_gfx,
-    waddr_uart       => waddr_uart,
-    wlen_uart        => wlen_uart,
-    wsize_uart       => wsize_uart,
-    wvalid_uart      => wvalid_uart,
-    wready_uart      => wready_uart,
-    wdata_uart       => wdata_uart,
-    wtrb_uart        => wtrb_uart,
-    wlast_uart       => wlast_uart,
-    wdvalid_uart     => wdvalid_uart,
-    wdataready_uart  => wdataready_uart,
-    wrready_uart     => wrready_uart,
-    wrvalid_uart     => wrvalid_uart,
-    wrsp_uart        => wrsp_uart,
-    raddr_uart       => raddr_uart,
-    rlen_uart        => rlen_uart,
-    rsize_uart       => rsize_uart,
-    rvalid_uart      => rvalid_uart,
-    rready_uart      => rready_uart,
-    rdata_uart       => rdata_uart,
-    rstrb_uart       => rstrb_uart,
-    rlast_uart       => rlast_uart,
-    rdvalid_uart     => rdvalid_uart,
-    rdready_uart     => rdready_uart,
-    rres_uart        => rres_uart,
-    waddr_usb        => waddr_usb,
-    wlen_usb         => wlen_usb,
-    wsize_usb        => wsize_usb,
-    wvalid_usb       => wvalid_usb,
-    wready_usb       => wready_usb,
-    wdata_usb        => wdata_usb,
-    wtrb_usb         => wtrb_usb,
-    wlast_usb        => wlast_usb,
-    wdvalid_usb      => wdvalid_usb,
-    wdataready_usb   => wdataready_usb,
-    wrready_usb      => wrready_usb,
-    wrvalid_usb      => wrvalid_usb,
-    wrsp_usb         => wrsp_usb,
-    raddr_usb        => raddr_usb,
-    rlen_usb         => rlen_usb,
-    rsize_usb        => rsize_usb,
-    rvalid_usb       => rvalid_usb,
-    rready_usb       => rready_usb,
-    rdata_usb        => rdata_usb,
-    rstrb_usb        => rstrb_usb,
-    rlast_usb        => rlast_usb,
-    rdvalid_usb      => rdvalid_usb,
-    rdready_usb      => rdready_usb,
-    rres_usb         => rres_usb,
-    waddr_audio      => waddr_audio,
-    wlen_audio       => wlen_audio,
-    wsize_audio      => wsize_audio,
-    wvalid_audio     => wvalid_audio,
-    wready_audio     => wready_audio,
-    wdata_audio      => wdata_audio,
-    wtrb_audio       => wtrb_audio,
-    wlast_audio      => wlast_audio,
-    wdvalid_audio    => wdvalid_audio,
-    wdataready_audio => wdataready_audio,
-    wrready_audio    => wrready_audio,
-    wrvalid_audio    => wrvalid_audio,
-    wrsp_audio       => wrsp_audio,
-    raddr_audio      => raddr_audio,
-    rlen_audio       => rlen_audio,
-    rsize_audio      => rsize_audio,
-    rvalid_audio     => rvalid_audio,
-    rready_audio     => rready_audio,
-    rdata_audio      => rdata_audio,
-    rstrb_audio      => rstrb_audio,
-    rlast_audio      => rlast_audio,
-    rdvalid_audio    => rdvalid_audio,
-    rdready_audio    => rdready_audio,
-    rres_audio       => rres_audio,
+  --   raddr_gfx        => raddr_gfx,
+  --   rlen_gfx         => rlen_gfx,
+  --   rsize_gfx        => rsize_gfx,
+  --   rvalid_gfx       => rvalid_gfx,
+  --   rready_gfx       => rready_gfx,
+  --   rdata_gfx        => rdata_gfx,
+  --   rstrb_gfx        => rstrb_gfx,
+  --   rlast_gfx        => rlast_gfx,
+  --   rdvalid_gfx      => rdvalid_gfx,
+  --   rdready_gfx      => rdready_gfx,
+  --   rres_gfx         => rres_gfx,
+  --   waddr_uart       => waddr_uart,
+  --   wlen_uart        => wlen_uart,
+  --   wsize_uart       => wsize_uart,
+  --   wvalid_uart      => wvalid_uart,
+  --   wready_uart      => wready_uart,
+  --   wdata_uart       => wdata_uart,
+  --   wtrb_uart        => wtrb_uart,
+  --   wlast_uart       => wlast_uart,
+  --   wdvalid_uart     => wdvalid_uart,
+  --   wdataready_uart  => wdataready_uart,
+  --   wrready_uart     => wrready_uart,
+  --   wrvalid_uart     => wrvalid_uart,
+  --   wrsp_uart        => wrsp_uart,
+  --   raddr_uart       => raddr_uart,
+  --   rlen_uart        => rlen_uart,
+  --   rsize_uart       => rsize_uart,
+  --   rvalid_uart      => rvalid_uart,
+  --   rready_uart      => rready_uart,
+  --   rdata_uart       => rdata_uart,
+  --   rstrb_uart       => rstrb_uart,
+  --   rlast_uart       => rlast_uart,
+  --   rdvalid_uart     => rdvalid_uart,
+  --   rdready_uart     => rdready_uart,
+  --   rres_uart        => rres_uart,
+  --   waddr_usb        => waddr_usb,
+  --   wlen_usb         => wlen_usb,
+  --   wsize_usb        => wsize_usb,
+  --   wvalid_usb       => wvalid_usb,
+  --   wready_usb       => wready_usb,
+  --   wdata_usb        => wdata_usb,
+  --   wtrb_usb         => wtrb_usb,
+  --   wlast_usb        => wlast_usb,
+  --   wdvalid_usb      => wdvalid_usb,
+  --   wdataready_usb   => wdataready_usb,
+  --   wrready_usb      => wrready_usb,
+  --   wrvalid_usb      => wrvalid_usb,
+  --   wrsp_usb         => wrsp_usb,
+  --   raddr_usb        => raddr_usb,
+  --   rlen_usb         => rlen_usb,
+  --   rsize_usb        => rsize_usb,
+  --   rvalid_usb       => rvalid_usb,
+  --   rready_usb       => rready_usb,
+  --   rdata_usb        => rdata_usb,
+  --   rstrb_usb        => rstrb_usb,
+  --   rlast_usb        => rlast_usb,
+  --   rdvalid_usb      => rdvalid_usb,
+  --   rdready_usb      => rdready_usb,
+  --   rres_usb         => rres_usb,
+  --   waddr_audio      => waddr_audio,
+  --   wlen_audio       => wlen_audio,
+  --   wsize_audio      => wsize_audio,
+  --   wvalid_audio     => wvalid_audio,
+  --   wready_audio     => wready_audio,
+  --   wdata_audio      => wdata_audio,
+  --   wtrb_audio       => wtrb_audio,
+  --   wlast_audio      => wlast_audio,
+  --   wdvalid_audio    => wdvalid_audio,
+  --   wdataready_audio => wdataready_audio,
+  --   wrready_audio    => wrready_audio,
+  --   wrvalid_audio    => wrvalid_audio,
+  --   wrsp_audio       => wrsp_audio,
+  --   raddr_audio      => raddr_audio,
+  --   rlen_audio       => rlen_audio,
+  --   rsize_audio      => rsize_audio,
+  --   rvalid_audio     => rvalid_audio,
+  --   rready_audio     => rready_audio,
+  --   rdata_audio      => rdata_audio,
+  --   rstrb_audio      => rstrb_audio,
+  --   rlast_audio      => rlast_audio,
+  --   rdvalid_audio    => rdvalid_audio,
+  --   rdready_audio    => rdready_audio,
+  --   rres_audio       => rres_audio,
 
-    up_snp_res_i     => up_snp_res,
-    up_snp_hit_i     => up_snp_hit,
+  --   up_snp_res_i     => up_snp_res,
+  --   up_snp_hit_i     => up_snp_hit,
 
-    cache1_req_i     => bus_req1,
-    cache2_req_i     => bus_req2,
+  --   cache1_req_i     => bus_req1,
+  --   cache2_req_i     => bus_req2,
 
-    pwr_res_i        => ic_pwr_res,
+  --   pwr_res_i        => ic_pwr_res,
     
-    wb_req1_i        => wb_req1,
-    wb_req2_i        => wb_req2,
-    pwr_req_full_i   => pwr_req_full,
+  --   wb_req1_i        => wb_req1,
+  --   wb_req2_i        => wb_req2,
+  --   pwr_req_full_i   => pwr_req_full,
 
-    full_snp_req1_i  => full_srq1,
+  --   full_snp_req1_i  => full_srq1,
     
-    bus_res1_o     => bus_res1,
-    bus_res2_o     => bus_res2,
-    up_snp_req_o   => up_snp_req,
+  --   bus_res1_o     => bus_res1,
+  --   bus_res2_o     => bus_res2,
+  --   up_snp_req_o   => up_snp_req,
 
-    full_wb1_o         => full_wb1,
-    full_srs1_o        => full_srs1,
-    full_wb2_o         => full_wb2,
-     --full_mrs_o
+  --   full_wb1_o         => full_wb1,
+  --   full_srs1_o        => full_srs1,
+  --   full_wb2_o         => full_wb2,
+  --    --full_mrs_o
     
-    pwr_req_o        => ic_pwr_req
-    );
+  --   pwr_req_o        => ic_pwr_req
+  --   );
 
   gfx_entity : entity work.peripheral(rtl) port map(
     Clock       => Clock,
@@ -950,8 +948,8 @@ begin
       --wait until cpu_res1 = r;
       --c := c + 1;
       wait until is_pwr_cmd(cpu_res1);
-      dbg("000" & r);
-      dbg("000" & cpu_res1);
+      --dbg("000" & r);
+      --dbg("000" & cpu_res1);
       info(str(c) & " PWR_TEST OK");
     end if;
     wait;

@@ -53,7 +53,7 @@ begin
   rwt_p : process(rst, clk)
     variable st, st_nxt : natural := 1;
     variable st_prev : integer := -1;
-    variable prev_req : MSG_T := (others => '0');
+    variable prev_req : MSG_T := ZERO_MSG;
     
     variable t7 : boolean := false;
     
@@ -73,7 +73,7 @@ begin
     
   begin
     if en = '1' and rst = '1' then
-      cpu_req_o <= (others => '0');
+      cpu_req_o <= ZERO_MSG;
       st := 1;
       
     elsif en = '1' and (rising_edge(clk)) then
@@ -93,7 +93,7 @@ begin
         end if;
       elsif st = 2 then -- DONE
         sim_end <= '1';
-        cpu_req_o <= (others =>'0');
+        cpu_req_o <= ZERO_MSG;
 
       elsif st = 3 then -- SND (r|w req)
 
@@ -133,21 +133,21 @@ begin
         --  t7_adr := t7_adr and X"1FFFFFFF"; -- gfx --TODO need to change gfx
         --end if;
 
-        cpu_req_o <= "1" & t7_cmd & t7_adr & t7_adr;
+        cpu_req_o <= ('1', t7_cmd, ZERO_TAG, ZERO_ID, t7_adr, t7_adr);
         dbg(t7_cmd & t7_adr & t7_adr);
-        prev_req := "1" & t7_cmd & t7_adr & t7_adr;
+        prev_req := ('1', t7_cmd, ZERO_TAG, ZERO_ID, t7_adr, t7_adr);
         st := 4;
       elsif st = 4 then
         if cpu_req_ack_i = '1' then
-          cpu_req_o <= (others => '0');
+          cpu_req_o <= ZERO_MSG;
           st := 5;
         end if;
       elsif st = 5 then -- WAIT_RES
-        cpu_req_o <= (others => '0');
+        cpu_req_o <= ZERO_MSG;
         if (not RWT_WAITRES) or -- if no need to wait for resp
           is_rw_cmd(cpu_res_i) then -- or need to wait for resp and resp has arrived
           st_nxt := 1;
-          dbg("000" & cpu_res_i);
+          --dbg("000" & cpu_res_i);
           st := 0;
         end if;
       end if;
@@ -188,7 +188,7 @@ begin  -- architecture pwrtx
  pwrt_p : process(rst, clk, en)
    variable st, st_nxt : natural := 1;
    variable st_prev : integer := -1;
-   variable prev_req : MSG_T := (others => '0');
+   variable prev_req : MSG_T := ZERO_MSG;
     
    variable t6 : boolean := false;
 
@@ -210,7 +210,7 @@ begin  -- architecture pwrtx
     
  begin
     if en = '1' and rst = '1' then
-      cpu_req_o <= (others => '0');
+      cpu_req_o <= ZERO_MSG;
       st := 1;
       
     elsif en = '1' and (rising_edge(clk)) then
@@ -251,10 +251,10 @@ begin  -- architecture pwrtx
         --  (t6_r % 4) + 1 since there are 4 peripherals and their ids start at 1
         t6_devid := std_logic_vector(to_unsigned((t6_r mod 4) + 1, t6_devid'length));
         
-        cpu_req_o <= "1" & t6_cmd & pad32(t6_cpuid) & pad32(t6_devid);
+        cpu_req_o <= ('1', t6_cmd, ZERO_TAG, ZERO_ID, pad32(t6_cpuid), pad32(t6_devid));
         st := 4;
       elsif st = 4 then -- WAIT RES
-        cpu_req_o <= (others => '0');
+        cpu_req_o <= ZERO_MSG;
         --if is_valid(cpu_res_i) then
         --  st := 60;
         --end if;

@@ -13,7 +13,7 @@ entity peripheral is
        id_i       : in IP_T;
        
        ---write address channel
-       waddr_i      : in  std_logic_vector(31 downto 0);
+       waddr_i      : in  ADR_T;
        wlen_i       : in  std_logic_vector(9 downto 0);
        wsize_i      : in  std_logic_vector(9 downto 0);
        wvalid_i     : in  std_logic;
@@ -56,7 +56,7 @@ entity peripheral is
 end peripheral;
 
 architecture rtl of peripheral is
-  type ram_type is array (0 to natural(2 ** 5 - 1) - 1) of std_logic_vector(31 downto 0);
+  type ram_type is array (0 to natural(2 ** 5 - 1) - 1) of ADR_T;
   signal ROM_array : ram_type  := (others => (others => '0'));
   signal poweron   : std_logic := '1';
 
@@ -182,17 +182,17 @@ begin
     variable pwr_req : MSG_T;
   begin
     if reset = '1' then
-      pwr_res_o <= (others => '0');
+      pwr_res_o <= ZERO_MSG;
 
     elsif (rising_edge(clock)) then
       pwr_res_o <= pwr_req;
       pwr_req := pwr_req_i;
-      if get_cmd(pwr_req) = PWRUP_CMD then
+      if pwr_req.cmd = PWRUP_CMD then
         poweron <= '1';
-      elsif get_cmd(pwr_req) = PWRDN_CMD then
+      elsif pwr_req.cmd = PWRDN_CMD then
         poweron <= '0';
       else
-        pwr_req := (others => '0');
+        pwr_req := ZERO_MSG;
       end if;
     end if;
   end process;
@@ -226,14 +226,14 @@ begin
     
   begin
       if reset = '1' then
-        upreq_o <= (others => '0');
+        upreq_o <= ZERO_MSG;
         --ct := rand_nat(to_integer(unsigned(TEST(UREQ))));
         st := 0;
       elsif(rising_edge(clock)) then
         if st = 1 then -- delay
           rnd_dlay(b, s, dc, st, st_nxt);
         elsif st = 2 then -- done
-          upreq_o <= (others => '0');
+          upreq_o <= ZERO_MSG;
           sim_end <= '1';
         elsif st = 0 then -- check
           if is_tset(TEST(UREQ)) and
@@ -285,14 +285,10 @@ begin
             tcmd := WRITE_CMD;
           end if;
           
-          upreq_o <= "1" & tcmd & t_adr & ZEROS32; -- TODO causes
-                                                             -- warning when
-                                                             -- reading adr 800..
-                                                             -- (not happening when
-                                                             -- reading addr 0)
+          upreq_o <= ('1', tcmd, ZERO_TAG, ZERO_ID, t_adr, ZERO_DAT);
           st := 4;
         elsif st = 4 then
-          upreq_o <= (others => '0');
+          upreq_o <= ZERO_MSG;
           -- do not wait for response
           st_nxt := 0;
           st := 1; -- delay next check

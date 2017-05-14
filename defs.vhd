@@ -10,42 +10,50 @@ package defs is
   constant ADR_WIDTH : positive := 32;
   constant DAT_WIDTH : positive := 32;
 
-  type MSG_TYP is record
+  type MSG_T is record
    val       : std_logic;                     -- valid bit;
    cmd       : std_logic_vector(7 downto 0);
    tag       : std_logic_vector(7 downto 0);  -- src
    id        : std_logic_vector(7 downto 0);  --sequence id
    adr       : std_logic_vector(31 downto 0);
    dat       : std_logic_vector(31 downto 0);
-  end record MSG_TYP;
+  end record MSG_T;
 
-  type BMSG_TYP is record
+  type BMSG_T is record
    val       : std_logic;                     -- valid bit;
    cmd       : std_logic_vector(7 downto 0);
    tag       : std_logic_vector(7 downto 0);  -- src
    id        : std_logic_vector(7 downto 0);  --sequence id
    adr       : std_logic_vector(31 downto 0);
    dat       : std_logic_vector(31 downto 0);
-  end record BMSG_TYP;
+  end record BMSG_T;
   
-  constant ZEROS_MSG : MSG_TYP := ('0',
-                                        (others => '0'),
-                                        (others => '0'),
-                                        (others => '0'),
-                                        (others => '0'),
-                                        (others => '0'));
+  constant ZERO_MSG : MSG_T := ('0',
+                                (others => '0'),
+                                (others => '0'),
+                                (others => '0'),
+                                (others => '0'),
+                                (others => '0'));
+
+  constant ZERO_BMSG : BMSG_T := ('0',
+                                  (others => '0'),
+                                  (others => '0'),
+                                  (others => '0'),
+                                  (others => '0'),
+                                  (others => '0'));
+
   
-  subtype MSG_T is std_logic_vector(MSG_WIDTH-1 downto 0);
+--  subtype MSG_T is std_logic_vector(MSG_WIDTH-1 downto 0);
   subtype CMD_T is std_logic_vector(CMD_WIDTH-1 downto 0);
   subtype ADR_T is std_logic_vector(ADR_WIDTH-1 downto 0);
   subtype DAT_T is std_logic_vector(DAT_WIDTH-1 downto 0);
 
-  subtype WMSG_T is std_logic_vector(WMSG_WIDTH-1 downto 0);
-  subtype BMSG_T is std_logic_vector(BMSG_WIDTH-1 downto 0); -- bus message
+--  subtype WMSG_T is std_logic_vector(WMSG_WIDTH-1 downto 0);
+--  subtype BMSG_T is std_logic_vector(BMSG_WIDTH-1 downto 0); -- bus message
   subtype DEST_T is std_logic_vector(2 downto 0);
 
-  constant ZERO_MSG : MSG_T := (others => '0');
-  constant ZERO_BMSG : BMSG_T := (others => '0');
+--  constant ZERO_MSG : MSG_T := (others => '0');
+--  constant ZERO_BMSG : BMSG_T := (others => '0');
   
   constant READ_CMD  : CMD_T := "01000000"; --x"40";
   constant WRITE_CMD : CMD_T := "10000000"; --x"80";
@@ -55,14 +63,15 @@ package defs is
   constant ONES_CMD : CMD_T  := x"ff";
 
   constant ZERO_480 : std_logic_vector(479 downto 0) := (others => '0');
-  
-  constant ZEROS32 : std_logic_vector(31 downto 0) := (others => '0');
+
+  constant ZERO_TAG, ZERO_ID : std_logic_vector(7 downto 0) := x"00";
+  constant ZEROS32, ZERO_ADR, ZERO_DAT : std_logic_vector(31 downto 0) := (others => '0');
   constant ONES32 : std_logic_vector(31 downto 0) := (others => '1');
 
-  constant VAL_MASK : MSG_T := "1" & ZEROS_CMD & ZEROS32 & ZEROS32;
-  constant CMD_MASK : MSG_T := "0" & ONES_CMD & ZEROS32 & ZEROS32;
-  constant ADR_MASK : MSG_T := "0" & ZEROS_CMD & ONES32 & ZEROS32;
-  constant DAT_MASK : MSG_T := "0" & ZEROS_CMD & ZEROS32 & ONES32;
+  -- constant VAL_MASK : MSG_T := "1" & ZEROS_CMD & ZEROS32 & ZEROS32;
+  -- constant CMD_MASK : MSG_T := "0" & ONES_CMD & ZEROS32 & ZEROS32;
+  -- constant ADR_MASK : MSG_T := "0" & ZEROS_CMD & ONES32 & ZEROS32;
+  -- constant DAT_MASK : MSG_T := "0" & ZEROS_CMD & ZEROS32 & ONES32;
 
   subtype IPTAG_T is std_logic_vector(2 downto 0);
   constant CPU0_TAG  : IPTAG_T := o"0";

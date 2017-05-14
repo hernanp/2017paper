@@ -15,7 +15,7 @@ entity ic is
     cache2_req_i                           : in  MSG_T;
     wb_req1_i, wb_req2_i                   : in  BMSG_T;
 
-    up_snp_res_i                           : in  WMSG_T;
+    up_snp_res_i                           : in  MSG_T;
     up_snp_hit_i                           : in  std_logic;
     full_snp_req1_i                        : in  std_logic;
 
@@ -24,7 +24,7 @@ entity ic is
     
     bus_res1_o                            : out BMSG_T;
     bus_res2_o                            : out BMSG_T;
-    up_snp_req_o                          : out WMSG_T;
+    up_snp_req_o                          : out MSG_T;
 
     full_wb1_o, full_srs1_o, full_wb2_o, full_mrs_o : out std_logic;
     pwr_req_o                               : out MSG_T;
@@ -212,7 +212,7 @@ architecture rtl of ic is
   
   signal in6, in7, out6, out7 : BMSG_T;
 
-  signal in2, out2                    : std_logic_vector(76 downto 0);
+  signal in2, out2                    : MSG_T;
   signal we2, we6, we7, re7, re2, re6 : std_logic := '0';
   signal emp2, emp6, emp7, ful2       : std_logic := '0';
 
@@ -220,43 +220,43 @@ architecture rtl of ic is
   signal mem_ack1, mem_ack2, brs1_ack1, brs1_ack2, brs2_ack1, brs2_ack2 : std_logic;
   signal mem_ack, mem_ack3, mem_ack4, mem_ack5, mem_ack6                : std_logic;
 
-  signal tomem1, tomem2, tomem3, tomem4, tomem5, tomem6 : std_logic_vector(75 downto 0) := (others => '0');
+  signal tomem1, tomem2, tomem3, tomem4, tomem5, tomem6 : MSG_T := ZERO_MSG;
 
   signal wb_ack1, wb_ack2 : std_logic;
-  signal mem_wb1, mem_wb2 : std_logic_vector(552 downto 0) := (others => '0');
+  signal mem_wb1, mem_wb2 : BMSG_T := ZERO_BMSG;
   --state information of power
-  signal gfxpoweron       : std_logic                      := '0';
+  signal gfxpoweron : std_logic := '0';
 
-  signal adr_0, adr_1                                   : std_logic_vector(31 downto 0);
+  signal adr_0, adr_1                                   : ADR_T;
   signal tmp_sp1, tmp_sp2                               : MSG_T;
   signal pwr_req1, pwr_req2                             : MSG_T;
 -- (9 bits)
   signal pwr_ack1, pwr_ack2                             : std_logic;
-  signal mem_wb, gfx_wb, audio_wb, usb_wb, uart_wb      : std_logic_vector(552 downto 0);
-  signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : std_logic_vector(75 downto 0);
+  signal mem_wb, gfx_wb, audio_wb, usb_wb, uart_wb      : BMSG_T;
+  signal tomem_p, togfx_p, touart_p, tousb_p, toaudio_p : MSG_T;
 
   signal gfx_fifo_din, gfx_fifo_dout : MSG_T;
   signal in13, out13, in14, out14, in15, out15 : MSG_T;
-  signal in8, out8, in10, out10, in11, out11, in12, out12 : std_logic_vector(75 downto 0);
+  signal in8, out8, in10, out10, in11, out11, in12, out12 : MSG_t;
   signal we8, re8, gfx_fifo_re, we9, re10, we10, re11, we11, re12, we12, re13, we13, re14, we14, re15, we15 : std_logic := '0';
   signal emp8, gfx_fifo_emp, emp10, emp11, emp12, emp13, emp14, emp15                                       : std_logic := '0';
 
-  signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res1_7, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6 : std_logic_vector(552 downto 0);
+  signal bus_res1_3, bus_res2_3, bus_res1_4, bus_res1_5, bus_res1_7, bus_res2_4, bus_res2_5, bus_res1_6, bus_res2_6 : BMSG_T;
 
-  signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1                                    : std_logic;
-  signal gfx_ack3, gfx_ack4, gfx_ack5, gfx_ack6,gfx_ack,usb_ack,uart_ack,audio_ack                                    : std_logic;
-  signal uart_ack3, uart_ack4, uart_ack5, uart_ack6                                                                   : std_logic;
-  signal usb_ack3, usb_ack4, usb_ack5, usb_ack6                                                                       : std_logic;
-  signal audio_ack3, audio_ack4, audio_ack5, audio_ack6                                                               : std_logic;
+  signal gfx_ack1, gfx_ack2, audio_ack1, audio_ack2, usb_ack1, usb_ack2, uart_ack1 : std_logic;
+  signal gfx_ack3, gfx_ack4, gfx_ack5, gfx_ack6,gfx_ack,usb_ack,uart_ack,audio_ack : std_logic;
+  signal uart_ack3, uart_ack4, uart_ack5, uart_ack6 : std_logic;
+  signal usb_ack3, usb_ack4, usb_ack5, usb_ack6 : std_logic;
+  signal audio_ack3, audio_ack4, audio_ack5, audio_ack6 : std_logic;
   signal uart_ack2, brs1_ack3, brs2_ack3, brs1_ack4, brs1_ack5, brs1_ack6, brs1_ack7, brs2_ack5, brs2_ack4, brs2_ack6 : std_logic;
   signal togfx1, togfx2, togfx3 --, togfx4, togfx5, togfx6
-                                : std_logic_vector(75 downto 0) := (others => '0');
-  signal toaudio1, toaudio2, toaudio3, toaudio4, toaudio5, toaudio6                                                   : std_logic_vector(75 downto 0) := (others => '0');
-  signal tousb1, tousb2, tousb3, tousb4, tousb5, tousb6                                                               : std_logic_vector(75 downto 0) := (others => '0');
-  signal touart1, touart2, touart3, touart4, touart5, touart6                                                         : std_logic_vector(75 downto 0) := (others => '0');
+    : MSG_T := ZERO_MSG;
+  signal toaudio1, toaudio2, toaudio3, toaudio4, toaudio5, toaudio6                                 : MSG_T := ZERO_MSG;
+  signal tousb1, tousb2, tousb3, tousb4, tousb5, tousb6                                             : MSG_T := ZERO_MSG;
+  signal touart1, touart2, touart3, touart4, touart5, touart6                                       : MSG_T := ZERO_MSG;
 
   signal gfx_wb_ack1, gfx_wb_ack2, audio_wb_ack1, audio_wb_ack2, usb_wb_ack1, usb_wb_ack2, uart_wb_ack1, uart_wb_ack2 : std_logic;
-  signal gfx_wb1, gfx_wb2, audio_wb1, audio_wb2, usb_wb1, usb_wb2, uart_wb1, uart_wb2                                 : std_logic_vector(552 downto 0) := (others => '0');
+  signal gfx_wb1, gfx_wb2, audio_wb1, audio_wb2, usb_wb1, usb_wb2, uart_wb1, uart_wb2                                 : BMSG_T := ZERO_BMSG;
   --state information of power
   signal audiopoweron                                                                                                 : std_logic                      := '0';
   signal usbpoweron                                                                                                   : std_logic                      := '0';
@@ -265,7 +265,7 @@ architecture rtl of ic is
 --  signal pwr_req3, pwr_req4, pwr_req5, pwr_req6 : std_logic_vector(4 downto 0);
 --  signal pwr_ack3, pwr_ack4, pwr_ack5, pwr_ack6 : std_logic;
 
-  signal snp1_1, snp1_2, snp1_3, snp1_4, snp1_5, snp1_6, snp2_1, snp2_2, snp2_3, snp2_4, snp2_5, snp2_6                                     : std_logic_vector(75 downto 0);
+  signal snp1_1, snp1_2, snp1_3, snp1_4, snp1_5, snp1_6, snp2_1, snp2_2, snp2_3, snp2_4, snp2_5, snp2_6 : MSG_T;
   signal snp1_ack1, snp1_ack2, snp1_ack3, snp1_ack4, snp1_ack5, snp1_ack6, snp2_ack1, snp2_ack2, snp2_ack3, snp2_ack4, snp2_ack5, snp2_ack6 : std_logic;
 
   signal gfx_upres1, gfx_upres2, gfx_upres3                   : MSG_T;
@@ -285,8 +285,8 @@ architecture rtl of ic is
   signal uart_upres4, uart_upres5, uart_upres6                : MSG_T;
   signal uart_upres_ack4, uart_upres_ack5, uart_upres_ack6    : std_logic;
   
-  signal gfx_write1,mem_write1,usb_write1,uart_write1,audio_write1:std_logic_vector(75 downto 0);
-  signal mem_write2,mem_write3,gfx_write2,gfx_write3,usb_write2,usb_write3,uart_write2,uart_write3,audio_write2,audio_write3:std_logic_vector(552 downto 0);
+  signal gfx_write1,mem_write1,usb_write1,uart_write1,audio_write1 : MSG_T;
+  signal mem_write2,mem_write3,gfx_write2,gfx_write3,usb_write2,usb_write3,uart_write2,uart_write3,audio_write2,audio_write3: BMSG_T;
   signal mem_write_ack1,gfx_write_ack1,usb_write_ack1,uart_write_ack1,audio_write_ack1: std_logic;
   signal mem_write_ack2,gfx_write_ack2,usb_write_ack2,uart_write_ack2,audio_write_ack2: std_logic;
   signal mem_write_ack3,gfx_write_ack3,usb_write_ack3,uart_write_ack3,audio_write_ack3: std_logic;
@@ -294,10 +294,7 @@ architecture rtl of ic is
   signal tmp_cache_req1, tmp_cache_req2: MSG_T;
 
 begin
-  wb_fifo1 : entity work.fifo(rtl)
-    generic map(
-      DATA_WIDTH => BMSG_WIDTH
-      )
+  wb_fifo1 : entity work.fifob(rtl)
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -308,10 +305,7 @@ begin
       Full    => full_wb1_o,
       Empty   => emp6
       );
-  wb_fifo2 : entity work.fifo(rtl)
-    generic map(
-      DATA_WIDTH => BMSG_WIDTH
-      )
+  wb_fifo2 : entity work.fifob(rtl)
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -324,9 +318,6 @@ begin
       );
 
   gfx_fifo : entity work.fifo(rtl)
-    generic map(
-      DATA_WIDTH => MSG_WIDTH
-      )
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -354,13 +345,11 @@ begin
       );
   
   gfx_fifo_p : process(reset, Clock)
-    variable valid : MSG_T :=
-      '1' & ZEROS_CMD & ZEROS32 & ZEROS32;
   begin
     if reset = '1' then
       we9 <= '0';
     elsif rising_edge(Clock) then
-      if is_valid(gfx_upreq_i) then
+      if gfx_upreq_i.val = '1' then
         gfx_fifo_din <= gfx_upreq_i;
         we9 <= '1';
       else
@@ -370,9 +359,6 @@ begin
   end process;
 
   audio_fifo : entity work.fifo(rtl)
-    generic map(
-      DATA_WIDTH => MSG_WIDTH
-      )
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -399,9 +385,6 @@ begin
   end process;
 
   usb_fifo : entity work.fifo(rtl)
-    generic map(
-      DATA_WIDTH => MSG_WIDTH
-      )
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -428,9 +411,6 @@ begin
   end process;
   
   uart_fifo : entity work.fifo(rtl)
-    generic map(
-      DATA_WIDTH => MSG_WIDTH
-      )
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -447,7 +427,7 @@ begin
     if reset = '1' then
       we15 <= '0';
     elsif rising_edge(Clock) then
-      if (uart_upreq_i(72 downto 72) = "1") then
+      if (uart_upreq_i.val = '1') then
         in15 <= uart_upreq_i;
         we15 <= '1';
       else
@@ -475,8 +455,10 @@ begin
         end if;
       elsif st = 1 then -- snd_to_arbiter
         gfx_fifo_re <= '0';
-        if is_valid(gfx_fifo_dout) then
-          snp1_2 <= GFX_TAG & gfx_fifo_dout;
+        if gfx_fifo_dout.val = '1' then
+          snp1_2 <= (gfx_fifo_dout.val, gfx_fifo_dout.cmd,
+                     "00000" & GFX_TAG, gfx_fifo_dout.id,
+                     gfx_fifo_dout.adr, gfx_fifo_dout.dat);
           st  := 2;
         end if;
       elsif st = 2 then -- done
@@ -502,8 +484,10 @@ begin
         end if;
       elsif stage = 1 then
         re13 <= '0';
-        if is_valid(out13) then
-          snp1_3 <= AUDIO_TAG & out13;
+        if out13.val = '1' then
+          snp1_3 <=  (out13.val, out13.cmd,
+                     AUDIO_TAG, out13.id,
+                     out13.adr, out13.dat);
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -532,7 +516,9 @@ begin
       elsif stage = 1 then
         re14 <= '0';
         if out14(72 downto 72) = "1" then
-          snp1_4 <= USB_TAG & out14;
+          snp1_4 <=  (out14.val, out14.cmd,
+                     USB_TAG, out14.id,
+                     out14.adr, out14.dat);
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -561,7 +547,9 @@ begin
       elsif stage = 1 then
         re15 <= '0';
         if out15(72 downto 72) = "1" then
-          snp1_5 <= UART_TAG & out15;
+          snp1_5 <=  (out15.val, out15.cmd,
+                     UART_TAG, out15.id,
+                     out15.adr, out15.dat);
           stage  := 2;
         end if;
       elsif stage = 2 then
@@ -602,8 +590,8 @@ begin
     variable state   : integer                        := 0;
     variable prev_st : integer := -1;
     variable lp      : integer                        := 0;
-    variable tep_mem : std_logic_vector(75 downto 0);
-    variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+    variable tep_mem : MSG_T;
+    variable nullreq : BMSG_T := ZERO_BMSG;
 	 variable slot : integer;
   begin
     if reset = '1' then
@@ -623,10 +611,10 @@ begin
         uart_upres1  <= (others => '0');
         audio_upres1 <= (others => '0');
         usb_upres1   <= (others => '0');
-        if is_valid(tomem_p) and cmd_eq(tomem_p, READ_CMD) then
+        if tomem_p.val = '1' and cmd_eq(tomem_p, READ_CMD) then
           tep_mem := tomem_p;
           state   := 16;
-        elsif is_valid(tomem_p) and
+        elsif tomem_p.val = '1' and
           cmd_eq(tomem_p, WRITE_CMD) then
           --if (dst_eq(tomem_p, GFX_TAG) or
           --    dst_eq(tomem_p, USB_TAG)  or
@@ -776,8 +764,8 @@ begin
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
     variable st   : integer                        := 20; -- TODO hack?
     variable lp      : integer                        := 0;
-    variable tep_gfx1 : std_logic_vector(75 downto 0);
-    variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+    variable tep_gfx1 : MSG_T;
+    variable nullreq : BMSG_T := ZERO_MSG;
     variable slot : integer :=0;
     variable prev_st, prev_togfx_p : integer := -1;
   begin
@@ -797,7 +785,7 @@ begin
         uart_upres2  <= (others => '0');
         audio_upres2 <= (others => '0');
         usb_upres2   <= (others => '0');
-        if (is_valid(togfx_p) and
+        if (togfx_p.val = '1' and
           cmd_eq(togfx_p, READ_CMD)) then
           -- HP: I believe the following code is incorrect:
           --or
@@ -805,7 +793,7 @@ begin
           --togfx_p(75 downto 73)="101")) then -- valid and read
           tep_gfx1 := togfx_p;
           st   := 6;
-        elsif (is_valid(togfx_p) and
+        elsif (togfx_p.val = '1' and
                cmd_eq(togfx_p, WRITE_CMD)) then
           gfx_write1<=togfx_p;
           st   := 9;
@@ -914,8 +902,8 @@ begin
   mem_write_p:process(reset, Clock)
     variable state:integer :=0;
     variable prev_st:integer := -1;
-    variable tep_mem:std_logic_vector(75 downto 0);
-    variable tep_mem_l:std_logic_vector(552 downto 0);
+    variable tep_mem:MSG_T;
+    variable tep_mem_l:BMSG_T;
     variable flag:std_logic;
     variable tdata :std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -939,7 +927,7 @@ begin
         mem_write_ack1<='0';
         mem_write_ack2<='0';
         mem_write_ack3<='0';
-        if is_valid(mem_write1) then
+        if mem_write1.val = '1' then
           state := 1;
           tep_mem:=mem_write1;
         elsif mem_write2(552 downto 552)="1" then
@@ -1039,8 +1027,8 @@ begin
   
   gfx_write_p : process(reset, Clock)
     variable state:integer :=0;
-    variable tep_gfx:std_logic_vector(75 downto 0);
-    variable tep_gfx_l:std_logic_vector(552 downto 0);
+    variable tep_gfx:MSG_T;
+    variable tep_gfx_l:BMSG_T;
     variable flag:std_logic;
     variable tdata :std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -1056,7 +1044,7 @@ begin
         gfx_write_ack1<='0';
         gfx_write_ack2<='0';
         gfx_write_ack3<='0';
-        if is_valid(gfx_write1) then
+        if gfx_write1.val = '1' then
           state := 1;
           tep_gfx:=gfx_write1;
           gfx_write_ack1<='1';
@@ -1140,8 +1128,8 @@ begin
   
   uart_write_p : process(reset, Clock)
     variable state:integer :=0;
-    variable tep_uart:std_logic_vector(75 downto 0);
-    variable tep_uart_l:std_logic_vector(552 downto 0);
+    variable tep_uart:MSG_T;
+    variable tep_uart_l:BMSG_T;
     variable flag:std_logic;
     variable tdata :std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -1155,7 +1143,7 @@ begin
         uart_write_ack1<='0';
         uart_write_ack2<='0';
         uart_write_ack3<='0';
-        if is_valid(uart_write1) then
+        if uart_write1.val = '1' then
           state := 1;
           tep_uart:=uart_write1;
     		 uart_write_ack1<='1';
@@ -1268,8 +1256,8 @@ begin
 
   audio_write_p : process(reset, Clock)
     variable state:integer :=0;
-    variable tep_audio:std_logic_vector(75 downto 0);
-    variable tep_audio_l:std_logic_vector(552 downto 0);
+    variable tep_audio:MSG_T;
+    variable tep_audio_l:BMSG_T;
     variable flag:std_logic;
     variable tdata :std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -1283,7 +1271,7 @@ begin
         audio_write_ack1 <= '0';
         audio_write_ack2 <= '0';
         audio_write_ack3 <= '0';
-        if is_valid(audio_write1) then
+        if audio_write1.val = '1' then
           state := 1;
           tep_audio:=audio_write1;
     		 audio_write_ack1<='1';
@@ -1369,8 +1357,8 @@ begin
     variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
     variable state   : integer                        := 20;
     variable lp      : integer                        := 0;
-    variable tep_usb : std_logic_vector(75 downto 0);
-    variable nullreq : std_logic_vector(552 downto 0) := (others => '0');
+    variable tep_usb : MSG_T;
+    variable nullreq : BMSG_T := ZERO_BMSG;
 	 variable slot :integer :=0;
   begin
     if reset = '1' then
@@ -1388,10 +1376,10 @@ begin
         uart_upres4  <= (others => '0');
         audio_upres4 <= (others => '0');
         --usb_upres4 <= (others => '0');
-        if is_valid(tousb_p) and (tousb_p(71 downto 64) = "01000000" or tousb_p(75 downto 73)="000" or tousb_p(75 downto 73)="101")then
+        if tousb_p.val = '1' and (tousb_p(71 downto 64) = "01000000" or tousb_p(75 downto 73)="000" or tousb_p(75 downto 73)="101")then
           tep_usb := tousb_p;
           state   := 6;
-        elsif is_valid(tousb_p) and tousb_p(71 downto 64) = "10000000" then
+        elsif tousb_p.val = '1' and tousb_p(71 downto 64) = "10000000" then
           usb_write1<=tousb_p;
           state   := 9;
         end if;
@@ -1494,8 +1482,8 @@ begin
     
   usb_write_p : process(reset, Clock)
     variable state:integer :=0;
-    variable tep_usb:std_logic_vector(75 downto 0);
-    variable tep_usb_l:std_logic_vector(552 downto 0);
+    variable tep_usb:MSG_T;
+    variable tep_usb_l:BMSG_T;
     variable flag:std_logic;
     variable tdata :std_logic_vector(511 downto 0);
     variable lp:integer :=0;
@@ -1509,7 +1497,7 @@ begin
         usb_write_ack1 <= '0';
         usb_write_ack2 <= '0';
         usb_write_ack3 <= '0';
-        if is_valid(usb_write1) then
+        if usb_write1.val = '1' then
           state := 1;
           tep_usb:=usb_write1;
     		 usb_write_ack1 <= '1';
@@ -1609,8 +1597,8 @@ begin
     variable sdata    : std_logic_vector(31 downto 0)  := (others => '0');
     variable state    : integer                        := 20; -- TODO hack?
     variable lp       : integer                        := 0;
-    variable tep_uart : std_logic_vector(75 downto 0);
-    variable nullreq  : std_logic_vector(552 downto 0) := (others => '0');
+    variable tep_uart : MSG_T;
+    variable nullreq  : BMSG_T := ZERO_BMSG;
 	 variable slot:integer :=0;
   begin
     if reset = '1' then
@@ -1628,11 +1616,15 @@ begin
         --uart_upres3 <= (others => '0');
         audio_upres3 <= (others => '0');
         usb_upres3   <= (others => '0');
-        if is_valid(touart_p) and ( touart_p(71 downto 64) = "01000000" or touart_p(75 downto 73)="000" or touart_p(75 downto 73)="101")then
+        if touart_p.val = '1' and
+          (touart_p.cmd = READ_CMD or
+           touart_p.tag = CPU0_TAG or
+           touart_p.tag = CPU1_TAG) then
           tep_uart := touart_p;
           state    := 6;
-        elsif is_valid(touart_p) and touart_p(71 downto 64) = "10000000" then
-          uart_write1<=touart_p;
+        elsif touart_p.val = '1' and
+          touart_p.cmd = WRITE_CMD then
+          uart_write1 <= touart_p;
           state   := 9;
         end if;
       elsif state = 6 then
@@ -1927,8 +1919,8 @@ begin
     variable sdata     : std_logic_vector(31 downto 0)  := (others => '0');
     variable state     : integer                        := 20; -- TODO hack?
     variable lp        : integer                        := 0;
-    variable tep_audio : std_logic_vector(75 downto 0);
-    variable nullreq   : std_logic_vector(552 downto 0) := (others => '0');
+    variable tep_audio : MSG_T;
+    variable nullreq   : BMSG_T := ZERO_BMSG;
 	 variable slot :integer :=0;
   begin
     if reset = '1' then
@@ -1946,10 +1938,14 @@ begin
         uart_upres5 <= (others => '0');
         --audio_upres5 <= (others => '0');
         usb_upres5  <= (others => '0');
-        if is_valid(toaudio_p) and (toaudio_p(71 downto 64) = "01000000"  or toaudio_p(75 downto 73)="000" or toaudio_p(75 downto 73)="101") then
+      if toaudio_p.val = '1' and
+        (toaudio_p(71 downto 64) = "01000000"  or
+         toaudio_p(75 downto 73)="000" or
+         toaudio_p(75 downto 73)="101") then
           tep_audio := toaudio_p;
           state     := 6;
-        elsif is_valid(toaudio_p) and toaudio_p(71 downto 64) = "10000000" then
+        elsif toaudio_p.val = '1' and
+          toaudio_p(71 downto 64) = "10000000" then
           audio_write1<=toaudio_p;
           state   := 9;
         end if;
@@ -2084,7 +2080,7 @@ begin
     if reset = '1' then
       we2 <= '0';
     elsif rising_edge(Clock) then
-      if is_valid(up_snp_res_i) then
+      if up_snp_res_i.val = '1' then
         if up_snp_hit_i = '0' then
           in2 <= '0' & up_snp_res_i;
         else
@@ -2252,10 +2248,10 @@ begin
       st := 0;
     elsif rising_edge(Clock) then
       if st = 0 then
-        if is_valid(pwr_res_i) then
-          dst := get_dat(pwr_res_i);
+        if pwr_res_i.val = '1' then
+          dst := pwr_res_i.dat;
 
-          if get_cmd(pwr_res_i) = PWRDN_CMD then
+          if pwr_res_i.cmd = PWRDN_CMD then
             if dst = pad32(GFX_TAG) then
               gfxpoweron <= '0';
             elsif dst = pad32(AUDIO_TAG) then
@@ -2265,7 +2261,7 @@ begin
             elsif dst = pad32(UART_TAG) then
               uartpoweron <= '0';
             end if;
-          elsif get_cmd(pwr_res_i) = PWRUP_CMD then
+          elsif pwr_res_i.cmd = PWRUP_CMD then
             --report "pu";
             if dst = pad32(GFX_TAG) then
               --report "dst:gfx";
@@ -2453,7 +2449,8 @@ begin
           --log("000" & cache1_req_i);
           b := false;
         end if;
-        if is_valid(cache1_req_i) and is_pwr_cmd(cache1_req_i) then
+        if cache1_req_i.val = '1' and
+          is_pwr_cmd(cache1_req_i.cmd) then
           --report "valid!";
           pwr_req1 <= cache1_req_i;
           state    := 4;
@@ -2465,7 +2462,7 @@ begin
         --  ----don't forget to fill this up
         --  -----
         --  bus_res1_7 <= '1' & "11111111" & nildata;
-        elsif is_valid(cache1_req_i) then
+        elsif cache1_req_i.val = '1' then
           adr_0 <= get_adr(cache1_req_i);
     		 tmp_cache_req1 <= cache1_req_i;
           state := 2;
@@ -2529,17 +2526,16 @@ begin
   end process;
 
   ----deal with cache request
-  cache2_req_p : process(reset, Clock)
-    variable nilreq  : MSG_T  := (others => '0');
+  cache2_req_p : process(reset, clock)
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
   begin
     if reset = '1' then
-    --snp_req2 <= nilreq;
     elsif rising_edge(Clock) then
       if state = 0 then
-        if is_valid(cache2_req_i) and is_pwr_cmd(cache2_req_i) then
+        if cache2_req_i.val = '1' and
+          is_pwr_cmd(cache2_req_i.cmd) then
           pwr_req2 <= cache2_req_i;
           state    := 4;
           -- TODO CHECK THE CASE BELOW, SEEMS WRONG
@@ -2550,13 +2546,12 @@ begin
         --  ----don't forget to fill this up
         --  -----
         --  bus_res1_6 <= '1' & "11111111" & nildata;
-        elsif is_valid(cache2_req_i) then
+        elsif cache2_req_i.val = '1' then
           ---snp_req2 <= cache_req2;
           adr_0 <= cache2_req_i(63 downto 32);
           state := 2;
     		 tmp_cache_req2 <= cache2_req_i;
         else
-          ---snp_req2 <= nilreq;
           state := 0;
         end if;
       elsif state = 2 then
