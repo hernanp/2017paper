@@ -1,34 +1,35 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
+use work.defs.all;
 
 entity arbiter6 is
-  Generic (
-    constant DATA_WIDTH  : positive := 73
-	);
+  --Generic (
+  --  constant DATA_WIDTH  : positive := 73
+  --  );
   Port (
     clock: in std_logic;
     reset: in std_logic;
     
-    din1: 	in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+    din1: 	in MSG_T;
     ack1: 	out STD_LOGIC;
     
-    din2:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+    din2:	in MSG_T;
     ack2:	out std_logic;
     
-    din3:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+    din3:	in MSG_T;
     ack3:	out std_logic;
     
-    din4:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+    din4:	in MSG_T;
     ack4:	out std_logic;
     
-    din5:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+    din5:	in MSG_T;
     ack5:	out std_logic;
     
-    din6:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+    din6:	in MSG_T;
     ack6:	out std_logic;
     
-    dout:	out std_logic_vector(DATA_WIDTH - 1 downto 0)
+    dout:	out MSG_T
     );
 end arbiter6;
 
@@ -40,7 +41,6 @@ architecture rtl of arbiter6 is
   
 begin  
   process (reset, clock)
-    variable nilreq : std_logic_vector(DATA_WIDTH - 1 downto 0):=(others => '0');
   begin
     if reset = '1' then
       s_token <= 0;
@@ -50,41 +50,41 @@ begin
       s_ack4 <= '0';
       s_ack5 <= '0';
       s_ack6 <= '0';
-      dout <=  nilreq;
+      dout <=  ZERO_MSG;
     elsif rising_edge(clock) then
-      dout <= nilreq;
+      dout <= ZERO_MSG;
       s_ack1 <= '0';
       s_ack2 <= '0';   
       s_ack3 <= '0'; 
       s_ack4 <= '0';
       s_ack5 <= '0';   
       s_ack6 <= '0'; 
-      if din1(72 downto 72 ) = "1" then
+      if din1.val = '1' then
         if s_ack1 = '0' then
           dout <= din1;
           s_ack1 <= '1';
         end if; 
-      elsif din2(72 downto 72 )  = "1" then
+      elsif din2.val  = '1' then
         if s_ack2 = '0' then
           dout <= din2;
           s_ack2 <= '1';
         end if; 
-      elsif din3(72 downto 72 )  = "1" then
+      elsif din3.val  = '1' then
         if s_ack3 = '0' then
           dout <= din3;
           s_ack3 <= '1';
         end if; 
-      elsif din4(72 downto 72 )  = "1" then
+      elsif din4.val  = '1' then
         if s_ack4 = '0' then
           dout <= din4;
           s_ack4 <= '1';
         end if; 
-      elsif din5(72 downto 72 ) = "1" then
+      elsif din5.val = '1' then
         if s_ack5 = '0' then
           dout <= din5;
           s_ack5 <= '1';
         end if; 
-      elsif din6(72 downto 72 )  ="1" then
+      elsif din6.val  ='1' then
         if s_ack6 = '0' then
           dout <= din6;
           s_ack6 <= '1';

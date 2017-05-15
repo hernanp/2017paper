@@ -212,7 +212,7 @@ architecture rtl of ic is
   
   signal in6, in7, out6, out7 : BMSG_T;
 
-  signal in2, out2                    : MSG_T;
+  signal in2, out2                    : SNP_RES_T;
   signal we2, we6, we7, re7, re2, re6 : std_logic := '0';
   signal emp2, emp6, emp7, ful2       : std_logic := '0';
 
@@ -329,10 +329,7 @@ begin
       Empty   => gfx_fifo_emp
     );
   
-  snp_res_fifo : entity work.fifo(rtl)
-    generic map(
-      DATA_WIDTH => 77 -- TODO why not WMSG_WIDTH?
-      )
+  snp_res_fifo : entity work.fifo_snp(rtl)
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -375,7 +372,7 @@ begin
     if reset = '1' then
       we13 <= '0';
     elsif rising_edge(Clock) then
-      if (audio_upreq_i(72 downto 72) = "1") then
+      if (audio_upreq_i.val = '1') then
         in13 <= audio_upreq_i;
         we13 <= '1';
       else

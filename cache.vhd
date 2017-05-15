@@ -146,7 +146,7 @@ begin
       Full    => ssf_full,
       Empty   => ssf_emp
       );
-  up_snp_req_fifo : entity work.fifo(rtl) -- req from device
+  ureq_fifo : entity work.fifo(rtl) -- req from device
     generic map(
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )
@@ -163,7 +163,7 @@ begin
 
   --* Stores up snoop requests into fifo
   --* up_snp_req_i;; -> ;brf_in, brf_we;
-  ureq_req_fifo_p : process(Clock)
+  ureq_fifo_p : process(Clock)
   begin
     if reset = '1' then
       brf_we <= '0';
@@ -562,8 +562,8 @@ begin
       if bus_req_s.val = '1' then
         idx := to_integer(unsigned(bus_req_s.adr(14 downto 0)));
         fidx <= to_integer(unsigned(bus_req_s.adr(14 downto 0)));
-        -- idx := to_integer(unsigned(bus_req_s(45 downto 32)));
-        -- fidx <= to_integer(unsigned(bus_req_s(45 downto 32)));
+        -- idx := to_integer(unsigned(bus_req_s.adr(13 downto 0)));
+        -- fidx <= to_integer(unsigned(bus_req_s.adr(13 downto 0)));
         tcontent <= ROM_array(idx);
         memcont := ROM_array(idx);
         --if we can't find it in memory
@@ -571,17 +571,19 @@ begin
           (bus_req_s.cmd = READ_CMD and
            memcont(50 downto 50) = "0") or
           bus_req_s.cmd = WRITE_CMD or
-          memcont(49 downto 32) /= bus_req_s(63 downto 46) then
+          memcont(49 downto 32) /= bus_req_s.adr(31 downto 14) then -- 31 to 14
+                                                                    -- is tag
           cpu_mem_ack <= '1';
           cpu_mem_hit <= '0';
           cpu_mem_res <= bus_req_s;
         else -- it's a hit
           cpu_mem_ack <= '1';
           cpu_mem_hit     <= '1';
-          if bus_req_s(71 downto 64) = "10" then -- TODO why compare to 10?
+          if bus_req_s.cmd = WRITE_CMD then
             cpu_mem_res <= bus_req_s;
           else
-            cpu_mem_res <= bus_req_s(71 downto 32) & memcont(31 downto 0);
+            bus_req_s.dat <= memcont(31 downto 0);
+            cpu_mem_res <= bus_req_s;
           end if;
         end if;
       else
@@ -590,23 +592,23 @@ begin
 
       -- snoop memory request
       if snp_mem_req.val = '1' then
-        idx    := to_integer(unsigned(snp_mem_req(45 downto 32)));
+        idx    := to_integer(unsigned(snp_mem_req.adr(13 downto 0)));
         memcont := ROM_array(idx);
         -- if we can't find it in memory
         if memcont(52 downto 52) = "0" or -- it's a miss
-          memcont(49 downto 32) /= snp_mem_req(63 downto 46) then
+          memcont(49 downto 32) /= snp_mem_req.adr(31 downto 14) then -- cmp 
           snp_mem_ack <= '1';
           snp_mem_hit     <= '0';
-          snp_mem_res <= snp_mem_req(71 downto 0);
+          snp_mem_res <= snp_mem_req;
         else
           snp_mem_ack <= '1';
           snp_mem_hit     <= '1';
           --if it's write, invalidate the cache line
-          if snp_mem_req(71 downto 64) = WRITE_CMD then
+          if snp_mem_req.cmd = WRITE_CMD then
             ROM_array(idx)(52)          <= '0'; -- it's a miss
-            ROM_array(idx)(31 downto 0) <= snp_mem_req(31 downto 0);
-            snp_mem_res                     <= snp_mem_req(71 downto 32) &
-                                            ROM_array(idx)(31 downto 0);
+            ROM_array(idx)(31 downto 0) <= snp_mem_req.dat;
+            snp_mem_req.dat <= ROM_array(idx)(31 downto 0);
+            snp_mem_res <= snp_mem_req;     
           else
             --if it's read, mark the exclusive as 0
             ROM_array(idx)(50) <= '0';
@@ -623,7 +625,7 @@ begin
       -- upstream snoop req
       if usnp_mem_req.val = '1' then
         -- TODO whats in usnp_mem_req(41 downto 32)?
-        idx    := to_integer(unsigned(usnp_mem_req(41 downto 32))); -- memory addr
+        idx    := to_integer(unsigned(usnp_mem_req.adr(13 downto 0))); -- index
         memcont := ROM_array(idx);
         -- if we can't find it in memory
         --invalide  ---or tag different
@@ -631,7 +633,7 @@ begin
         if memcont(52 downto 52) = "0" or -- mem not found
           (bus_req_s.cmd = WRITE_CMD and
            memcont(50 downto 50) = "0") or -- TODO what is this bit?
-          memcont(49 downto 32) /= usnp_mem_req(63 downto 46) then -- TODO meaning?
+          memcont(49 downto 32) /= usnp_mem_req.adr(31 downto 14) then
           usnp_mem_ack <= '1';
           usnp_mem_hit <= '0';
           usnp_mem_res <= usnp_mem_req;
@@ -640,9 +642,9 @@ begin
           usnp_mem_hit <= '1';
           --if it's write, write it directly
           -----this need to be changed TODO ?
-          if usnp_mem_req(71 downto 64) = WRITE_CMD then
+          if usnp_mem_req.cmd = WRITE_CMD then
             ROM_array(idx)(52) <= '0';
-            ROM_array(idx)(31 downto 0) <= usnp_mem_req(31 downto 0);
+            ROM_array(idx)(31 downto 0) <= usnp_mem_req.dat;
             usnp_mem_res <= ('1', usnp_mem_req.cmd, usnp_mem_req.tag,
                              usnp_mem_req.id, usnp_mem_req.adr,
                              ROM_array(idx)(31 downto 0));
@@ -662,8 +664,8 @@ begin
    snp_wt_ack <='0';
       content <= ROM_array(7967);
 	  if mcu_write_req.val = '1' then
-        idx := to_integer(unsigned(mcu_write_req(45 downto 32)));
-        ROM_array(idx) <= "110" & mcu_write_req(63 downto 46) &
+        idx := to_integer(unsigned(mcu_write_req.adr(13 downto 0)));
+        ROM_array(idx) <= "110" & mcu_write_req.adr(31 downto 14) &
                            mcu_write_req.dat;
         write_ack       <= '1';
         upd_ack         <= '0';
@@ -671,22 +673,22 @@ begin
     	turn :=0;
     elsif snp_wt.val = '1' then
     	turn :=0;
-    	idx := to_integer(unsigned(snp_wt(45 downto 32)));
-      ROM_array(idx) <= "100" & snp_wt(63 downto 46) &
+    	idx := to_integer(unsigned(snp_wt.adr(13 downto 0)));
+      ROM_array(idx) <= "100" & snp_wt.adr(31 downto 14) &
                         snp_wt.dat;
       snp_wt_ack <= '1';
     	turn :=0;
       elsif  bus_res.val = '1' then
       	turn:=0;
-      	idx := to_integer(unsigned(bus_res(525 downto 512))) /16 * 16;
-      	tidx <= to_integer(unsigned(bus_res(525 downto 512)));
+      	idx := to_integer(unsigned(bus_res.adr(13 downto 0))) /16 * 16;
+      	tidx <= to_integer(unsigned(bus_res.adr(13 downto 0)));
         memcont := ROM_array(idx);
         
         --if tags do not match, dirty bit is 1,
         -- and write_back fifo in BUS is not full,
         if memcont(52 downto 52) = "1" and
           memcont(51 downto 51) = "1" and
-          memcont(49 downto 32) /= bus_res(63 downto 46) and
+          memcont(49 downto 32) /= bus_res.adr(31 downto 14) and
           full_wb_i /= '1' then
           wb_req_o <= ('1', WRITE_CMD, ZERO_TAG, ZERO_ID, bus_res.adr,
                        ROM_array(idx + 15)(31 downto 0) &
@@ -706,27 +708,27 @@ begin
                        ROM_array(idx + 1)(31 downto 0) &
                        ROM_array(idx)(31 downto 0));
         end if;
-        ROM_array(idx+15) <= "101" & bus_res(543 downto 526) & bus_res(511 downto 480);
-        ROM_array(idx+14) <= "101" & bus_res(543 downto 526) & bus_res(479 downto 448);
-        ROM_array(idx+13) <= "101" & bus_res(543 downto 526) & bus_res(447 downto 416);
-        ROM_array(idx+12) <= "101" & bus_res(543 downto 526) & bus_res(415 downto 384);
-        ROM_array(idx+11) <= "101" & bus_res(543 downto 526) & bus_res(383 downto 352);
-        ROM_array(idx+10) <= "101" & bus_res(543 downto 526) & bus_res(351 downto 320);
-        ROM_array(idx+9) <= "101" & bus_res(543 downto 526) & bus_res(319 downto 288);
-        ROM_array(idx+8) <= "101" & bus_res(543 downto 526) & bus_res(287 downto 256);
-        ROM_array(idx+7) <= "101" & bus_res(543 downto 526) & bus_res(255 downto 224);
-        ROM_array(idx+6) <= "101" & bus_res(543 downto 526) & bus_res(223 downto 192);
-        ROM_array(idx+5) <= "101" & bus_res(543 downto 526) & bus_res(191 downto 160);
-        ROM_array(idx+4) <= "101" & bus_res(543 downto 526) & bus_res(159 downto 128);
-        ROM_array(idx+3) <= "101" & bus_res(543 downto 526) & bus_res(127 downto 96);
-        ROM_array(idx+2) <= "101" & bus_res(543 downto 526) & bus_res(95 downto 64);
-        ROM_array(idx+1) <= "101" & bus_res(543 downto 526) & bus_res(63 downto 32);
-        ROM_array(idx) <= "101" & bus_res(543 downto 526) & bus_res(31 downto 0);
+        ROM_array(idx+15) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(511 downto 480);
+        ROM_array(idx+14) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(479 downto 448);
+        ROM_array(idx+13) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(447 downto 416);
+        ROM_array(idx+12) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(415 downto 384);
+        ROM_array(idx+11) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(383 downto 352);
+        ROM_array(idx+10) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(351 downto 320);
+        ROM_array(idx+9) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(319 downto 288);
+        ROM_array(idx+8) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(287 downto 256);
+        ROM_array(idx+7) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(255 downto 224);
+        ROM_array(idx+6) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(223 downto 192);
+        ROM_array(idx+5) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(191 downto 160);
+        ROM_array(idx+4) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(159 downto 128);
+        ROM_array(idx+3) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(127 downto 96);
+        ROM_array(idx+2) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(95 downto 64);
+        ROM_array(idx+1) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat(63 downto 32);
+        ROM_array(idx) <= "101" & bus_res.adr(31 downto 14) & bus_res.dat;
         upd_ack <= '1';
-        upd_res <= bus_res(551 downto 512) &
-                   bus_res(to_integer(unsigned(bus_res(515 downto 512)))
+        upd_res <= (bus_res.val, bus_res.cmd, bus_res.tag, bus_res.id, bus_res.adr, 
+                   bus_res.dat(to_integer(unsigned(bus_res.adr(3 downto 0)))
                            * 32+31 downto
-                           to_integer(unsigned(bus_res(515 downto 512))) * 32 );
+                           to_integer(unsigned(bus_res.adr(3 downto 0))) * 32 ));
         write_ack <= '0';
       end if;
     end if;

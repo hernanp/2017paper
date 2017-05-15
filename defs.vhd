@@ -25,8 +25,13 @@ package defs is
    tag       : std_logic_vector(7 downto 0);  -- src
    id        : std_logic_vector(7 downto 0);  --sequence id
    adr       : std_logic_vector(31 downto 0);
-   dat       : std_logic_vector(31 downto 0);
+   dat       : std_logic_vector(511 downto 0);
   end record BMSG_T;
+
+  type SNP_RES_T is record
+    hit     : std_logic;
+    msg     : MSG_T;
+  end record SNP_RES_T;
   
   constant ZERO_MSG : MSG_T := ('0',
                                 (others => '0'),

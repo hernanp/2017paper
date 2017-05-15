@@ -19,7 +19,8 @@ all:
 	ghdl -a arbiter61.vhd
 	ghdl -a arbiter7.vhd
 	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
-	ghdl -a fifob.vhd # dependency for [cache].vhd
+	ghdl -a fifob.vhd # dependency for cache
+	ghdl -a fifo_snp.vhd # used by ic
 # random number generator
 	ghdl -a --ieee=synopsys rndgen.vhd
 # tests
@@ -27,10 +28,10 @@ all:
 # modules
 	ghdl -a --ieee=synopsys pwr.vhd # uses fifo
 	ghdl -a --ieee=synopsys mem.vhd
-#	ghdl -a -fexplicit --ieee=synopsys cache.vhd # uses fifo, arbiter2
+	ghdl -a -fexplicit --ieee=synopsys cache.vhd # uses fifo, arbiter2
 	ghdl -a --ieee=synopsys cpu.vhd
-#	ghdl -a --ieee=synopsys proc.vhd
-#	ghdl -a --ieee=synopsys ic.vhd # uses fifo, arbiter2,6,61,7
+	ghdl -a --ieee=synopsys proc.vhd
+	ghdl -a --ieee=synopsys ic.vhd # uses fifo, arbiter2,6,61,7
 	ghdl -a --ieee=synopsys peripheral.vhd # generic peripheral
 # simulation
 	ghdl -a --ieee=synopsys top.vhd
