@@ -13,6 +13,7 @@ all:
 # data structs
 	ghdl -a arbiter.vhd
 	ghdl -a arbiter2.vhd
+	ghdl -a b_arbiter2.vhd
 	ghdl -a arbiter2_ack.vhd
 	ghdl -a arbiter6.vhd
 	ghdl -a arbiter6_ack.vhd
@@ -31,6 +32,9 @@ all:
 	ghdl -a -fexplicit --ieee=synopsys cache.vhd # uses fifo, arbiter2
 	ghdl -a --ieee=synopsys cpu.vhd
 	ghdl -a --ieee=synopsys proc.vhd
+# ic components 
+	ghdl -a --ieee=synopsys toper_chan.vhd
+#
 	ghdl -a --ieee=synopsys ic.vhd # uses fifo, arbiter2,6,61,7
 	ghdl -a --ieee=synopsys peripheral.vhd # generic peripheral
 # simulation

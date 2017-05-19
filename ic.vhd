@@ -294,6 +294,174 @@ architecture rtl of ic is
   signal tmp_cache_req1, tmp_cache_req2: MSG_T;
 
 begin
+  togfx_chan_p : entity work.toper_chan(rtl)
+    port map(
+      clock     => Clock,
+      reset     => reset,
+
+      -- read address channel
+      raddr_o      => raddr_gfx,
+      rlen_o       => rlen_gfx,
+      rsize_o      => rsize_gfx,
+      rvalid_o     => rvalid_gfx,
+      rready_i     => rready_gfx,
+      -- read data channel
+      rdata_i      => rdata_gfx,
+      rstrb_i      => rstrb_gfx,
+      rlast_i      => rlast_gfx,
+      rdvalid_i    => rdvalid_gfx,
+      rdready_o    => rdready_gfx,
+      rres_i       => rres_gfx,
+
+      bus_res_c0_ack_i => brs1_ack2,
+      bus_res_c1_ack_i => brs2_ack2,
+      
+      toper_i => togfx_p,
+      bus_res_c0_o => bus_res_gfx_to_c0,
+      bus_res_c1_o => bus_res2_2,
+
+      gfx_upres_ack_i => '0',
+      usb_upres_ack_i => usb_upres_ack2,
+      uart_upres_ack_i => uart_upres_ack2,
+      audio_upres_ack_i => audio_upres_ack2,
+      
+      --gfx_upres_o => gfx_upres2,
+      usb_upres_o => usb_upres2,
+      uart_upres_o => uart_upres2,
+      audio_upres_o => audio_upres2,
+
+      per_write_o => gfx_write1,
+      per_write_ack_i => gfx_write_ack1,
+      per_ack_o => gfx_ack
+
+      );
+
+  tousb_chan_p : entity work.toper_chan(rtl)
+    port map(
+      clock     => Clock,
+      reset     => reset,
+
+      -- read address channel
+      raddr_o      => raddr_usb,
+      rlen_o       => rlen_usb,
+      rsize_o      => rsize_usb,
+      rvalid_o     => rvalid_usb,
+      rready_i     => rready_usb,
+      -- read data channel
+      rdata_i      => rdata_usb,
+      rstrb_i      => rstrb_usb,
+      rlast_i      => rlast_usb,
+      rdvalid_i    => rdvalid_usb,
+      rdready_o    => rdready_usb,
+      rres_i       => rres_usb,
+
+      bus_res_c0_ack_i => brs1_ack4,
+      bus_res_c1_ack_i => brs2_ack4,
+      
+      toper_i => togfx_p,
+      bus_res_c0_o => bus_res1_4,
+      bus_res_c1_o => bus_res2_4,
+
+      gfx_upres_ack_i => gfx_upres_ack4,
+      usb_upres_ack_i => '0',
+      uart_upres_ack_i => uart_upres_ack4,
+      audio_upres_ack_i => audio_upres_ack4,
+      
+      gfx_upres_o => gfx_upres4,
+      --usb_upres_o => usb_upres4,
+      uart_upres_o => uart_upres4,
+      audio_upres_o => audio_upres4,
+
+      per_write_o => usb_write1,
+      per_write_ack_i => usb_write_ack1,
+      per_ack_o => usb_ack
+
+      );
+
+  toaudio_chan_p : entity work.toper_chan(rtl)
+    port map(
+      clock     => Clock,
+      reset     => reset,
+
+      -- read address channel
+      raddr_o      => raddr_audio,
+      rlen_o       => rlen_audio,
+      rsize_o      => rsize_audio,
+      rvalid_o     => rvalid_audio,
+      rready_i     => rready_audio,
+      -- read data channel
+      rdata_i      => rdata_audio,
+      rstrb_i      => rstrb_audio,
+      rlast_i      => rlast_audio,
+      rdvalid_i    => rdvalid_audio,
+      rdready_o    => rdready_audio,
+      rres_i       => rres_audio,
+
+      bus_res_c0_ack_i => brs1_ack2,
+      bus_res_c1_ack_i => brs2_ack2,
+      
+      toper_i => togfx_p,
+      bus_res_c0_o => bus_res2_5,
+      bus_res_c1_o => bus_res2_5,
+
+      gfx_upres_ack_i => '0',
+      usb_upres_ack_i => usb_upres_ack5,
+      uart_upres_ack_i => uart_upres_ack5,
+      audio_upres_ack_i => audio_upres_ack5,
+      
+      gfx_upres_o => gfx_upres5,
+      usb_upres_o => usb_upres5,
+      uart_upres_o => uart_upres5,
+      --audio_upres_o => audio_upres5,
+
+      per_write_o => audio_write1,
+      per_write_ack_i => audio_write_ack1,
+      per_ack_o => audio_ack
+
+      );
+
+  touart_chan_p : entity work.toper_chan(rtl)
+    port map(
+      clock     => Clock,
+      reset     => reset,
+
+      -- read address channel
+      raddr_o      => raddr_uart,
+      rlen_o       => rlen_uart,
+      rsize_o      => rsize_uart,
+      rvalid_o     => rvalid_uart,
+      rready_i     => rready_uart,
+      -- read data channel
+      rdata_i      => rdata_uart,
+      rstrb_i      => rstrb_uart,
+      rlast_i      => rlast_uart,
+      rdvalid_i    => rdvalid_uart,
+      rdready_o    => rdready_uart,
+      rres_i       => rres_uart,
+
+      bus_res_c0_ack_i => brs1_ack3,
+      bus_res_c1_ack_i => brs2_ack3,
+      
+      toper_i => togfx_p,
+      bus_res_c0_o => bus_res1_3,
+      bus_res_c1_o => bus_res2_3,
+
+      gfx_upres_ack_i => gfx_upres_ack3,
+      usb_upres_ack_i => usb_upres_ack3,
+      uart_upres_ack_i => '0',
+      audio_upres_ack_i => audio_upres_ack4,
+      
+      gfx_upres_o => gfx_upres3,
+      usb_upres_o => usb_upres3,
+      --uart_upres_o => uart_upres3,
+      audio_upres_o => audio_upres3,
+
+      per_write_o => uart_write1,
+      per_write_ack_i => uart_write_ack1,
+      per_ack_o => uart_ack
+
+      );
+  
   wb_fifo1 : entity work.fifob(rtl)
     port map(
       CLK     => Clock,
@@ -398,7 +566,7 @@ begin
     if reset = '1' then
       we14 <= '0';
     elsif rising_edge(Clock) then
-      if (usb_upreq_i(72 downto 72) = "1") then
+      if (usb_upreq_i.val = '1') then
         in14 <= usb_upreq_i;
         we14 <= '1';
       else
@@ -460,7 +628,7 @@ begin
         end if;
       elsif st = 2 then -- done
         if snp1_ack2 = '1' then
-          snp1_2 <= (others => '0');
+          snp1_2 <= ZERO_MSG;
           st  := 0;
         end if;
       end if;
@@ -489,7 +657,7 @@ begin
         end if;
       elsif stage = 2 then
         if snp1_ack3 = '1' then
-          snp1_3 <= (others => '0');
+          snp1_3 <= ZERO_MSG;
           stage  := 0;
         end if;
       end if;
@@ -512,7 +680,7 @@ begin
         end if;
       elsif stage = 1 then
         re14 <= '0';
-        if out14(72 downto 72) = "1" then
+        if out14.val = '1' then
           snp1_4 <=  (out14.val, out14.cmd,
                      USB_TAG, out14.id,
                      out14.adr, out14.dat);
@@ -520,7 +688,7 @@ begin
         end if;
       elsif stage = 2 then
         if snp1_ack4 = '1' then
-          snp1_4 <= (others => '0');
+          snp1_4 <= ZERO_MSG;
           stage  := 0;
         end if;
       end if;
@@ -543,7 +711,7 @@ begin
         end if;
       elsif stage = 1 then
         re15 <= '0';
-        if out15(72 downto 72) = "1" then
+        if out15.val = '1' then
           snp1_5 <=  (out15.val, out15.cmd,
                      UART_TAG, out15.id,
                      out15.adr, out15.dat);
@@ -551,7 +719,7 @@ begin
         end if;
       elsif stage = 2 then
         if snp1_ack5 = '1' then
-          snp1_5 <= (others => '0');
+          snp1_5 <= ZERO_MSG;
           stage  := 0;
         end if;
       end if;
@@ -559,9 +727,6 @@ begin
   end process;
 
   tomem_arbitor : entity work.arbiter6_ack(rtl)
-    generic map(
-      DATA_WIDTH => 76
-      )
     port map(
       clock   => Clock,
       reset   => reset,
@@ -604,20 +769,20 @@ begin
 			mem_ack <='0';
         bus_res_mem_to_c0   <= nullreq;
         bus_res_mem_to_c1   <= nullreq;
-        gfx_upres1   <= (others => '0');
-        uart_upres1  <= (others => '0');
-        audio_upres1 <= (others => '0');
-        usb_upres1   <= (others => '0');
-        if tomem_p.val = '1' and cmd_eq(tomem_p, READ_CMD) then
+        gfx_upres1   <= ZERO_MSG;
+        uart_upres1  <= ZERO_MSG;
+        audio_upres1 <= ZERO_MSG;
+        usb_upres1   <= ZERO_MSG;
+        if tomem_p.val = '1' and tomem_p.cmd = READ_CMD then
           tep_mem := tomem_p;
           state   := 16;
         elsif tomem_p.val = '1' and
-          cmd_eq(tomem_p, WRITE_CMD) then
+          tomem_p.cmd = WRITE_CMD then
           --if (dst_eq(tomem_p, GFX_TAG) or
           --    dst_eq(tomem_p, USB_TAG)  or
           --    dst_eq(tomem_p, UART_TAG)  or
           --    dst_eq(tomem_p, AUDIO_TAG)) then
-            mem_write1<=tomem_p;
+            mem_write1 <= tomem_p;
             state   := 9;
           --else
           --  tep_mem := tomem_p;
@@ -629,10 +794,10 @@ begin
         if rready = '1' then
           --mem_ack <= '0';
           rvalid_o <= '1';
-          raddr  <= tep_mem(63 downto 32);
-			 slot := to_integer(unsigned(tep_mem(35 downto 32)));
-          if (dst_eq(tep_mem, CPU0_TAG) or
-              dst_eq(tep_mem, CPU1_TAG)) then
+          raddr  <= tep_mem.adr;
+			 slot := to_integer(unsigned(tep_mem.adr(3 downto 0)));
+          if (tep_mem.tag = CPU0_TAG or
+              tep_mem.tag = CPU1_TAG) then
             rlen <= "00000" & "10000";
           else
             rlen <= "00000" & "00001";
@@ -646,11 +811,11 @@ begin
         state   := 2;
       elsif state = 2 then
         if rdvalid_i = '1' and rres = "00" then
-          if (dst_eq(tep_mem, CPU0_TAG) or
-              dst_eq(tep_mem, CPU1_TAG)) then
+          if (tep_mem.tag = CPU0_TAG or
+              tep_mem.tag = CPU1_TAG) then
             rdready <= '0';
-				if lp=slot and cmd_eq(tep_mem, WRITE_CMD) then
-					tdata(lp * 32 + 31 downto lp * 32) := tep_mem(31 downto 0);
+				if lp=slot and tep_mem.cmd = WRITE_CMD then
+					tdata(lp * 32 + 31 downto lp * 32) := tep_mem.dat;
 				else
 					tdata(lp * 32 + 31 downto lp * 32) := rdata;
 				end if;
@@ -670,23 +835,29 @@ begin
         end if;
       elsif state = 3 then
         --mem_ack <= '1';
-        if dst_eq(tep_mem, CPU0_TAG) then
-          bus_res_mem_to_c0 <= tep_mem(72 downto 32) & tdata;
+        if tep_mem.tag = CPU0_TAG then
+          bus_res_mem_to_c0 <= (tep_mem.val, tep_mem.cmd, tep_mem.tag,
+                                tep_mem.id, tep_mem.adr, tdata);
           state      := 4;
-        elsif dst_eq(tep_mem, CPU1_TAG) then
-          bus_res_mem_to_c1 <= tep_mem(72 downto 32) & tdata;
+        elsif tep_mem.tag = CPU1_TAG then
+          bus_res_mem_to_c1 <= (tep_mem.val, tep_mem.cmd, tep_mem.tag,
+                                tep_mem.id, tep_mem.adr, tdata);
           state      := 4;
-        elsif dst_eq(tep_mem, GFX_TAG) then
-          gfx_upres1 <= tep_mem(72 downto 32) & sdata;
+        elsif tep_mem.tag = GFX_TAG then
+          gfx_upres1 <= (tep_mem.val, tep_mem.cmd, tep_mem.tag,
+                         tep_mem.id, tep_mem.adr, sdata);
           state      := 5;
-        elsif dst_eq(tep_mem, UART_TAG) then
-          uart_upres1 <= tep_mem(72 downto 32) & sdata;
+        elsif tep_mem.tag = UART_TAG then
+          uart_upres1 <= (tep_mem.val, tep_mem.cmd, tep_mem.tag,
+                          tep_mem.id, tep_mem.adr, sdata);
           state       := 6;
-        elsif dst_eq(tep_mem, USB_TAG) then
-          usb_upres1 <= tep_mem(72 downto 32) & sdata;
+        elsif tep_mem.tag = USB_TAG then
+          usb_upres1 <= (tep_mem.val, tep_mem.cmd, tep_mem.tag,
+                         tep_mem.id, tep_mem.adr, sdata);
           state      := 7;
-        elsif dst_eq(tep_mem, AUDIO_TAG) then
-          audio_upres1 <= tep_mem(72 downto 32) & sdata;
+        elsif tep_mem.tag = AUDIO_TAG then
+          audio_upres1 <= (tep_mem.val, tep_mem.cmd, tep_mem.tag,
+                           tep_mem.id, tep_mem.adr, sdata);
           state        := 8;
         end if;
 
@@ -700,29 +871,30 @@ begin
         end if;
       elsif state = 5 then
         if gfx_upres_ack1 = '1' then
-          gfx_upres1 <= (others => '0');
+          gfx_upres1 <= ZERO_MSG;
           state      := 0;
         end if;
       elsif state = 6 then
         if uart_upres_ack1 = '1' then
-          uart_upres1 <= (others => '0');
+          uart_upres1 <= ZERO_MSG;
           state       := 0;
         end if;
       elsif state = 7 then
         if usb_upres_ack1 = '1' then
-          usb_upres1 <= (others => '0');
+          usb_upres1 <= ZERO_MSG;
           state      := 0;
         end if;
       elsif state = 8 then
         if audio_upres_ack1 = '1' then
-          audio_upres1 <= (others => '0');
+          audio_upres1 <= ZERO_MSG;
           state        := 0;
         end if;
       elsif state = 9 then
         if mem_write_ack1 ='1' then
           --dbg(mem_write1);
-          bus_res_mem_to_c0 <= mem_write1(72 downto 32) & tdata;
-          mem_write1<=(others=>'0');
+          bus_res_mem_to_c0 <= (mem_write1.val, mem_write1.cmd, mem_write1.tag,
+                          mem_write1.id, mem_write1.adr, tdata);
+          mem_write1 <= ZERO_MSG;
           state := 4;
           mem_ack <= '1';
         end if;
@@ -731,9 +903,6 @@ begin
   end process;
     
   togfx_arbiter : entity work.arbiter6_ack(rtl)
-    generic map(
-      DATA_WIDTH => 76
-      )
     port map(
       clock   => Clock,
       reset   => reset,
@@ -745,156 +914,16 @@ begin
       ack3_o  => gfx_ack3,
       
       -- NOT IMPLEMENTED:
-      din4    => (others => '0'),--togfx4,
+      din4    => ZERO_MSG,--togfx4,
       --ack4_o  => gfx_ack4,
-      din5    => (others => '0'),-- togfx5,
+      din5    => ZERO_MSG,-- togfx5,
       --ack5_o  => gfx_ack5,
-      din6    => (others => '0'),-- togfx6,
+      din6    => ZERO_MSG,-- togfx6,
       --ack6_o  => gfx_ack6,
       
       dout    => togfx_p,
       ack_i   => gfx_ack
       );
-
- togfx_chan_p : process(reset, Clock)
-    variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
-    variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
-    variable st   : integer                        := 20; -- TODO hack?
-    variable lp      : integer                        := 0;
-    variable tep_gfx1 : MSG_T;
-    variable nullreq : BMSG_T := ZERO_MSG;
-    variable slot : integer :=0;
-    variable prev_st, prev_togfx_p : integer := -1;
-  begin
-    if reset = '1' then
-      rvalid_gfx  <= '0';
-      rdready_gfx <= '0';
-    elsif rising_edge(Clock) then
-      --dbg_chg("togfx_chan_p", st, prev_st);
-      if st =0 then
-        --gfx_ack <='1';
-        st :=20;
-      elsif st = 20 then -- start
-        gfx_ack <='0';
-        bus_res_gfx_to_c0   <= nullreq;
-        bus_res2_2   <= nullreq;
-        --gfx_upres2 <= (others => '0');
-        uart_upres2  <= (others => '0');
-        audio_upres2 <= (others => '0');
-        usb_upres2   <= (others => '0');
-        if (togfx_p.val = '1' and
-          cmd_eq(togfx_p, READ_CMD)) then
-          -- HP: I believe the following code is incorrect:
-          --or
-          --togfx_p(75 downto 73)="000" or -- msg is invalid
-          --togfx_p(75 downto 73)="101")) then -- valid and read
-          tep_gfx1 := togfx_p;
-          st   := 6;
-        elsif (togfx_p.val = '1' and
-               cmd_eq(togfx_p, WRITE_CMD)) then
-          gfx_write1<=togfx_p;
-          st   := 9;
-        end if;
-      elsif st = 6 then -- process read cmd to gfx
-        if rready_gfx = '1' then
-          ---gfx_ack <= '0';
-          rvalid_gfx <= '1';
-          raddr_gfx  <= tep_gfx1(63 downto 32);
-          slot := to_integer(unsigned(tep_gfx1(35 downto 32)));
-          if (dst_eq(tep_gfx1, CPU0_TAG) or
-              dst_eq(tep_gfx1, CPU1_TAG)) then
-            rlen_gfx <= "00000" & "10000";
-          else
-            rlen_gfx <= "00000" & "00001";
-          end if;
-          rsize_gfx <= "00001" & "00000";
-          st     := 1;
-        end if;
-      elsif st = 1 then -- done sending data, get resp
-        rvalid_gfx  <= '0';
-        rdready_gfx <= '1';
-        st       := 2;
-      elsif st = 2 then
-        if rdvalid_gfx = '1' and rres_gfx = "00" then
-          if (dst_eq(tep_gfx1, CPU0_TAG) or
-              dst_eq(tep_gfx1, CPU1_TAG)) then
-            if lp=slot and cmd_eq(tep_gfx1, WRITE_CMD) then
-              tdata(lp * 32 + 31 downto lp * 32) := tep_gfx1(31 downto 0);
-            else
-              tdata(lp * 32 + 31 downto lp * 32) := rdata_gfx;
-            end if;
-            rdready_gfx                        <= '0';
-            lp                                 := lp + 1;
-            if rlast_gfx = '1' then
-              st := 3;
-              lp    := 0;
-            end if;
-            rdready_gfx <= '1';
-          else
-            rdready_gfx <= '1';
-            sdata       := rdata_gfx;
-            st :=3;
-          end if;
-
-        end if;
-      elsif st = 3 then -- forward read response from device
-        --gfx_ack <= '1';
-        if dst_eq(tep_gfx1, CPU0_TAG) then
-          bus_res_gfx_to_c0 <= tep_gfx1(72 downto 32) & tdata;
-          st      := 4;
-        elsif dst_eq(tep_gfx1, CPU1_TAG) then
-          bus_res2_2 <= tep_gfx1(72 downto 32) & tdata;
-          st      := 4;
-        --elsif tep_gfx(75 downto 73)="001" then
-        --gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
-        --st := 5;
-        elsif dst_eq(tep_gfx1, UART_TAG) then
-          uart_upres2 <= tep_gfx1(72 downto 32) & sdata;
-          st       := 6;
-        elsif dst_eq(tep_gfx1, USB_TAG) then
-          usb_upres2 <= tep_gfx1(72 downto 32) & sdata;
-          st      := 7;
-        elsif dst_eq(tep_gfx1, AUDIO_TAG) then
-          audio_upres2 <= tep_gfx1(72 downto 32) & sdata;
-          st        := 8;
-        end if;
-
-      elsif st = 4 then -- wait for ack from bus_resX_arbitor
-        if brs2_ack2 = '1' then
-          bus_res2_2 <= nullreq;
-          st      := 0;
-        elsif brs1_ack2 = '1' then
-          bus_res_gfx_to_c0 <= nullreq;
-          st      := 0;
-        end if;
-        
-      elsif st = 6 then
-        if uart_upres_ack2 = '1' then
-          uart_upres2 <= (others => '0');
-          st       := 0;
-        end if;
-      elsif st = 7 then
-        if usb_upres_ack2 = '1' then
-          usb_upres2 <= (others => '0');
-          st      := 0;
-        end if;
-      elsif st = 8 then
-        if audio_upres_ack2 = '1' then
-          audio_upres2 <= (others => '0');
-          st        := 0;
-        end if;
-      elsif st = 9 then
-        if gfx_write_ack1 ='1' then
-          gfx_ack <='1';
-          --dbg(gfx_write1); -- !!!!!!!!!!!!!!!!!!
-          bus_res_gfx_to_c0 <= gfx_write1(72 downto 32) & tdata; -- TODO check if tdata has
-                                                   -- correct value
-          gfx_write1 <= (others=>'0');
-          st := 4;
-        end if;
-      end if;
-    end if;
-  end process;
 
   mem_write_p:process(reset, Clock)
     variable state:integer :=0;
@@ -927,11 +956,11 @@ begin
         if mem_write1.val = '1' then
           state := 1;
           tep_mem:=mem_write1;
-        elsif mem_write2(552 downto 552)="1" then
+        elsif mem_write2.val = '1' then
           state := 4;
           tep_mem_l :=mem_write2;
           flag :='1';
-        elsif mem_write3(552 downto 552)="1" then
+        elsif mem_write3.val = '1' then
           state := 4;
           tep_mem_l :=mem_write3;
           flag :='0';
@@ -939,10 +968,10 @@ begin
       elsif state =1 then
         if wready = '1' then -- MERGE durw: [1/0]
           wvalid <= '1';
-          waddr  <= tep_mem(63 downto 32);
+          waddr  <= tep_mem.adr;
           wlen   <= "00000" & "00001"; -- MERGE durw: [10000/00001]
           wsize  <= "00001" & "00000";
-          --wdata_audio := tep_mem(31 downto 0);
+          --wdata_audio := tep_mem.dat;
           state      := 2;
         else
           timeout_cnt := timeout_cnt + 1;
@@ -955,7 +984,7 @@ begin
         if wdataready = '1' then
           wdvalid <= '1';
           wtrb    <= "0001"; -- MERGE durw: [1111/0001]
-          wdata  <= tep_mem(31 downto 0);
+          wdata  <= tep_mem.dat;
           wlast   <= '1';
           state       := 3;
         end if;
@@ -979,10 +1008,10 @@ begin
       elsif state =4 then
         if wready = '1' then -- MERGE durw: [1/0]
           wvalid <= '1';
-          waddr  <= mem_wb(543 downto 512);
+          waddr  <= mem_wb.adr;
           wlen   <= "00000" & "10000";
           wsize  <= "00001" & "00000";
-          tdata      := tep_mem_l(511 downto 0);
+          tdata      := tep_mem_l.dat;
           state      := 5;
         end if;
       elsif state = 5 then
@@ -1045,11 +1074,11 @@ begin
           state := 1;
           tep_gfx:=gfx_write1;
           gfx_write_ack1<='1';
-        elsif gfx_write2(552 downto 552)="1" then
+        elsif gfx_write2.val = '1' then
           state := 4;
           tep_gfx_l :=gfx_write2;
           gfx_write_ack2<='1';
-        elsif gfx_write3(552 downto 552)="1" then
+        elsif gfx_write3.val = '1' then
           state := 4;
           tep_gfx_l :=gfx_write3;
           gfx_write_ack3<='1';
@@ -1058,10 +1087,10 @@ begin
     		gfx_write_ack1 <='0';
         if wready_gfx = '1' then
           wvalid_gfx <= '1';
-          waddr_gfx  <= tep_gfx(63 downto 32);
+          waddr_gfx  <= tep_gfx.adr;
           wlen_gfx   <= "00000" & "00001"; -- MERGE durw: [10000/00001]
           wsize_gfx  <= "00001" & "00000";
-          --wdata_audio := tep_gfx(31 downto 0);
+          --wdata_audio := tep_gfx.dat;
           state      := 2;
         end if;
       elsif state = 2 then
@@ -1069,7 +1098,7 @@ begin
         if wdataready_gfx = '1' then
           wdvalid_gfx <= '1';
           wtrb_gfx    <= "1111";
-          wdata_gfx   <= tep_gfx(31 downto 0);
+          wdata_gfx   <= tep_gfx.dat;
           wlast_gfx   <= '1';
           state       := 3;
         end if;
@@ -1090,10 +1119,10 @@ begin
     	gfx_write_ack2<='0';gfx_write_ack3<='0';
         if wready_gfx = '1' then
           wvalid_gfx <= '1';
-          waddr_gfx  <= mem_wb(543 downto 512);
+          waddr_gfx  <= mem_wb.adr;
           wlen_gfx   <= "00000" & "10000";
           wsize_gfx  <= "00001" & "00000";
-          tdata      := tep_gfx_l(511 downto 0);
+          tdata      := tep_gfx_l.dat;
           state      := 5;
         end if;
       elsif state = 5 then
@@ -1144,11 +1173,11 @@ begin
           state := 1;
           tep_uart:=uart_write1;
     		 uart_write_ack1<='1';
-        elsif uart_write2(552 downto 552)="1" then
+        elsif uart_write2.val = '1' then
           state := 4;
           tep_uart_l :=uart_write2;
     		 uart_write_ack2<='1';
-        elsif uart_write3(552 downto 552)="1" then
+        elsif uart_write3.val = '1' then
           state := 4;
           tep_uart_l :=uart_write3;
     		 uart_write_ack3<='1';
@@ -1157,17 +1186,17 @@ begin
     		uart_write_ack1<='1';
         if wready_uart = '1' then -- MERGE durw: [1/0]
           wvalid_uart <= '1';
-          waddr_uart  <= tep_uart(63 downto 32);
+          waddr_uart  <= tep_uart.adr;
           wlen_uart   <= "00000" & "00001"; -- MERGE durw: [00001/10000]
           wsize_uart  <= "00001" & "00000";
-          --wdata_audio := tep_uart(31 downto 0);
+          --wdata_audio := tep_uart.dat;
           state      := 2;
         end if;
       elsif state = 2 then
         if wdataready_uart = '1' then
           wdvalid_uart <= '1';
           wtrb_uart    <= "1111";
-          wdata_uart   <= tep_uart(31 downto 0);
+          wdata_uart   <= tep_uart.dat;
           wlast_uart   <= '1';
           state       := 3;
         end if;
@@ -1188,10 +1217,10 @@ begin
     	uart_write_ack3<='0';
         if wready_uart = '1' then -- MERGE durw: [1/0]
           wvalid_uart <= '1';
-          waddr_uart  <= mem_wb(543 downto 512);
+          waddr_uart  <= mem_wb.adr;
           wlen_uart   <= "00000" & "10000";
           wsize_uart  <= "00001" & "00000";
-          tdata      := tep_uart_l(511 downto 0);
+          tdata      := tep_uart_l.dat;
           state      := 5;
         end if;
       elsif state = 5 then
@@ -1222,9 +1251,6 @@ begin
   end process;
 
   toaudio_arbitor : entity work.arbiter2_ack(rtl)
-    generic map(
-      DATA_WIDTH => WMSG_WIDTH
-      )
     port map(
       clock => Clock,
       reset => reset,
@@ -1237,9 +1263,6 @@ begin
       );
 
   tousb_arbitor : entity work.arbiter2_ack(rtl)
-    generic map(
-      DATA_WIDTH => WMSG_WIDTH
-      )
     port map(
       clock => Clock,
       reset => reset,
@@ -1272,11 +1295,11 @@ begin
           state := 1;
           tep_audio:=audio_write1;
     		 audio_write_ack1<='1';
-        elsif audio_write2(552 downto 552)="1" then
+        elsif audio_write2.val = '1' then
           state := 4;
           tep_audio_l :=audio_write2;
           audio_write_ack2<='1';
-        elsif audio_write3(552 downto 552)="1" then
+        elsif audio_write3.val = '1' then
           state := 4;
           tep_audio_l :=audio_write3;
           audio_write_ack3<='1';
@@ -1285,17 +1308,17 @@ begin
     	  audio_write_ack1<='0';
         if wready_audio = '1' then -- MERGE durw: [1/0]
           wvalid_audio <= '1';
-          waddr_audio  <= tep_audio(63 downto 32);
+          waddr_audio  <= tep_audio.adr;
           wlen_audio   <= "00000" & "00001"; -- MERGE durw: [00001/10000]
           wsize_audio  <= "00001" & "00000";
-          --wdata_audio := tep_audio(31 downto 0);
+          --wdata_audio := tep_audio.dat;
           state      := 2;
         end if;
       elsif state = 2 then
         if wdataready_audio = '1' then
           wdvalid_audio <= '1';
           wtrb_audio    <= "1111";
-          wdata_audio   <= tep_audio(31 downto 0);
+          wdata_audio   <= tep_audio.dat;
           wlast_audio   <= '1';
           state       := 3;
         end if;
@@ -1316,10 +1339,10 @@ begin
     	  audio_write_ack3<='0';
         if wready_audio = '1' then -- MERGE durw: [1/0]
           wvalid_audio <= '1';
-          waddr_audio  <= mem_wb(543 downto 512);
+          waddr_audio  <= mem_wb.adr;
           wlen_audio   <= "00000" & "10000";
           wsize_audio  <= "00001" & "00000";
-          tdata      := tep_audio_l(511 downto 0);
+          tdata      := tep_audio_l.dat;
           state      := 5;
         end if;
       elsif state = 5 then
@@ -1348,134 +1371,6 @@ begin
       end if;
     end if;
   end process;
-
-  tousb_chan_p : process(reset, Clock)
-    variable tdata   : std_logic_vector(511 downto 0) := (others => '0');
-    variable sdata   : std_logic_vector(31 downto 0)  := (others => '0');
-    variable state   : integer                        := 20;
-    variable lp      : integer                        := 0;
-    variable tep_usb : MSG_T;
-    variable nullreq : BMSG_T := ZERO_BMSG;
-	 variable slot :integer :=0;
-  begin
-    if reset = '1' then
-      rvalid_usb  <= '0';
-      rdready_usb <= '0';
-    elsif rising_edge(Clock) then
-    	if state =0 then
-    		usb_ack <= '1';
-    		state := 20;
-    	elsif state = 20 then
-    		usb_ack <='0';
-        bus_res1_4   <= (others => '0');
-        bus_res2_4   <= (others => '0');
-        gfx_upres4   <= (others => '0');
-        uart_upres4  <= (others => '0');
-        audio_upres4 <= (others => '0');
-        --usb_upres4 <= (others => '0');
-        if tousb_p.val = '1' and (tousb_p(71 downto 64) = "01000000" or tousb_p(75 downto 73)="000" or tousb_p(75 downto 73)="101")then
-          tep_usb := tousb_p;
-          state   := 6;
-        elsif tousb_p.val = '1' and tousb_p(71 downto 64) = "10000000" then
-          usb_write1<=tousb_p;
-          state   := 9;
-        end if;
-      elsif state = 6 then
-        if rready_usb = '1' then
-          ---usb_ack <= '0';
-          rvalid_usb <= '1';
-          raddr_usb  <= tep_usb(63 downto 32);
-			 slot := to_integer(unsigned(tep_usb(35 downto 32)));
-          if (dst_eq(tep_usb, CPU0_TAG) or
-              dst_eq(tep_usb, CPU1_TAG)) then
-            rlen_usb <= "00000" & "10000";
-          else
-            rlen_usb <= "00000" & "00001";
-          end if;
-          rsize_usb <= "00001" & "00000";
-          state     := 1;
-        end if;
-      elsif state = 1 then
-        rvalid_usb  <= '0';
-        rdready_usb <= '1';
-        state       := 2;
-      elsif state = 2 then
-        if rdvalid_usb = '1' and rres_usb = "00" then
-          if (dst_eq(tep_usb, CPU0_TAG) or
-              dst_eq(tep_usb, CPU1_TAG)) then
-            rdready_usb                        <= '0';
-				if lp=slot and cmd_eq(tep_usb, WRITE_CMD) then
-					tdata(lp * 32 + 31 downto lp * 32) := tep_usb(31 downto 0);
-				else
-					tdata(lp * 32 + 31 downto lp * 32) := rdata_usb;
-				end if;
-            lp                                 := lp + 1;
-            if rlast_usb = '1' then
-              state := 3;
-              lp    := 0;
-            end if;
-            rdready_usb <= '1';
-          else
-            rdready_usb <= '1';
-            sdata       := rdata_usb;
-            state :=3;
-          end if;
-
-        end if;
-      elsif state = 3 then
-        --usb_ack <= '1';
-        if dst_eq(tep_usb, CPU0_TAG) then
-          bus_res1_4 <= tep_usb(72 downto 32) & tdata;
-          state      := 4;
-        elsif dst_eq(tep_usb, CPU1_TAG) then
-          bus_res2_4 <= tep_usb(72 downto 32) & tdata;
-          state      := 4;
-        elsif dst_eq(tep_usb, GFX_TAG) then
-          gfx_upres4 <= tep_usb(72 downto 32) & sdata;
-          state      := 5;
-        elsif dst_eq(tep_usb, UART_TAG) then
-          uart_upres4 <= tep_usb(72 downto 32) & sdata;
-          state       := 6;
-        --				elsif tep_usb(75 downto 73)="011" then
-        --					usb_upres4<= tep_usb(72 downto 32) & sdata;
-        --					state := 7;
-        elsif dst_eq(tep_usb, AUDIO_TAG) then
-          audio_upres4 <= tep_usb(72 downto 32) & sdata;
-          state        := 8;
-        end if;
-
-      elsif state = 4 then
-        if brs2_ack4 = '1' then
-          bus_res2_4 <= nullreq;
-          state      := 0;
-        elsif brs1_ack4 = '1' then
-          bus_res1_4 <= nullreq;
-          state      := 0;
-        end if;
-      elsif state = 5 then
-        if gfx_upres_ack4 = '1' then
-          gfx_upres4 <= (others => '0');
-          state      := 0;
-        end if;
-      elsif state = 6 then
-        if uart_upres_ack4 = '1' then
-          uart_upres4 <= (others => '0');
-          state       := 0;
-        end if;
-        
-      elsif state = 8 then
-        if audio_upres_ack4 = '1' then
-          audio_upres4 <= (others => '0');
-          state        := 0;
-        end if;
-      elsif state = 9 then
-        if usb_write_ack1 ='1' then
-          usb_write1<=(others=>'0');
-          state := 0;
-        end if;
-      end if;
-    end if;
-  end process;
     
   usb_write_p : process(reset, Clock)
     variable state:integer :=0;
@@ -1498,11 +1393,11 @@ begin
           state := 1;
           tep_usb:=usb_write1;
     		 usb_write_ack1 <= '1';
-        elsif usb_write2(552 downto 552)="1" then
+        elsif usb_write2.val = '1' then
           state := 4;
           tep_usb_l :=usb_write2;
           usb_write_ack2 <= '1';
-        elsif usb_write3(552 downto 552)="1" then
+        elsif usb_write3.val = '1' then
           state := 4;
           tep_usb_l := usb_write3;
           usb_write_ack2 <= '1';
@@ -1511,17 +1406,17 @@ begin
     	usb_write_ack1 <= '0';
         if wready_usb = '1' then -- MERGE durw: [1/0]
           wvalid_usb <= '1';
-          waddr_usb  <= tep_usb(63 downto 32);
+          waddr_usb  <= tep_usb.adr;
           wlen_usb   <= "00000" & "00001"; -- MERGE durw: [1/0]
           wsize_usb  <= "00001" & "00000";
-          --wdata_audio := tep_usb(31 downto 0);
+          --wdata_audio := tep_usb.dat;
           state      := 2;
         end if;
       elsif state = 2 then
         if wdataready_usb = '1' then
           wdvalid_usb <= '1';
           wtrb_usb    <= "1111";
-          wdata_usb   <= tep_usb(31 downto 0);
+          wdata_usb   <= tep_usb.dat;
           wlast_usb   <= '1';
           state       := 3;
         end if;
@@ -1542,10 +1437,10 @@ begin
         usb_write_ack3 <= '0';
         if wready_usb = '1' then -- MERGE durw: [1/0]
           wvalid_usb <= '1';
-          waddr_usb  <= mem_wb(543 downto 512);
+          waddr_usb  <= mem_wb.adr;
           wlen_usb   <= "00000" & "10000";
           wsize_usb  <= "00001" & "00000";
-          tdata      := tep_usb_l(511 downto 0);
+          tdata      := tep_usb_l.dat;
           state      := 5;
         end if;
       elsif state = 5 then
@@ -1575,9 +1470,6 @@ begin
   end process;
 
   touart_arbitor : entity work.arbiter2_ack(rtl)
-    generic map(
-      DATA_WIDTH => 76
-      )
     port map(
       clock => Clock,
       reset => reset,
@@ -1589,146 +1481,7 @@ begin
       ack	=> uart_ack
       );
 
-   touart_chan_p : process(reset, Clock)
-    variable tdata    : std_logic_vector(511 downto 0) := (others => '0');
-    variable sdata    : std_logic_vector(31 downto 0)  := (others => '0');
-    variable state    : integer                        := 20; -- TODO hack?
-    variable lp       : integer                        := 0;
-    variable tep_uart : MSG_T;
-    variable nullreq  : BMSG_T := ZERO_BMSG;
-	 variable slot:integer :=0;
-  begin
-    if reset = '1' then
-      rvalid_uart  <= '0';
-      rdready_uart <= '0';
-    elsif rising_edge(Clock) then
-    	  if state = 0 then
-    		uart_ack <= '1';
-			state :=20;
-    	elsif state = 20 then
-    		uart_ack <='0';
-        bus_res1_3   <= nullreq;
-        bus_res2_3   <= nullreq;
-        gfx_upres3   <= (others => '0');
-        --uart_upres3 <= (others => '0');
-        audio_upres3 <= (others => '0');
-        usb_upres3   <= (others => '0');
-        if touart_p.val = '1' and
-          (touart_p.cmd = READ_CMD or
-           touart_p.tag = CPU0_TAG or
-           touart_p.tag = CPU1_TAG) then
-          tep_uart := touart_p;
-          state    := 6;
-        elsif touart_p.val = '1' and
-          touart_p.cmd = WRITE_CMD then
-          uart_write1 <= touart_p;
-          state   := 9;
-        end if;
-      elsif state = 6 then
-        if rready_uart = '1' then
-          ---uart_ack <= '0';
-          rvalid_uart <= '1';
-          raddr_uart  <= tep_uart(63 downto 32);
-			 slot := to_integer(unsigned(tep_uart(35 downto 32)));
-          if (dst_eq(tep_uart, CPU0_TAG) or
-              dst_eq(tep_uart, CPU1_TAG)) then
-            rlen_uart <= "00000" & "10000";
-          else
-            rlen_uart <= "00000" & "00001";
-          end if;
-          rsize_uart <= "00001" & "00000";
-          state      := 1;
-        end if;
-      elsif state = 1 then
-        rvalid_uart  <= '0';
-        rdready_uart <= '1';
-        state        := 2;
-      elsif state = 2 then
-        if rdvalid_uart = '1' and rres_uart = "00" then
-          if (dst_eq(tep_uart, CPU0_TAG) or
-              dst_eq(tep_uart, CPU1_TAG)) then
-            rdready_uart                       <= '0';
-				if lp=slot and cmd_eq(tep_uart, WRITE_CMD) then
-					tdata(lp * 32 + 31 downto lp * 32) := tep_uart(31 downto 0);
-				else
-					tdata(lp * 32 + 31 downto lp * 32) := rdata_uart;
-				end if;
-            
-            lp                                 := lp + 1;
-            if rlast_uart = '1' then
-              state := 3;
-              lp    := 0;
-            end if;
-            rdready_uart <= '1';
-          else
-            rdready_uart <= '1';
-            sdata        := rdata_uart;
-            rdready_uart <= '1';state :=3;
-          end if;
-
-        end if;
-      elsif state = 3 then
-        --uart_ack <= '1';
-        if dst_eq(tep_uart, CPU0_TAG) then
-          bus_res1_3 <= tep_uart(72 downto 32) & tdata;
-          state      := 4;
-        elsif dst_eq(tep_uart, CPU1_TAG) then
-          bus_res2_3 <= tep_uart(72 downto 32) & tdata;
-          state      := 4;
-        elsif dst_eq(tep_uart, GFX_TAG) then
-          gfx_upres3 <= tep_uart(72 downto 32) & sdata;
-          state      := 5;
-        --				elsif tep_uart(75 downto 73)="010" then
-        --					uart_upres3<= tep_uart(72 downto 32) & sdata;
-        --					state := 6;
-        elsif dst_eq(tep_uart, USB_TAG) then
-          usb_upres3 <= tep_uart(72 downto 32) & sdata;
-          state      := 7;
-        elsif dst_eq(tep_uart, AUDIO_TAG) then
-          audio_upres3 <= tep_uart(72 downto 32) & sdata;
-          state        := 8;
-        end if;
-
-      elsif state = 4 then
-        if brs2_ack3 = '1' then
-          bus_res2_3 <= nullreq;
-          state      := 0;
-        elsif brs1_ack3 = '1' then
-          bus_res1_3 <= nullreq;
-          state      := 0;
-        end if;
-      elsif state = 5 then
-        if gfx_upres_ack3 = '1' then
-          gfx_upres3 <= (others => '0');
-          state      := 0;
-        end if;
-      --			elsif state =6 then
-      --				if uart_upres_ack3 ='1' then
-      --					uart_upres3 <= (others => '0');
-      --					state :=0;
-      --				end if;	
-      elsif state = 7 then
-        if usb_upres_ack3 = '1' then
-          usb_upres3 <= (others => '0');
-          state      := 0;
-        end if;
-      elsif state = 8 then
-        if audio_upres_ack3 = '1' then
-          audio_upres3 <= (others => '0');
-          state        := 0;
-        end if;
-      elsif state = 9 then
-        if uart_write_ack1 ='1' then
-          uart_write1<=(others=>'0');
-          state := 0;
-        end if;
-      end if;
-    end if;
-  end process;
   bus_res2_arbitor : entity work.arbiter61(rtl)
-    generic map(
-      DATA_WIDTH => BMSG_WIDTH
-      )
     port map(
       clock => Clock,
       reset => reset,
@@ -1748,9 +1501,6 @@ begin
       );
 
   snp1_arbitor : entity work.arbiter6(rtl)
-    generic map(
-      DATA_WIDTH => WMSG_WIDTH -- TODO check if correct size; look for HACK in gfx_upreq_handler 
-      )
     port map(
       clock => Clock,
       reset => reset,
@@ -1770,9 +1520,6 @@ begin
       );
 
   bus_res1_arbitor : entity work.arbiter7(rtl)
-    generic map(
-      DATA_WIDTH => BMSG_WIDTH
-      )
     port map(
       clock => Clock,
       reset => reset,
@@ -1794,9 +1541,7 @@ begin
       );
 
   gfx_upres_arbitor : entity work.arbiter6(rtl)
-    generic map(
-      DATA_WIDTH => 73
-      ) port map(
+    port map(
         clock => Clock,
         reset => reset,
         din1 => gfx_upres1,
@@ -1815,9 +1560,6 @@ begin
     	);
 
   audio_upres_arbitor : entity work.arbiter6(rtl)
-    generic map(
-      DATA_WIDTH => 73
-      )
     port map(
       clock => Clock,
       reset => reset,
@@ -1872,10 +1614,7 @@ begin
     dout  => uart_upres_o
     );
 
-  wb_arbitor : entity work.arbiter2(rtl)
-    generic map(
-      DATA_WIDTH => 553
-      )
+  wb_arbitor : entity work.b_arbiter2(rtl)
     port map(
       clock => Clock,
       reset => reset,
@@ -1886,10 +1625,8 @@ begin
       dout  => mem_wb
       );
 
-  gfx_wb_arbitor : entity work.arbiter2(rtl)
-    generic map(
-      DATA_WIDTH => 553
-      ) port map(
+  gfx_wb_arbitor : entity work.b_arbiter2(rtl)
+    port map(
         clock => Clock,
         reset => reset,
         din1 => gfx_wb1,
@@ -1899,9 +1636,8 @@ begin
         dout => gfx_wb
     	);
 
-  audio_wb_arbitor : entity work.arbiter2(rtl) generic map(
-    DATA_WIDTH => 553
-    ) port map(
+  audio_wb_arbitor : entity work.b_arbiter2(rtl)
+    port map(
       clock => Clock,
       reset => reset,
       din1 => audio_wb1,
@@ -1911,146 +1647,8 @@ begin
       dout => audio_wb
       );
 
-   toaudio_chan_p : process(reset, Clock)
-    variable tdata     : std_logic_vector(511 downto 0) := (others => '0');
-    variable sdata     : std_logic_vector(31 downto 0)  := (others => '0');
-    variable state     : integer                        := 20; -- TODO hack?
-    variable lp        : integer                        := 0;
-    variable tep_audio : MSG_T;
-    variable nullreq   : BMSG_T := ZERO_BMSG;
-	 variable slot :integer :=0;
-  begin
-    if reset = '1' then
-      rvalid_audio  <= '0';
-      rdready_audio <= '0';
-    elsif rising_edge(Clock) then
-      if state = 0 then
-			audio_ack <='1';
-			state :=20;
-		elsif state =20 then
-			audio_ack <='0';
-        bus_res1_5  <= nullreq;
-        bus_res2_5  <= nullreq;
-        gfx_upres5  <= (others => '0');
-        uart_upres5 <= (others => '0');
-        --audio_upres5 <= (others => '0');
-        usb_upres5  <= (others => '0');
-      if toaudio_p.val = '1' and
-        (toaudio_p(71 downto 64) = "01000000"  or
-         toaudio_p(75 downto 73)="000" or
-         toaudio_p(75 downto 73)="101") then
-          tep_audio := toaudio_p;
-          state     := 6;
-        elsif toaudio_p.val = '1' and
-          toaudio_p(71 downto 64) = "10000000" then
-          audio_write1<=toaudio_p;
-          state   := 9;
-        end if;
-      elsif state = 6 then
-        if rready_audio = '1' then
-          ---audio_ack <= '0';
-          rvalid_audio <= '1';
-          raddr_audio  <= tep_audio(63 downto 32);
-			 slot := to_integer(unsigned(tep_audio(35 downto 32)));
-          if (dst_eq(tep_audio, CPU0_TAG) or
-              dst_eq(tep_audio, CPU1_TAG)) then
-            rlen_audio <= "00000" & "10000";
-          else
-            rlen_audio <= "00000" & "00001";
-          end if;
-          rsize_audio <= "00001" & "00000";
-          state       := 1;
-        end if;
-      elsif state = 1 then
-        rvalid_audio  <= '0';
-        rdready_audio <= '1';
-        state         := 2;
-      elsif state = 2 then
-        if rdvalid_audio = '1' and rres_audio = "00" then
-          if (dst_eq(tep_audio, CPU0_TAG) or
-              dst_eq(tep_audio, CPU1_TAG)) then
-            rdready_audio                      <= '0';
-				if lp=slot and cmd_eq(tep_audio, WRITE_CMD) then
-					tdata(lp * 32 + 31 downto lp * 32) := tep_audio(31 downto 0);
-				else
-					tdata(lp * 32 + 31 downto lp * 32) := rdata_audio;
-				end if;
-            lp                                 := lp + 1;
-            if rlast_audio = '1' then
-              state := 3;
-              lp    := 0;
-            end if;
-            rdready_audio <= '1';
-          else
-            rdready_audio <= '1';
-            sdata         := rdata_audio;
-            rdready_audio <= '1';
-				state :=3;
-          end if;
-
-        end if;
-      elsif state = 3 then
-        --audio_ack <= '1';
-        if dst_eq(tep_audio, CPU0_TAG) then
-          bus_res1_5 <= tep_audio(72 downto 32) & tdata;
-          state      := 4;
-        elsif dst_eq(tep_audio, CPU1_TAG) then
-          bus_res2_5 <= tep_audio(72 downto 32) & tdata;
-          state      := 4;
-        elsif dst_eq(tep_audio, GFX_TAG) then
-          gfx_upres5 <= tep_audio(72 downto 32) & sdata;
-          state      := 5;
-        elsif dst_eq(tep_audio, UART_TAG) then
-          uart_upres5 <= tep_audio(72 downto 32) & sdata;
-          state       := 6;
-        elsif dst_eq(tep_audio, USB_TAG) then
-          usb_upres5 <= tep_audio(72 downto 32) & sdata;
-          state      := 7;
-        --				elsif tep_audio(75 downto 73)="100" then
-        --					audio_upres5 <= tep_audio(72 downto 32) & sdata;
-        --					state := 8;
-        end if;
-
-      elsif state = 4 then
-        if brs2_ack5 = '1' then
-          bus_res2_5 <= nullreq;
-          state      := 0;
-        elsif brs1_ack5 = '1' then
-          bus_res1_5 <= nullreq;
-          state      := 0;
-        end if;
-      elsif state = 5 then
-        if gfx_upres_ack5 = '1' then
-          gfx_upres5 <= (others => '0');
-          state      := 0;
-        end if;
-      elsif state = 6 then
-        if uart_upres_ack5 = '1' then
-          uart_upres5 <= (others => '0');
-          state       := 0;
-        end if;
-      elsif state = 7 then
-        if usb_upres_ack5 = '1' then
-          usb_upres5 <= (others => '0');
-          state      := 0;
-        end if;
-      --			elsif state =8 then
-      --				if audio_upres_ack5 ='1' then
-      --					audio_upres5 <= (others => '0');
-      --					state :=0;
-      --				end if;	
-      elsif state = 9 then
-        if audio_write_ack1 ='1' then
-          audio_write1<=(others=>'0');
-          state := 0;
-        end if;
-      end if;
-    end if;
-  end process;
-
-  usb_wb_arbitor : entity work.arbiter2(rtl) generic map(
-    DATA_WIDTH => 553
-    ) port map(
+  usb_wb_arbitor : entity work.b_arbiter2(rtl)
+    port map(
       clock => Clock,
       reset => reset,
       din1 => usb_wb1,
@@ -2060,9 +1658,8 @@ begin
       dout => usb_wb
       );
 
-  uart_wb_arbitor : entity work.arbiter2(rtl) generic map(
-    DATA_WIDTH => 553
-    ) port map(
+  uart_wb_arbitor : entity work.b_arbiter2(rtl)
+    port map(
       clock => Clock,
       reset => reset,
       din1 => uart_wb1,
@@ -2079,9 +1676,9 @@ begin
     elsif rising_edge(Clock) then
       if up_snp_res_i.val = '1' then
         if up_snp_hit_i = '0' then
-          in2 <= '0' & up_snp_res_i;
+          in2 <= ('0', up_snp_res_i);
         else
-          in2 <= '1' & up_snp_res_i;
+          in2 <= ('1', up_snp_res_i);
         end if;
         we2 <= '1';
       else
@@ -2103,84 +1700,84 @@ begin
         end if;
       elsif state = 1 then
         re2 <= '0';
-        if out2(72 downto 72)="1" and out2(76 downto 76) = "0" then
+        if out2.msg.val = '1' and out2.hit = '0' then
           ---now we look at which components it want to go
-          if out2(63 downto 63) = "1" then
+          if out2.msg.adr(31 downto 31) = "1" then
             ---this belongs to the memory					
-            tomem3 <= out2(75 downto 0);
+            tomem3 <= out2.msg;
             state  := 5;
-          elsif out2(62 downto 61) = "00" then
-            togfx3 <= out2(75 downto 0);
+          elsif out2.msg.adr(30 downto 29) = "00" then
+            togfx3 <= out2.msg;
             state  := 6;
-          elsif out2(62 downto 61) = "01" then
-            touart3 <= out2(75 downto 0);
+          elsif out2.msg.adr(30 downto 29) = "01" then
+            touart3 <= out2.msg;
             state   := 7;
-          elsif out2(62 downto 61) = "10" then
-            tousb3 <= out2(75 downto 0);
+          elsif out2.msg.adr(30 downto 29) = "10" then
+            tousb3 <= out2.msg;
             state  := 8;
-          elsif out2(62 downto 61) = "11" then
-            toaudio3 <= out2(75 downto 0);
+          elsif out2.msg.adr(30 downto 29) = "11" then
+            toaudio3 <= out2.msg;
             state    := 13;
           end if;
         --it's a hit, return to the source ip
-        elsif out2(72 downto 72)="1" then
-          if dst_eq(out2, GFX_TAG) then
-            gfx_upres2 <= out2(MSG_WIDTH - 1 downto 0);
+        elsif out2.msg.val = '1' then
+          if dst_eq(out2.msg, GFX_TAG) then
+            gfx_upres3 <= out2.msg;
             state      := 9;
-          elsif dst_eq(out2, UART_TAG) then
-            uart_upres3 <= out2(MSG_WIDTH - 1 downto 0);
+          elsif dst_eq(out2.msg, UART_TAG) then
+            uart_upres3 <= out2.msg;
             state       := 10;
-          elsif dst_eq(out2, USB_TAG) then
-            usb_upres4 <= out2(MSG_WIDTH - 1 downto 0);
+          elsif dst_eq(out2.msg, USB_TAG) then
+            usb_upres3 <= out2.msg;
             state      := 11;
-          elsif dst_eq(out2, AUDIO_TAG) then
-            audio_upres5 <= out2(MSG_WIDTH - 1 downto 0);
+          elsif dst_eq(out2.msg, AUDIO_TAG) then
+            audio_upres3 <= out2.msg;
             state        := 12;
           end if;
         end if;
       elsif state = 5 then
         if mem_ack3 = '1' then
           state  := 0;
-          tomem3 <= (others => '0');
+          tomem3 <= ZERO_MSG;
         end if;
       elsif state = 6 then
         if gfx_ack3 = '1' then
           state  := 0;
-          togfx3 <= (others => '0');
+          togfx3 <= ZERO_MSG;
         end if;
       elsif state = 7 then
         if uart_ack3 = '1' then
           state   := 0;
-          touart3 <= (others => '0');
+          touart3 <= ZERO_MSG;
         end if;
       elsif state = 8 then
         if audio_ack3 = '1' then
           state    := 0;
-          toaudio3 <= (others => '0');
+          toaudio3 <= ZERO_MSG;
         end if;
       elsif state = 12 then
         if usb_ack3 = '1' then
           state  := 0;
-          tousb3 <= (others => '0');
+          tousb3 <= ZERO_MSG;
         end if;
       elsif state = 9 then
         if gfx_upres_ack2 = '1' then
-          gfx_upres2 <= (others => '0');
+          gfx_upres2 <= ZERO_MSG;
           state      := 0;
         end if;
       elsif state = 10 then
         if uart_upres_ack3 = '1' then
-          uart_upres3 <= (others => '0');
+          uart_upres3 <= ZERO_MSG;
           state       := 0;
         end if;
       elsif state = 11 then
         if usb_upres_ack4 = '1' then
-          usb_upres4 <= (others => '0');
+          usb_upres4 <= ZERO_MSG;
           state      := 0;
         end if;
       elsif state = 12 then
         if audio_upres_ack4 = '1' then
-          audio_upres5 <= (others => '0');
+          audio_upres5 <= ZERO_MSG;
           state        := 0;
         end if;
 
@@ -2284,11 +1881,11 @@ begin
         end if; -- end if valid
       elsif st = 1 then
         if pwr_res1_ack_s = '1' then
-          pwr_res1_s <= (others => '0');
+          pwr_res1_s <= ZERO_MSG;
           st := 0;
         end if;
         if pwr_res2_ack_s = '1' then
-          pwr_res2_s <= (others => '0');
+          pwr_res2_s <= ZERO_MSG;
           st := 0;
         end if;
       end if;
@@ -2333,7 +1930,7 @@ begin
         end if;
       elsif state = 1 then
         if mem_write_ack2='1' then
-          mem_write2 <=(others => '0');
+          mem_write2 <=ZERO_BMSG;
           state :=0;
         end if;
 
@@ -2429,7 +2026,7 @@ begin
   end process;
 
   cache1_req_p : process(reset, Clock)
-    variable nilreq  : MSG_T  := (others => '0');
+    variable nilreq  : MSG_T  := ZERO_MSG;
     variable state   : integer                        := 0;
     variable count   : integer                        := 0;
     variable nildata : std_logic_vector(543 downto 0) := (others => '0');
@@ -2452,7 +2049,7 @@ begin
           pwr_req1 <= cache1_req_i;
           state    := 4;
           --TODO CHECK THE CASE BELOW, SEEMS WRONG
-        --elsif is_valid(cache1_req_i) and cache1_req_i(63 downto 32) = adr_1 then
+        --elsif is_valid(cache1_req_i) and cache1_req_i.adr = adr_1 then
         --  state      := 3;
         --  ----should return to cache, let it perform snoop again!!!
         --  -----
@@ -2471,16 +2068,16 @@ begin
         if is_mem_req(tmp_cache_req1) then				
           tomem1 <= "000" & tmp_cache_req1; -- TODO hard-coded cpu1 id?
           state  := 5;
-        elsif tmp_cache_req1(62 downto 61) = "00" then
+        elsif tmp_cache_req1.adr(30 downto 29) = "00" then
           togfx1 <= "000" & tmp_cache_req1;
           state  := 6;
-        elsif tmp_cache_req1(62 downto 61) = "01" then
+        elsif tmp_cache_req1.adr(30 downto 29) = "01" then
           touart1 <= "000" & tmp_cache_req1;
           state   := 7;
-        elsif tmp_cache_req1(62 downto 61) = "10" then
+        elsif tmp_cache_req1.adr(30 downto 29) = "10" then
           tousb1 <= "000" & tmp_cache_req1;
           state  := 8;
-        elsif tmp_cache_req1(62 downto 61) = "11" then
+        elsif tmp_cache_req1.adr(30 downto 29) = "11" then
           toaudio1 <= "000" & tmp_cache_req1;
           state    := 9;
         end if;
@@ -2490,33 +2087,33 @@ begin
       --  end if;
       elsif state = 4 then -- wait until pwr_arbiter handles request
         if pwr_ack1 = '1' then
-          pwr_req1 <= (others => '0');
+          pwr_req1 <= ZERO_MSG;
           state := 0;
         end if;
       elsif state = 5 then
         if mem_ack1 = '1' then
           state  := 0;
-          tomem1 <= (others => '0');
+          tomem1 <= ZERO_MSG;
         end if;
       elsif state = 6 then
         if gfx_ack1 = '1' then
           state  := 0;
-          togfx1 <= (others => '0');
+          togfx1 <= ZERO_MSG;
         end if;
       elsif state = 7 then  -- MERGE durw
         if uart_ack1 = '1' then
           state  := 0;
-          touart1 <= (others => '0');
+          touart1 <= ZERO_MSG;
         end if;
       elsif state = 8 then
         if usb_ack1 = '1' then
           state  := 0;
-          tousb1 <= (others => '0');
+          tousb1 <= ZERO_MSG;
         end if;
       elsif state = 9 then -- MERGE durw
         if audio_ack1 = '1' then
           state    := 0;
-          toaudio1 <= (others => '0');
+          toaudio1 <= ZERO_MSG;
         end if;
       end if;
     end if;
@@ -2536,7 +2133,7 @@ begin
           pwr_req2 <= cache2_req_i;
           state    := 4;
           -- TODO CHECK THE CASE BELOW, SEEMS WRONG
-        --elsif is_valid(cache2_req_i) and cache2_req_i(63 downto 32) = adr_1 then
+        --elsif is_valid(cache2_req_i) and cache2_req_i.adr = adr_1 then
         --  state      := 3;
         --  ----should return to cache, let it perform snoop again!!!
         --  -----
@@ -2545,7 +2142,7 @@ begin
         --  bus_res1_6 <= '1' & "11111111" & nildata;
         elsif cache2_req_i.val = '1' then
           ---snp_req2 <= cache_req2;
-          adr_0 <= cache2_req_i(63 downto 32);
+          adr_0 <= cache2_req_i.adr;
           state := 2;
     		 tmp_cache_req2 <= cache2_req_i;
         else
@@ -2554,54 +2151,54 @@ begin
       elsif state = 2 then
         if tmp_cache_req2(63 downto 63) = "1" then
           ---this belongs to the memory
-          tomem2 <= "101" & tmp_cache_req2;
+          tomem2 <= CPU1_TAG & tmp_cache_req2;
           state  := 5;
-        elsif tmp_cache_req2(62 downto 61) = "00" then
-          togfx2 <= "101" & tmp_cache_req2;
+        elsif tmp_cache_req2.adr(30 downto 29) = "00" then
+          togfx2 <= CPU1_TAG & tmp_cache_req2;
           state  := 6;
-        elsif tmp_cache_req2(62 downto 61) = "01" then
-          touart2 <= "101" & tmp_cache_req2;
+        elsif tmp_cache_req2.adr(30 downto 29) = "01" then
+          touart2 <= CPU1_TAG & tmp_cache_req2;
           state   := 7;
-        elsif tmp_cache_req2(62 downto 61) = "10" then
-          tousb2 <= "101" & tmp_cache_req2;
+        elsif tmp_cache_req2.adr(30 downto 29) = "10" then
+          tousb2 <= CPU1_TAG & tmp_cache_req2;
           state  := 8;
-        elsif tmp_cache_req2(62 downto 61) = "11" then
-          toaudio2 <= "101" & tmp_cache_req2;
+        elsif tmp_cache_req2.adr(30 downto 29) = "11" then
+          toaudio2 <= CPU1_TAG & tmp_cache_req2;
           state    := 9;
         end if;
       --elsif state = 3 then
       --  if brs1_ack6 = '1' then
-      --    bus_res1_6 <= (others => '0');
+      --    bus_res1_6 <= ZERO_MSG;
       --  end if;
       elsif state = 4 then
         if pwr_ack2 = '1' then
-          pwr_req2 <= (others => '0');
+          pwr_req2 <= ZERO_MSG;
           state := 0;
         end if;
       elsif state = 5 then
         if mem_ack2 = '1' then
           state  := 0;
-          tomem2 <= (others => '0');
+          tomem2 <= ZERO_MSG;
         end if;
       elsif state = 6 then
         if gfx_ack2 = '1' then
           state  := 0;
-          togfx2 <= (others => '0');
+          togfx2 <= ZERO_MSG;
         end if;
     	elsif state = 7 then -- MERGE durw
         if uart_ack2 = '1' then
           state  := 0;
-          touart2 <= (others => '0');
+          touart2 <= ZERO_MSG;
         end if;
       elsif state = 8 then
         if usb_ack2 = '1' then
           state  := 0;
-          tousb2 <= (others => '0');
+          tousb2 <= ZERO_MSG;
         end if;
       elsif state = 9 then  -- MERGE durw
         if audio_ack2 = '1' then
           state    := 0;
-          toaudio2 <= (others => '0');
+          toaudio2 <= ZERO_MSG;
         end if;
       end if;
     end if;
@@ -2614,7 +2211,7 @@ begin
   ----begin
   ----  if RUN_TEST = IC_PWR_GFX_TEST then
   ----    if reset = '1' then
-  ----      pwr_req_o <= (others => '0');
+  ----      pwr_req_o <= ZERO_MSG;
   ----      ct := rand_nat(to_integer(unsigned(IC_PWR_GFX_TEST)));
   ----      --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
   ----      --               to_integer(unsigned(IC_PWR_GFX_TEST)));        
@@ -2629,7 +2226,7 @@ begin
   ----                       "00"; -- gfx id
   ----        st := 2;
   ----      elsif st = 2 then -- done
-  ----        pwr_req_o <= (others => '0');
+  ----        pwr_req_o <= ZERO_MSG;
   ----      end if;
   ----    end if;
   ----  end if;

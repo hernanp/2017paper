@@ -1,22 +1,20 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-USE ieee.numeric_std.ALL;
+use ieee.numeric_std.ALL;
+use work.defs.all;
 
 entity arbiter2_ack is
-  Generic (
-    constant DATA_WIDTH  : positive := 73
-	);
   Port (
     clock: in std_logic;
     reset: in std_logic;
     
-    din1: 	in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+    din1: 	in MSG_T;
     ack1: 	out STD_LOGIC;
     
-    din2:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+    din2:	in MSG_T;
     ack2:	out std_logic;
     
-    dout:	out std_logic_vector(DATA_WIDTH - 1 downto 0);
+    dout:	out MSG_T;
     ack : 	in  std_logic
     );
 end arbiter2_ack;
@@ -29,7 +27,7 @@ architecture rtl of arbiter2_ack is
   
 begin  
   process (reset, clock)
-    variable nilreq : std_logic_vector(DATA_WIDTH - 1 downto 0):=(others => '0');
+    variable nilreq : MSG_T := ZERO_MSG;
     variable cmd: std_logic_vector( 1 downto 0);
     variable state : integer :=0;
   begin
@@ -42,7 +40,7 @@ begin
       if state =0 then
         -- TODO valid bit should always be most significant bit, should change
         -- line below
-        cmd:= din1(72 downto 72) & din2(72 downto 72);
+        cmd:= din1.val & din2.val;
         dout <= nilreq;
         s_ack1 <= '0';
         s_ack2 <= '0';    

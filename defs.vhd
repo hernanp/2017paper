@@ -78,13 +78,13 @@ package defs is
   -- constant ADR_MASK : MSG_T := "0" & ZEROS_CMD & ONES32 & ZEROS32;
   -- constant DAT_MASK : MSG_T := "0" & ZEROS_CMD & ZEROS32 & ONES32;
 
-  subtype IPTAG_T is std_logic_vector(2 downto 0);
-  constant CPU0_TAG  : IPTAG_T := o"0";
-  constant GFX_TAG   : IPTAG_T := o"1";
-  constant UART_TAG  : IPTAG_T := o"2";
-  constant USB_TAG   : IPTAG_T := o"3";
-  constant AUDIO_TAG : IPTAG_T := o"4";
-  constant CPU1_TAG  : IPTAG_T := o"5";
+  subtype IPTAG_T is std_logic_vector(7 downto 0);
+  constant CPU0_TAG  : IPTAG_T := x"00";
+  constant GFX_TAG   : IPTAG_T := x"01";
+  constant UART_TAG  : IPTAG_T := x"02";
+  constant USB_TAG   : IPTAG_T := x"03";
+  constant AUDIO_TAG : IPTAG_T := x"04";
+  constant CPU1_TAG  : IPTAG_T := x"05";
   -- TODO ips should b in order but b careful changing as it may break stg else!
 
   subtype IP_VECT_T is std_logic_vector(11 downto 0);

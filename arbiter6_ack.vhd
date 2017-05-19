@@ -1,34 +1,32 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
+use work.defs.all;
 
 entity arbiter6_ack is
-	Generic (
-		constant DATA_WIDTH  : positive := 73
-	);
     Port (
             clock: in std_logic;
             reset: in std_logic;
             
-            din1: 	in STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+            din1: 	in MSG_T;
             ack1_o: out STD_LOGIC;
             
-            din2:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+            din2:	in MSG_T;
             ack2_o:	out std_logic;
             
-            din3:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+            din3:	in MSG_T;
             ack3_o:	out std_logic;
             
-            din4:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+            din4:	in MSG_T;
             ack4_o:	out std_logic;
             
-            din5:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+            din5:	in MSG_T;
             ack5_o:	out std_logic;
             
-            din6:	in std_logic_vector(DATA_WIDTH - 1 downto 0);
+            din6:	in MSG_T;
             ack6_o:	out std_logic;
             
-            dout:	out std_logic_vector(DATA_WIDTH - 1 downto 0);
+            dout:	out MSG_T;
             ack_i: 	in std_logic
      );
 end arbiter6_ack;
@@ -41,7 +39,7 @@ architecture rtl of arbiter6_ack is
 		
 begin  
  	process (reset, clock)
- 		variable nilreq : std_logic_vector(DATA_WIDTH - 1 downto 0):=(others => '0');
+ 		variable nilreq : MSG_T := ZERO_MSG;
  		variable state : integer:=0;
     begin
         if reset = '1' then
@@ -62,32 +60,32 @@ begin
 	            s_ack4 <= '0';
 	            s_ack5 <= '0';   
 	            s_ack6 <= '0'; 
-	            if din1(72 downto 72 ) ="1" then
+	            if din1.val = '1' then
 	            	if s_ack1 = '0' then
 	            		dout <= din1;
 	            		state := 1;
 	                end if; 
-	            elsif din2(72 downto 72 ) ="1" then
+	            elsif din2.val = '1' then
 	            	if s_ack2 = '0' then
 	            		dout <= din2;
 	            		state :=2;
 	                end if; 
-	         	elsif din3(72 downto 72 ) ="1" then
+	         	elsif din3.val = '1' then
 	            	if s_ack3 = '0' then
 	            		dout <= din3;
 	            		state :=3;
 	                end if; 
-	            elsif din4(72 downto 72 ) ="1" then
+	            elsif din4.val = '1' then
 	            	if s_ack4 = '0' then
 	            		dout <= din4;
 	            		state :=4;
 	                end if; 
-	            elsif din5(72 downto 72 ) ="1" then
+	            elsif din5.val = '1' then
 	            	if s_ack5 = '0' then
 	            		dout <= din5;
 	            		state :=5;
 	                end if; 
-	            elsif din6(72 downto 72 ) ="1" then
+	            elsif din6.val = '1' then
 	            	if s_ack6 = '0' then
 	            		dout <= din6;
 	            		state :=6;

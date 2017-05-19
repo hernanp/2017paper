@@ -11,6 +11,8 @@ package util is
   --* returns true if adr's msb is 1
   function is_mem_req(msg: MSG_T) return boolean;
 
+  function dst_eq(msg: MSG_T; tag: IPTAG_T) return boolean;
+  
   --* delay st transition for cnt clock cycles
   procedure delay(variable cnt: inout natural;
                   variable st : inout natural;
@@ -126,6 +128,14 @@ package body util is
   function is_mem_req(msg: MSG_T) return boolean is
   begin
     if msg.val = '1' then
+      return true;
+    end if;
+    return false;
+  end;
+
+  function dst_eq(msg: MSG_T; tag: IPTAG_T) return boolean is
+  begin
+    if msg.tag = tag then
       return true;
     end if;
     return false;
