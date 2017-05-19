@@ -40,7 +40,7 @@ architecture tb of top is
          full_brs2, full_wb2, full_srs2 : std_logic;
   ---signal full_mrs: std_logic;
   signal done1, done2                   : std_logic;
-  signal mem_wb, wb_req1, wb_req2       : std_logic_vector(552 downto 0);
+  signal mem_wb, wb_req1, wb_req2       : BMSG_T;
   signal wb_ack                         : std_logic;
   signal ic_pwr_req : MSG_T;
   signal ic_pwr_res : MSG_T;
@@ -732,47 +732,47 @@ begin
     if GEN_TRACE1 then
       if rising_edge(tb_clk) then
         ---- cpu
-        write(l, cpu_req1);
+        write(l, slv(cpu_req1));
         write(l, SEP);
-        write(l, cpu_res1);
+        write(l, slv(cpu_res1));
         write(l, SEP);
-        write(l, cpu_req2);
+        write(l, slv(cpu_req2));
         write(l, SEP);
-        write(l, cpu_res2);
+        write(l, slv(cpu_res2));
         write(l, SEP);
 
         ---- snp
-        write(l, snp_req1);
+        write(l, slv(snp_req1));
         write(l, SEP);
-        write(l, snp_res1);
+        write(l, slv(snp_res1));
         write(l, SEP);
         write(l, snp_hit1);
         write(l, SEP);
 
-        write(l, snp_req2);
+        write(l, slv(snp_req2));
         write(l, SEP);
-        write(l, snp_res2);
+        write(l, slv(snp_res2));
         write(l, SEP);
         write(l, snp_hit2);
         write(l, SEP);
 
         ---- up_snp
-        write(l, up_snp_req);
+        write(l, slv(up_snp_req));
         write(l, SEP);
-        write(l, up_snp_res);
+        write(l, slv(up_snp_res));
         write(l, SEP);
         write(l, up_snp_hit);
         write(l, SEP);
 
         ---- cache_req
-        write(l, bus_req1);
+        write(l, slv(bus_req1));
         write(l, SEP);
-        write(l, bus_res1);
+        write(l, slv(bus_res1));
         write(l, SEP);
 
-        write(l, bus_req2);
+        write(l, slv(bus_req2));
         write(l, SEP);
-        write(l, bus_res2);
+        write(l, slv(bus_res2));
         write(l, SEP);
         
         ---- ic
@@ -876,52 +876,52 @@ begin
         write(l, SEP);
         
         -- upreq and upres
-        write(l, gfx_upreq);
+        write(l, slv(gfx_upreq));
         write(l, SEP);
-        write(l, gfx_upres);
-        write(l, SEP);
-        
-        write(l, uart_upreq);
-        write(l, SEP);
-        write(l, uart_upres);
+        write(l, slv(gfx_upres));
         write(l, SEP);
         
-        write(l, usb_upreq);
+        write(l, slv(uart_upreq));
         write(l, SEP);
-        write(l, usb_upres);
+        write(l, slv(uart_upres));
         write(l, SEP);
         
-        write(l, audio_upreq);
+        write(l, slv(usb_upreq));
         write(l, SEP);
-        write(l, audio_upres);
+        write(l, slv(usb_upres));
+        write(l, SEP);
+        
+        write(l, slv(audio_upreq));
+        write(l, SEP);
+        write(l, slv(audio_upres));
         write(l, SEP);
 
         ---- pwr sigs
         -- from ic
-        write(l, ic_pwr_req);
+        write(l, slv(ic_pwr_req));
         write(l, SEP);
-        write(l, ic_pwr_res);
+        write(l, slv(ic_pwr_res));
         write(l, SEP);
 
         -- from peripherals
-        write(l, pwr_gfx_req);
+        write(l, slv(pwr_gfx_req));
         write(l, SEP);
-        write(l, pwr_gfx_res);
-        write(l, SEP);
-
-        write(l, pwr_uart_req);
-        write(l, SEP);
-        write(l, pwr_uart_res);
+        write(l, slv(pwr_gfx_res));
         write(l, SEP);
 
-        write(l, pwr_usb_req);
+        write(l, slv(pwr_uart_req));
         write(l, SEP);
-        write(l, pwr_usb_res);
+        write(l, slv(pwr_uart_res));
         write(l, SEP);
 
-        write(l, pwr_audio_req);
+        write(l, slv(pwr_usb_req));
         write(l, SEP);
-        write(l, pwr_audio_res);
+        write(l, slv(pwr_usb_res));
+        write(l, SEP);
+
+        write(l, slv(pwr_audio_req));
+        write(l, SEP);
+        write(l, slv(pwr_audio_res));
         
         writeline(trace_file, l); 
       end if;

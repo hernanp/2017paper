@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 USE ieee.numeric_std.ALL;
 use work.defs.all;
 
-entity arbiter61 is
+entity b_arbiter6 is
     Port (
             clock: in std_logic;
             reset: in std_logic;
@@ -28,10 +28,10 @@ entity arbiter61 is
             
             dout:	out BMSG_T
      );
-end arbiter61;
+end b_arbiter6;
 
 -- version 2
-architecture rtl of arbiter61 is
+architecture rtl of b_arbiter6 is
 
     signal s_ack1, s_ack2,s_ack3,s_ack4, s_ack5,s_ack6 : std_logic;
     signal s_token : integer :=0;

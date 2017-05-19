@@ -27,8 +27,13 @@ package util is
   --* left pad
   function pad32(v : IPTAG_T) return ADR_T;
 
-  -- function rpad(v : MSG_T) return BMSG_T;
+  function rpad(v : std_logic_vector) return std_logic_vector;
 
+  procedure to_bmsg(signal t : out BMSG_T; constant s: in MSG_t);
+
+  procedure clr(signal s: out BMSG_T);
+  procedure clr(signal s: out MSG_T);
+  
   --+ Poor man's logger
   type LOG_LEVEL_T is (OFF, ERROR, INFO, DEBUG);
   constant LOG_LEVEL : LOG_LEVEL_T := DEBUG;
@@ -59,6 +64,9 @@ package util is
   function nat(n : IP_T) return natural;
   function uint(v : std_logic_vector) return integer;
   function sint(v : std_logic_vector) return integer;
+
+  function slv(m : MSG_T) return std_logic_vector;
+  function slv(m : BMSG_T) return std_logic_vector;
   
   --procedure clr(signal vector : out std_logic_vector);
 end util;
@@ -140,23 +148,35 @@ package body util is
     end if;
     return false;
   end;
-  
-  --procedure clr(signal vector : out std_logic_vector) is
-  --begin
-  --  vector <= (others => '0');
-  --end;
 
   function pad32(v : IPTAG_T) return ADR_T is
   begin
     return X"0000000" & "0" & v;
   end;
 
-  -- function rpad(v : MSG_T) return BMSG_T is
-  --   variable pad : std_logic_vector(479 downto 0) := (others => '0');
-  -- begin
-  --   return (v.adr & pad);
-  -- end;
+   function rpad(v : std_logic_vector) return std_logic_vector is
+     variable pad : std_logic_vector(479 downto 0) := (others => '0');
+   begin
+     return (v & pad);
+   end;
 
+  -- t is target
+  -- s is source
+  procedure to_bmsg(signal t : out BMSG_T; constant s: in MSG_t) is
+  begin
+    t <= (s.val, s.cmd, s.tag, s.id, s.adr, rpad(s.dat));
+  end;
+
+  procedure clr(signal s: out BMSG_T) is
+  begin
+    s <= ZERO_BMSG;
+  end;
+
+  procedure clr(signal s: out MSG_T) is
+  begin
+    s <= ZERO_MSG;
+  end;
+  
   procedure log(constant s : in string; constant l : in LOG_LEVEL_T) is
   begin
     if LOG_LEVEL_T'pos(LOG_LEVEL) >= LOG_LEVEL_T'pos(l) then
@@ -265,6 +285,16 @@ package body util is
   function sint(v : std_logic_vector) return integer is
   begin
     return to_integer(signed(v));
+  end;
+
+  function slv(m : MSG_T) return std_logic_vector is
+  begin
+    return m.val & m.cmd & m.tag & m.id & m.adr & m.dat;
+  end;
+
+  function slv(m : BMSG_T) return std_logic_vector is
+  begin
+    return m.val & m.cmd & m.tag & m.id & m.adr & m.dat;
   end;
   
 end util;

@@ -17,10 +17,10 @@ all:
 	ghdl -a arbiter2_ack.vhd
 	ghdl -a arbiter6.vhd
 	ghdl -a arbiter6_ack.vhd
-	ghdl -a arbiter61.vhd
+	ghdl -a b_arbiter6.vhd
 	ghdl -a arbiter7.vhd
 	ghdl -a fifo.vhd # dependency for [pwr,cache,ic].vhd
-	ghdl -a fifob.vhd # dependency for cache
+	ghdl -a b_fifo.vhd # dependency for cache, ic
 	ghdl -a fifo_snp.vhd # used by ic
 # random number generator
 	ghdl -a --ieee=synopsys rndgen.vhd
@@ -33,7 +33,10 @@ all:
 	ghdl -a --ieee=synopsys cpu.vhd
 	ghdl -a --ieee=synopsys proc.vhd
 # ic components 
-	ghdl -a --ieee=synopsys toper_chan.vhd
+	ghdl -a --ieee=synopsys toper_chan_m.vhd
+	ghdl -a --ieee=synopsys wb_m.vhd
+	ghdl -a --ieee=synopsys cache_req_m.vhd
+	ghdl -a --ieee=synopsys per_upreq_m.vhd
 #
 	ghdl -a --ieee=synopsys ic.vhd # uses fifo, arbiter2,6,61,7
 	ghdl -a --ieee=synopsys peripheral.vhd # generic peripheral

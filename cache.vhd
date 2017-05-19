@@ -191,7 +191,7 @@ begin
       Full    => srf_full_o,
       Empty   => srf_emp
       );
-  bus_res_fifo : entity work.fifob(rtl)
+  bus_res_fifo : entity work.b_fifo(rtl)
     generic map(
       FIFO_DEPTH => DEFAULT_FIFO_DEPTH
       )

@@ -3,7 +3,7 @@ USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
 use work.defs.all;
 
-entity fifob is
+entity b_fifo is
   Generic (
     constant FIFO_DEPTH	: positive := 256
 	);
@@ -17,9 +17,9 @@ entity fifob is
     Empty	: out STD_LOGIC;
     Full	: out STD_LOGIC := '0'
 	);
-end fifob;
+end b_fifo;
 
-architecture rtl of fifob is
+architecture rtl of b_fifo is
 
 begin
   -- Memory Pointer Process

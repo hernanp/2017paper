@@ -13,7 +13,8 @@ entity ic is
 
     cache1_req_i                           : in  MSG_T;
     cache2_req_i                           : in  MSG_T;
-    wb_req1_i, wb_req2_i                   : in  BMSG_T;
+    wb_req1_i                              : in  BMSG_T;
+    wb_req2_i                              : in  BMSG_T;
 
     up_snp_res_i                           : in  MSG_T;
     up_snp_hit_i                           : in  std_logic;
@@ -227,7 +228,7 @@ architecture rtl of ic is
   --state information of power
   signal gfxpoweron : std_logic := '0';
 
-  signal adr_0, adr_1                                   : ADR_T;
+  signal adr_1                                   : ADR_T;
   signal tmp_sp1, tmp_sp2                               : MSG_T;
   signal pwr_req1, pwr_req2                             : MSG_T;
 -- (9 bits)
@@ -294,7 +295,7 @@ architecture rtl of ic is
   signal tmp_cache_req1, tmp_cache_req2: MSG_T;
 
 begin
-  togfx_chan_p : entity work.toper_chan(rtl)
+  togfx_chan_p : entity work.toper_chan_m(rtl)
     port map(
       clock     => Clock,
       reset     => reset,
@@ -336,7 +337,7 @@ begin
 
       );
 
-  tousb_chan_p : entity work.toper_chan(rtl)
+  tousb_chan_p : entity work.toper_chan_m(rtl)
     port map(
       clock     => Clock,
       reset     => reset,
@@ -378,7 +379,7 @@ begin
 
       );
 
-  toaudio_chan_p : entity work.toper_chan(rtl)
+  toaudio_chan_p : entity work.toper_chan_m(rtl)
     port map(
       clock     => Clock,
       reset     => reset,
@@ -420,7 +421,7 @@ begin
 
       );
 
-  touart_chan_p : entity work.toper_chan(rtl)
+  touart_chan_p : entity work.toper_chan_m(rtl)
     port map(
       clock     => Clock,
       reset     => reset,
@@ -462,7 +463,7 @@ begin
 
       );
   
-  wb_fifo1 : entity work.fifob(rtl)
+  wb_fifo1 : entity work.b_fifo(rtl)
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -473,7 +474,7 @@ begin
       Full    => full_wb1_o,
       Empty   => emp6
       );
-  wb_fifo2 : entity work.fifob(rtl)
+  wb_fifo2 : entity work.b_fifo(rtl)
     port map(
       CLK     => Clock,
       RST     => reset,
@@ -586,7 +587,7 @@ begin
       Full    => uart_upreq_full_o,
       Empty   => emp15
     );
-  
+   
   uart_fifo_p : process(reset, Clock)
   begin
     if reset = '1' then
@@ -601,130 +602,61 @@ begin
     end if;
   end process;
 
-  --* handles up requests
-  --* rs: gfx_fifo_re, gfx_fifo_dout, gfx_fifo_emp
-  --* ws: gfx_fifo_re, snp1_2
-  gfx_upreq_p : process(reset, Clock)
-    variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
-    variable st  : natural := 0;
-  variable count: integer:=0;
-  begin
-    if reset = '1' then
-    ---up_snp_req_o <= "000"&nilreq;
-    ---pwr_req1 <= "00000";
-    elsif rising_edge(Clock) then
-      if st = 0 then -- init
-        if gfx_fifo_re = '0' and gfx_fifo_emp = '0' then -- not (in use or empty)
-          gfx_fifo_re   <= '1';
-          st := 1;
-        end if;
-      elsif st = 1 then -- snd_to_arbiter
-        gfx_fifo_re <= '0';
-        if gfx_fifo_dout.val = '1' then
-          snp1_2 <= (gfx_fifo_dout.val, gfx_fifo_dout.cmd,
-                     "00000" & GFX_TAG, gfx_fifo_dout.id,
-                     gfx_fifo_dout.adr, gfx_fifo_dout.dat);
-          st  := 2;
-        end if;
-      elsif st = 2 then -- done
-        if snp1_ack2 = '1' then
-          snp1_2 <= ZERO_MSG;
-          st  := 0;
-        end if;
-      end if;
-    end if;
-  end process;
+  gfx_upreq_m : entity work.per_upreq_m(rtl)
+    port map(
+    clock => clock,
+    reset => reset,
 
-  audio_upreq_p : process(reset, Clock)
-    variable stage : integer := 0;
-  begin
-    if reset = '1' then
-    ---up_snp_req_o <= "000"&nilreq;
-    		re13 <= '0';
-    elsif rising_edge(Clock) then
-      if stage = 0 then
-        if re13 = '0' and emp13 = '0' then
-          re13  <= '1';
-          stage := 1;
-        end if;
-      elsif stage = 1 then
-        re13 <= '0';
-        if out13.val = '1' then
-          snp1_3 <=  (out13.val, out13.cmd,
-                     AUDIO_TAG, out13.id,
-                     out13.adr, out13.dat);
-          stage  := 2;
-        end if;
-      elsif stage = 2 then
-        if snp1_ack3 = '1' then
-          snp1_3 <= ZERO_MSG;
-          stage  := 0;
-        end if;
-      end if;
-    end if;
-  end process;
+    tag_i => GFX_TAG,
+    
+    fifo_re_io => gfx_fifo_re,
+    fifo_empty_i => gfx_fifo_emp,
+    fifo_dat_i => gfx_fifo_dout,
+    req_o => snp1_2,
+    req_ack_i => snp1_ack2
+    );
 
-  usb_upreq_p : process(reset, Clock)
-    variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
-    variable stage  : integer                       := 0;
-  variable count: integer:=0;
-  begin
-    if reset = '1' then
-    ---up_snp_req_o <= "000"&nilreq;
-    re14<='0';
-    elsif rising_edge(Clock) then
-      if stage = 0 then
-        if re14 = '0' and emp14 = '0' then
-          re14  <= '1';
-          stage := 1;
-        end if;
-      elsif stage = 1 then
-        re14 <= '0';
-        if out14.val = '1' then
-          snp1_4 <=  (out14.val, out14.cmd,
-                     USB_TAG, out14.id,
-                     out14.adr, out14.dat);
-          stage  := 2;
-        end if;
-      elsif stage = 2 then
-        if snp1_ack4 = '1' then
-          snp1_4 <= ZERO_MSG;
-          stage  := 0;
-        end if;
-      end if;
-    end if;
-  end process;
+  audio_upreq_m : entity work.per_upreq_m(rtl)
+    port map(
+    clock => clock,
+    reset => reset,
 
-  uart_upreq_p : process(reset, Clock)
-    variable nilreq : std_logic_vector(50 downto 0) := (others => '0');
-    variable stage  : integer                       := 0;
-  variable count: integer:=0;
-  begin
-    if reset = '1' then
-    ---up_snp_req_o <= "000"&nilreq;
-    re15<='0';
-    elsif rising_edge(Clock) then
-      if stage = 0 then
-        if re15 = '0' and emp15 = '0' then
-          re15  <= '1';
-          stage := 1;
-        end if;
-      elsif stage = 1 then
-        re15 <= '0';
-        if out15.val = '1' then
-          snp1_5 <=  (out15.val, out15.cmd,
-                     UART_TAG, out15.id,
-                     out15.adr, out15.dat);
-          stage  := 2;
-        end if;
-      elsif stage = 2 then
-        if snp1_ack5 = '1' then
-          snp1_5 <= ZERO_MSG;
-          stage  := 0;
-        end if;
-      end if;
-    end if;
-  end process;
+    tag_i => AUDIO_TAG,
+    
+    fifo_re_io => re13,
+    fifo_empty_i => emp13,
+    fifo_dat_i => out13,
+    req_o => snp1_3,
+    req_ack_i => snp1_ack3
+    );
+
+  usb_upreq_m : entity work.per_upreq_m(rtl)
+    port map(
+    clock => clock,
+    reset => reset,
+
+    tag_i => USB_TAG,
+    
+    fifo_re_io => re14,
+    fifo_empty_i => emp14,
+    fifo_dat_i => out14,
+    req_o => snp1_4,
+    req_ack_i => snp1_ack4
+    );
+
+  uart_upreq_m : entity work.per_upreq_m(rtl)
+    port map(
+    clock => clock,
+    reset => reset,
+
+    tag_i => UART_TAG,
+    
+    fifo_re_io => re15,
+    fifo_empty_i => emp15,
+    fifo_dat_i => out15,
+    req_o => snp1_5,
+    req_ack_i => snp1_ack5
+    );
 
   tomem_arbitor : entity work.arbiter6_ack(rtl)
     port map(
@@ -754,19 +686,19 @@ begin
     variable lp      : integer                        := 0;
     variable tep_mem : MSG_T;
     variable nullreq : BMSG_T := ZERO_BMSG;
-	 variable slot : integer;
+     variable slot : integer;
   begin
     if reset = '1' then
       rvalid_o  <= '0';
       rdready <= '0';
-		state :=0;
+    	state :=0;
     elsif rising_edge(Clock) then
       dbg_chg("tomem_chan_p", state, prev_st);
       if state = 0 then
-			mem_ack <= '1';
-			state :=20;
+    		mem_ack <= '1';
+    		state :=20;
       elsif state = 20 then
-			mem_ack <='0';
+    		mem_ack <='0';
         bus_res_mem_to_c0   <= nullreq;
         bus_res_mem_to_c1   <= nullreq;
         gfx_upres1   <= ZERO_MSG;
@@ -795,7 +727,7 @@ begin
           --mem_ack <= '0';
           rvalid_o <= '1';
           raddr  <= tep_mem.adr;
-			 slot := to_integer(unsigned(tep_mem.adr(3 downto 0)));
+    		 slot := to_integer(unsigned(tep_mem.adr(3 downto 0)));
           if (tep_mem.tag = CPU0_TAG or
               tep_mem.tag = CPU1_TAG) then
             rlen <= "00000" & "10000";
@@ -814,11 +746,11 @@ begin
           if (tep_mem.tag = CPU0_TAG or
               tep_mem.tag = CPU1_TAG) then
             rdready <= '0';
-				if lp=slot and tep_mem.cmd = WRITE_CMD then
-					tdata(lp * 32 + 31 downto lp * 32) := tep_mem.dat;
-				else
-					tdata(lp * 32 + 31 downto lp * 32) := rdata;
-				end if;
+    			if lp=slot and tep_mem.cmd = WRITE_CMD then
+    				tdata(lp * 32 + 31 downto lp * 32) := tep_mem.dat;
+    			else
+    				tdata(lp * 32 + 31 downto lp * 32) := rdata;
+    			end if;
             lp := lp + 1;
             if rlast = '1' then
               state := 3;
@@ -829,7 +761,7 @@ begin
             rdready <= '1';
             sdata   := rdata;
             rdready <= '1';
-				state :=3;
+    			state :=3;
           end if;
 
         end if;
@@ -1481,7 +1413,7 @@ begin
       ack	=> uart_ack
       );
 
-  bus_res2_arbitor : entity work.arbiter61(rtl)
+  bus_res2_arbitor : entity work.b_arbiter6(rtl)
     port map(
       clock => Clock,
       reset => reset,
@@ -1814,10 +1746,7 @@ begin
     end if;
   end process;
 
-  pwr_req_arbitor : entity work.arbiter61(rtl) --TODO replace with arbiter6
-    generic map(
-      DATA_WIDTH => MSG_WIDTH
-      )
+  pwr_req_arbitor : entity work.arbiter6(rtl)
     port map(
       clock => Clock,
       reset => reset,
@@ -1869,367 +1798,129 @@ begin
             end if;
           end if;
 
-          src := get_adr(pwr_res_i);
+          src := pwr_res_i.adr;
           if src = pad32(CPU0_TAG) then
             --report "src:cpu0";
-            pwr_res1_s <= pwr_res_i & ZERO_480;
+            to_bmsg(pwr_res1_s, pwr_res_i);
           elsif src = pad32(CPU1_TAG) then
-            pwr_res2_s <= pwr_res_i & ZERO_480;
+            to_bmsg(pwr_res2_s, pwr_res_i);
           end if;
 
           st := 1;
         end if; -- end if valid
       elsif st = 1 then
         if pwr_res1_ack_s = '1' then
-          pwr_res1_s <= ZERO_MSG;
+          clr(pwr_res1_s);
           st := 0;
         end if;
         if pwr_res2_ack_s = '1' then
-          pwr_res2_s <= ZERO_MSG;
+          clr(pwr_res2_s);
           st := 0;
         end if;
       end if;
     end if;
   end process;
 
-  ----write_back process
-  ----this need to be edited, 
-  ----1. axi protocl
-  ----2. more than 2 ips
-  wb_1_p : process(reset, Clock)
-    variable state : integer;
-    variable tdata:std_logic_vector(511 downto 0);
-    variable lp:integer :=0;
-  begin
-    if reset = '1' then
-      state   := 0;
-    elsif rising_edge(Clock) then
-      if state = 0 then
-        if re6 = '0' and emp6 = '0' then
-          re6   <= '1';
-          state := 1;
-        end if;
-      elsif state = 1 then
-        re6 <= '0';
-        if out6.val = '1' then
-          if out6(543 downto 543) = "1" then
-            mem_write2 <=out6;
-          elsif out6(542 downto 541) = "00" and wready_gfx = '0' then
-            gfx_write2 <= out6;
-            state      := 3;
-          elsif out6(542 downto 541) = "01" and wready_uart = '0' then
-            uart_write2 <= out6;
-            state       := 4;
-          elsif out6(542 downto 541) = "10" and wready_usb = '0' then
-            usb_write2 <= out6;
-            state      := 5;
-          elsif out6(542 downto 541) = "11" and wready_audio = '0' then
-            audio_write2 <= out6;
-            state        := 6;
-          end if;
-        end if;
-      elsif state = 1 then
-        if mem_write_ack2='1' then
-          mem_write2 <=ZERO_BMSG;
-          state :=0;
-        end if;
+  wb0_m : entity work.wb_m(rtl)
+    port map(
+      clock => clock,
+      reset => reset,
 
-      elsif state = 3 then
-        if gfx_write_ack2='1' then
-          gfx_write2<=(others=>'0');
-          state :=0;
-        end if;
-      elsif state = 4 then
-        if uart_write_ack2='1' then
-          uart_write2<=(others=>'0');
-          state :=0;
-        end if;
-      elsif state = 5 then
-        if usb_write_ack2='1' then
-          usb_write2<=(others=>'0');
-          state :=0;
-        end if;
-      elsif state = 6 then
-        if audio_write_ack2='1' then
-          audio_write2<=(others=>'0');
-          state :=0;
-        end if;
-      end if;
+      fifo_empty_i => emp6,
+      
+      wb_o => out6,
+      mem_write_o => mem_write2,
+      gfx_write_o => gfx_write2,
+      uart_write_o => uart_write2,
+      usb_write_o => usb_write2,
+      audio_write_o => audio_write2,
 
-    end if;
-  end process;
+      mem_write_ack_i => mem_write_ack2,
+      gfx_write_ack_i => gfx_write_ack2,
+      uart_write_ack_i => uart_write_ack2,
+      usb_write_ack_i => usb_write_ack2,
+      audio_write_ack_i => audio_write_ack2,
 
-  ----write_back process
-  wb_2_p : process(reset, Clock)
-    variable state : integer;
-    variable tdata:std_logic_vector(511 downto 0);
-    variable lp:integer :=0;
-  begin
-    if reset = '1' then
-      state   := 0;
+      wready_gfx_i => wready_gfx,
+      wready_uart_i => wready_uart,
+      wready_usb_i => wready_usb,
+      wready_audio_i => wready_audio,
+      
+      re_io => re6
+      
+      );
 
-    elsif rising_edge(Clock) then
-      if state = 0 then
-        if re7 = '0' and emp7 = '0' then
-          re7   <= '1';
-          state := 1;
-        end if;
-      elsif state = 1 then
-        re7 <= '0';
-        if out7.val = '1' then
-          if out7(543 downto 543) = "1" then
-            mem_write3 <=out7;
-            state  := 1;
-          elsif out7(542 downto 541) = "00" and wready_gfx = '0' then
-            gfx_write3 <= out7;
-            state      := 3;
-          elsif out7(542 downto 541) = "01" and wready_uart = '0' then
-            uart_write3 <= out7;
-            state       := 4;
-          elsif out7(542 downto 541) = "10" and wready_usb = '0' then
-            usb_write3 <= out7;
-            state      := 5;
-          elsif out7(542 downto 541) = "11" and wready_audio = '0' then
-            audio_write3 <= out7;
-            state        := 6;
-          end if;
-        end if;
-      elsif state = 1 then
-        if mem_write_ack3='1' then
-          mem_write3<=(others=>'0');
-          state:=0;
-        end if;
-        
-      elsif state = 3 then
-        if gfx_write_ack3='1' then
-          gfx_write3<=(others=>'0');
-          state :=0;
-        end if;
-      elsif state = 4 then
-        if uart_write_ack3='1' then
-          uart_write3<=(others=>'0');
-          state :=0;
-        end if;
-      elsif state = 5 then
-        if usb_write_ack3='1' then
-          usb_write3<=(others=>'0');
-          state :=0;
-        end if;
-      elsif state = 6 then
-        if audio_write_ack3='1' then
-          audio_write3<=(others=>'0');
-          state :=0;
-        end if;
-      end if;
+  wb1_m : entity work.wb_m(rtl)
+    port map(
+      clock => clock,
+      reset => reset,
 
-    end if;
-  end process;
+      fifo_empty_i => emp7,
+      
+      wb_o => out7,
+      mem_write_o => mem_write3,
+      gfx_write_o => gfx_write3,
+      uart_write_o => uart_write3,
+      usb_write_o => usb_write3,
+      audio_write_o => audio_write3,
 
-  cache1_req_p : process(reset, Clock)
-    variable nilreq  : MSG_T  := ZERO_MSG;
-    variable state   : integer                        := 0;
-    variable count   : integer                        := 0;
-    variable nildata : std_logic_vector(543 downto 0) := (others => '0');
-    variable b: boolean := true;
-    variable prev_st : integer := -1;
-  begin
-    if reset = '1' then
-    --snp_req2 <= nilreq;
-    elsif rising_edge(Clock) then
-      --dbg_chg("cache_req1_p",state, prev_st);
-      if state = 0 then
-        if b and cache1_req_i /= nilreq then
-          --report "got pwr req!";
-          --log("000" & cache1_req_i);
-          b := false;
-        end if;
-        if cache1_req_i.val = '1' and
-          is_pwr_cmd(cache1_req_i.cmd) then
-          --report "valid!";
-          pwr_req1 <= cache1_req_i;
-          state    := 4;
-          --TODO CHECK THE CASE BELOW, SEEMS WRONG
-        --elsif is_valid(cache1_req_i) and cache1_req_i.adr = adr_1 then
-        --  state      := 3;
-        --  ----should return to cache, let it perform snoop again!!!
-        --  -----
-        --  ----don't forget to fill this up
-        --  -----
-        --  bus_res1_7 <= '1' & "11111111" & nildata;
-        elsif cache1_req_i.val = '1' then
-          adr_0 <= get_adr(cache1_req_i);
-    		 tmp_cache_req1 <= cache1_req_i;
-          state := 2;
-        else
-          state := 0;
-        end if;
-      elsif state = 2 then
-        --dbg("00" & tmp_cache_req1(62 downto 61));
-        if is_mem_req(tmp_cache_req1) then				
-          tomem1 <= "000" & tmp_cache_req1; -- TODO hard-coded cpu1 id?
-          state  := 5;
-        elsif tmp_cache_req1.adr(30 downto 29) = "00" then
-          togfx1 <= "000" & tmp_cache_req1;
-          state  := 6;
-        elsif tmp_cache_req1.adr(30 downto 29) = "01" then
-          touart1 <= "000" & tmp_cache_req1;
-          state   := 7;
-        elsif tmp_cache_req1.adr(30 downto 29) = "10" then
-          tousb1 <= "000" & tmp_cache_req1;
-          state  := 8;
-        elsif tmp_cache_req1.adr(30 downto 29) = "11" then
-          toaudio1 <= "000" & tmp_cache_req1;
-          state    := 9;
-        end if;
-      --elsif state = 3 then
-      --  if brs1_ack5 = '1' then
-      --    bus_res1_7 <= (others => '0');
-      --  end if;
-      elsif state = 4 then -- wait until pwr_arbiter handles request
-        if pwr_ack1 = '1' then
-          pwr_req1 <= ZERO_MSG;
-          state := 0;
-        end if;
-      elsif state = 5 then
-        if mem_ack1 = '1' then
-          state  := 0;
-          tomem1 <= ZERO_MSG;
-        end if;
-      elsif state = 6 then
-        if gfx_ack1 = '1' then
-          state  := 0;
-          togfx1 <= ZERO_MSG;
-        end if;
-      elsif state = 7 then  -- MERGE durw
-        if uart_ack1 = '1' then
-          state  := 0;
-          touart1 <= ZERO_MSG;
-        end if;
-      elsif state = 8 then
-        if usb_ack1 = '1' then
-          state  := 0;
-          tousb1 <= ZERO_MSG;
-        end if;
-      elsif state = 9 then -- MERGE durw
-        if audio_ack1 = '1' then
-          state    := 0;
-          toaudio1 <= ZERO_MSG;
-        end if;
-      end if;
-    end if;
-  end process;
+      mem_write_ack_i => mem_write_ack3,
+      gfx_write_ack_i => gfx_write_ack3,
+      uart_write_ack_i => uart_write_ack3,
+      usb_write_ack_i => usb_write_ack3,
+      audio_write_ack_i => audio_write_ack3,
 
-  ----deal with cache request
-  cache2_req_p : process(reset, clock)
-    variable state   : integer                        := 0;
-    variable count   : integer                        := 0;
-    variable nildata : std_logic_vector(543 downto 0) := (others => '0');
-  begin
-    if reset = '1' then
-    elsif rising_edge(Clock) then
-      if state = 0 then
-        if cache2_req_i.val = '1' and
-          is_pwr_cmd(cache2_req_i.cmd) then
-          pwr_req2 <= cache2_req_i;
-          state    := 4;
-          -- TODO CHECK THE CASE BELOW, SEEMS WRONG
-        --elsif is_valid(cache2_req_i) and cache2_req_i.adr = adr_1 then
-        --  state      := 3;
-        --  ----should return to cache, let it perform snoop again!!!
-        --  -----
-        --  ----don't forget to fill this up
-        --  -----
-        --  bus_res1_6 <= '1' & "11111111" & nildata;
-        elsif cache2_req_i.val = '1' then
-          ---snp_req2 <= cache_req2;
-          adr_0 <= cache2_req_i.adr;
-          state := 2;
-    		 tmp_cache_req2 <= cache2_req_i;
-        else
-          state := 0;
-        end if;
-      elsif state = 2 then
-        if tmp_cache_req2(63 downto 63) = "1" then
-          ---this belongs to the memory
-          tomem2 <= CPU1_TAG & tmp_cache_req2;
-          state  := 5;
-        elsif tmp_cache_req2.adr(30 downto 29) = "00" then
-          togfx2 <= CPU1_TAG & tmp_cache_req2;
-          state  := 6;
-        elsif tmp_cache_req2.adr(30 downto 29) = "01" then
-          touart2 <= CPU1_TAG & tmp_cache_req2;
-          state   := 7;
-        elsif tmp_cache_req2.adr(30 downto 29) = "10" then
-          tousb2 <= CPU1_TAG & tmp_cache_req2;
-          state  := 8;
-        elsif tmp_cache_req2.adr(30 downto 29) = "11" then
-          toaudio2 <= CPU1_TAG & tmp_cache_req2;
-          state    := 9;
-        end if;
-      --elsif state = 3 then
-      --  if brs1_ack6 = '1' then
-      --    bus_res1_6 <= ZERO_MSG;
-      --  end if;
-      elsif state = 4 then
-        if pwr_ack2 = '1' then
-          pwr_req2 <= ZERO_MSG;
-          state := 0;
-        end if;
-      elsif state = 5 then
-        if mem_ack2 = '1' then
-          state  := 0;
-          tomem2 <= ZERO_MSG;
-        end if;
-      elsif state = 6 then
-        if gfx_ack2 = '1' then
-          state  := 0;
-          togfx2 <= ZERO_MSG;
-        end if;
-    	elsif state = 7 then -- MERGE durw
-        if uart_ack2 = '1' then
-          state  := 0;
-          touart2 <= ZERO_MSG;
-        end if;
-      elsif state = 8 then
-        if usb_ack2 = '1' then
-          state  := 0;
-          tousb2 <= ZERO_MSG;
-        end if;
-      elsif state = 9 then  -- MERGE durw
-        if audio_ack2 = '1' then
-          state    := 0;
-          toaudio2 <= ZERO_MSG;
-        end if;
-      end if;
-    end if;
-  end process;
+      wready_gfx_i => wready_gfx,
+      wready_uart_i => wready_uart,
+      wready_usb_i => wready_usb,
+      wready_audio_i => wready_audio,
+      
+      re_io => re7
+      
+      );
 
-  ----* ic sends a power req 
-  ----ic_pwr_test : process(clock, reset) -- pwr_req test
-  ----  variable st : natural := 0;
-  ----  variable ct : natural;
-  ----begin
-  ----  if RUN_TEST = IC_PWR_GFX_TEST then
-  ----    if reset = '1' then
-  ----      pwr_req_o <= ZERO_MSG;
-  ----      ct := rand_nat(to_integer(unsigned(IC_PWR_GFX_TEST)));
-  ----      --ct := rand_int(RAND_MAX_DELAY, to_int(ct'instance_name),
-  ----      --               to_integer(unsigned(IC_PWR_GFX_TEST)));        
-  ----      st := 0;
-  ----    elsif(rising_edge(clock)) then
-  ----      if st = 0 then -- wait
-  ----        delay(ct, st, 1);
-  ----      elsif st = 1 then -- send
-  ----        report "ic_pwr_gfx_t @ " & integer'image(time'pos(now));
-  ----        pwr_req_o <= "1" & -- valid bit
-  ----                       "10" & -- data means "poweron" (see gfx.vhd)
-  ----                       "00"; -- gfx id
-  ----        st := 2;
-  ----      elsif st = 2 then -- done
-  ----        pwr_req_o <= ZERO_MSG;
-  ----      end if;
-  ----    end if;
-  ----  end if;
-  ----end process;
+  cache0_req_m : entity work.cache_req_m(rtl)
+    port map(
+      clock => clock,
+      reset => reset,
+
+      cache_req_i => cache1_req_i,
+      pwr_req_o => pwr_req1,
+      tomem_o => tomem1,
+      togfx_o => togfx1,
+      touart_o => touart1,
+      tousb_o => tousb1,
+      toaudio_o => toaudio1,
+
+      pwr_ack_i => pwr_ack1,
+      mem_ack_i => mem_ack1,
+      gfx_ack_i => gfx_ack1,
+      uart_ack_i => uart_ack1,
+      usb_ack_i => usb_ack1,
+      audio_ack_i => audio_ack1
+
+      );
+
+  cache1_req_m : entity work.cache_req_m(rtl)
+    port map(
+      clock => clock,
+      reset => reset,
+
+      cache_req_i => cache2_req_i,
+      pwr_req_o => pwr_req2,
+      tomem_o => tomem2,
+      togfx_o => togfx2,
+      touart_o => touart2,
+      tousb_o => tousb2,
+      toaudio_o => toaudio2,
+
+      pwr_ack_i => pwr_ack2,
+      mem_ack_i => mem_ack2,
+      gfx_ack_i => gfx_ack2,
+      uart_ack_i => uart_ack2,
+      usb_ack_i => usb_ack2,
+      audio_ack_i => audio_ack2
+
+      );
   
 end rtl;

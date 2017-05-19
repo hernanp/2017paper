@@ -4,9 +4,6 @@ USE ieee.numeric_std.ALL;
 use work.defs.all;
 
 entity arbiter6 is
-  --Generic (
-  --  constant DATA_WIDTH  : positive := 73
-  --  );
   Port (
     clock: in std_logic;
     reset: in std_logic;
