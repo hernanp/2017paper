@@ -1791,7 +1791,7 @@ begin
     if reset = '1' then
       we6 <= '0';
     elsif rising_edge(Clock) then
-      if (wb_req1_i(552 downto 552) = "1") then
+      if (wb_req1_i.val = '1') then
         in6 <= wb_req1_i;
         we6 <= '1';
       else
@@ -1805,7 +1805,7 @@ begin
     if reset = '1' then
       we7 <= '0';
     elsif rising_edge(Clock) then
-      if (wb_req2_i(552 downto 552) = "1") then
+      if (wb_req2_i.val = '1') then
         in7 <= wb_req2_i;
         we7 <= '1';
       else
@@ -1911,7 +1911,7 @@ begin
         end if;
       elsif state = 1 then
         re6 <= '0';
-        if out6(552 downto 552) = "1" then
+        if out6.val = '1' then
           if out6(543 downto 543) = "1" then
             mem_write2 <=out6;
           elsif out6(542 downto 541) = "00" and wready_gfx = '0' then
@@ -1976,7 +1976,7 @@ begin
         end if;
       elsif state = 1 then
         re7 <= '0';
-        if out7(552 downto 552) = "1" then
+        if out7.val = '1' then
           if out7(543 downto 543) = "1" then
             mem_write3 <=out7;
             state  := 1;
