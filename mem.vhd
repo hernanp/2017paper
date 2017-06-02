@@ -64,7 +64,8 @@ begin
       wready_o     <= '1';
       wdataready_o <= '0';
     elsif (rising_edge(Clock)) then
-      if st = 0 then
+    	if st = 0 then
+    		wready_o <='1';
         wrvalid_o <= '0';
         wrsp_o    <= "10";
         if wvalid_i = '1' then

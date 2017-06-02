@@ -151,7 +151,7 @@ package body util is
 
   function pad32(v : IPTAG_T) return ADR_T is
   begin
-    return X"0000000" & "0" & v;
+    return X"000000" & v;
   end;
 
    function rpad(v : std_logic_vector) return std_logic_vector is

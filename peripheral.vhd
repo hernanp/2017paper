@@ -64,7 +64,7 @@ architecture rtl of peripheral is
   signal tmp_req : std_logic_vector(50 downto 0);
 
   signal sim_end : std_logic := '0';
-  
+  signal tag: IPTAG_T:= ZERO_TAG;
 begin
 
   --upreq_o_arbiter : entity work.arbiter2(rtl)
@@ -77,7 +77,21 @@ begin
   --    ack2  => ack2,
   --    dout  => upreq_o
   --    );
-
+set_tag: process(reset)
+	begin
+		if reset='1' then
+			if id_i = GFX then
+      			tag <= GFX_TAG;
+     		elsif id_i=AUDIO then
+     			tag <= AUDIO_TAG;
+     		elsif id_i=USB then
+     			tag <= USB_TAG;
+     		elsif id_i=UART then
+     			tag <= UART_TAG;
+     		end if;
+		end if;
+	end process;
+ 
   write_req_p : process(Clock, reset)
     variable address : integer;
     variable len     : integer;
@@ -89,7 +103,9 @@ begin
       wready_o     <= '1';
       wdataready_o <= '0';
     elsif (rising_edge(Clock)) then
-      if state = 0 then
+    	if state = 0 then
+    		wready_o <='1';
+    		wdataready_o <='0';
         wrvalid_o <= '0';
         wrsp_o    <= "10";
         if wvalid_i = '1' then
@@ -188,9 +204,11 @@ begin
       pwr_res_o <= pwr_req;
       pwr_req := pwr_req_i;
       if pwr_req.cmd = PWRUP_CMD then
-        poweron <= '1';
+      	poweron <= '1';
+      	report "pheriphal power on";
       elsif pwr_req.cmd = PWRDN_CMD then
-        poweron <= '0';
+      	poweron <= '0';
+      	report "pheriphal power off";
       else
         pwr_req := ZERO_MSG;
       end if;
@@ -219,9 +237,9 @@ begin
     variable offset : ADR_T;
 
     --HACKS
-    variable c1 : integer := 0;
-    variable c2 : integer := 200;
-    variable c3 : integer := 400;
+    variable c1 : integer := 900;
+    variable c2 : integer := 400;
+    variable c3 : integer := 800;
     variable c4 : integer := 600;
     
   begin
@@ -234,7 +252,7 @@ begin
           rnd_dlay(b, s, dc, st, st_nxt);
         elsif st = 2 then -- done
           upreq_o <= ZERO_MSG;
-          sim_end <= '1';
+          --sim_end <= '1';
         elsif st = 0 then -- check
           if is_tset(TEST(UREQ)) and
             ((UREQT_SRC and ip_enc(id_i)) /= ip_enc(NONE)) then
@@ -285,7 +303,8 @@ begin
             tcmd := WRITE_CMD;
           end if;
           
-          upreq_o <= ('1', tcmd, ZERO_TAG, ZERO_ID, t_adr, ZERO_DAT);
+          upreq_o <= ('1', tcmd, tag, ZERO_ID, t_adr, ZERO_DAT);
+          --report "<<<<<<<up request tag is "& integer'image(to_integer(unsigned(tag)));
           st := 4;
         elsif st = 4 then
           upreq_o <= ZERO_MSG;

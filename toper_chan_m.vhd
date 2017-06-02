@@ -78,11 +78,7 @@ begin
         audio_upres_o <= ZERO_MSG;
         usb_upres_o   <= ZERO_MSG;
         if (toper_i.val = '1' and
-          toper_i.cmd = READ_CMD) then
-          -- HP: I believe the following code is incorrect:
-          --or
-          --toper_i(75 downto 73)="000" or -- msg is invalid
-          --toper_i(75 downto 73)="101")) then -- valid and read
+          (toper_i.cmd = READ_CMD or toper_i.tag=CPU0_TAG or toper_i.tag=CPU1_TAG) ) then
           tep_gfx1 := toper_i;
           st   := 6;
         elsif (toper_i.val = '1' and
@@ -145,7 +141,7 @@ begin
         --elsif tep_gfx(75 downto 73)="001" then
         --gfx_upres2 <= tep_gfx(72 downto 32) & sdata;
         --st := 5;
-        elsif tep_gfx1.tag = UART_TAG then
+        elsif tep_gfx1.tag = GFX_TAG then
           gfx_upres_o <= (tep_gfx1.val, tep_gfx1.cmd, tep_gfx1.tag,
                           tep_gfx1.id, tep_gfx1.adr, sdata);
           st := 5;

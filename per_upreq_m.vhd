@@ -35,6 +35,7 @@ begin
     if reset = '1' then
     ---up_snp_req_o <= "000"&nilreq;
     ---pwr_req1 <= "00000";
+    fifo_re_io <='0';
     elsif rising_edge(Clock) then
       if st = 0 then -- init
         if (fifo_re_io = '0' and
@@ -48,6 +49,7 @@ begin
           req_o <= (fifo_dat_i.val, fifo_dat_i.cmd,
                      tag_i, fifo_dat_i.id,
                      fifo_dat_i.adr, fifo_dat_i.dat);
+          --report "<<<<<<<up request snoop request tag is "& integer'image(to_integer(unsigned(tag_i)));
           st  := 2;
         end if;
       elsif st = 2 then -- done

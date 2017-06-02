@@ -31,28 +31,28 @@ package test is
   --* UREQ: peripherals send UREQT_CNT up rnd(r/w) requests
 
   --********* GLOBAL TEST OPTS ***************
-  constant MEM_DELAY : natural := 0;
+  constant MEM_DELAY : natural := 20;
   -- test delay flag, used by rnd_dlay fun to re-enable rndmz_flg 
   constant TDLAY_FLG : boolean := true;
 
   --********* PWR TEST OPTS ******************
-  constant PWRT_CNT : natural := 2;
+  constant PWRT_CNT : natural := 5;
   constant PWRT_SRC : IP_VECT_T := --ip_enc(CPU0) or
                                    ip_enc(CPU1);
   --constant PWRT_MAXDELAY : natural := 0;  --NOT IMPLEMENTED YET
   
   --********* RW TEST OPTS *******************
-  constant RWT_CNT : natural := 1;
+  constant RWT_CNT : natural := 100;
   constant RWT_SRC : IP_VECT_T := ip_enc(CPU0) or ip_enc(CPU1);
   --constant RWT_DST : IP_VECT_T := ip_enc(GFX); -- NOT IMPLEMENTED YET
   --constant RWT_MAXDELAY : natural := 10;  -- NOT IMPLEMENTED YET
   constant RWT_WAITRES : boolean := true;
-  constant RWT_CMD : CMD_T := --READ_CMD or
+  constant RWT_CMD : CMD_T := READ_CMD or
                               WRITE_CMD;
 
   --********* UREQ TEST OPTS *****************
-  constant UREQT_CNT : natural := 5;
-  constant UREQT_SRC : IP_VECT_T := ip_enc(USB) or ip_enc(UART) or ip_enc(AUDIO);
+  constant UREQT_CNT : natural := 100;
+  constant UREQT_SRC : IP_VECT_T := ip_enc(USB) or ip_enc(GFX) or ip_enc(UART) or ip_enc(AUDIO);
   
   --********* PETERSONS TEST OPTS ************
   constant PT_DELAY_FLAG : boolean := true;
@@ -70,9 +70,9 @@ package test is
 
   --********************************************************************
   --* Warning: don't enable tests that are triggered on the same signals
-  constant RUN_TEST : TEST_T := TEST(RW);-- or
-                                --TEST(PWR);-- or
-                                --TEST(UREQ);
+  constant RUN_TEST : TEST_T := TEST(RW) or
+                                TEST(PWR) or
+                               TEST(UREQ);
                                 --TEST(PETERSONS);
                                 --TEST(NONE);
   --********************************************************************

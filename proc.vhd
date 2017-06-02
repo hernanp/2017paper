@@ -17,7 +17,7 @@ entity proc is
     bus_res_i    : in  BMSG_T;
     snp_hit_o    : out std_logic;
     snp_res_o    : out MSG_T := ZERO_MSG;
-
+	full_snpres_i:in std_logic;
     --goes to cache controller ask for data
     snp_req_o    : out MSG_T;
     snp_res_i    : in  MSG_T;
@@ -84,7 +84,7 @@ begin
     snp_req_o => snp_req_o, -- fwd snp req to other cache
     snp_hit_i => snp_hit_i,
     snp_res_i => snp_res_i,
-
+	full_snpres_i => full_snpres_i,
     bus_req_o  => bus_req_o, -- mem or pwr req to ic
     bus_res_i   => bus_res_i, -- mem or pwr resp from ic
 

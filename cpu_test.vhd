@@ -25,8 +25,18 @@ end cpu_test;
 architecture rwt of cpu_test is
   signal sim_end : std_logic := '0';
   signal r : std_logic_vector(31 downto 0);
+  signal tag: IPTAG_T:= ZERO_TAG;
 begin
-
+	set_tag: process(rst)
+	begin
+		if rst='1' then
+			if id_i = CPU0 then
+      			tag <= CPU0_TAG;
+     		elsif id_i=CPU1 then
+     			tag <= CPU1_TAG;
+     		end if;
+		end if;
+	end process;
   -- rndgen_ent : entity work.rndgen(rtl) port map (
   --   clk    => clk,
   --   rst    => rst,
@@ -37,6 +47,7 @@ begin
 
   done_o <= (not en) or sim_end;
 
+ 
   clk_counter : process(clk, en, sim_end)
     variable count : natural := 0;
     variable b : boolean := true;
@@ -133,9 +144,9 @@ begin
         --  t7_adr := t7_adr and X"1FFFFFFF"; -- gfx --TODO need to change gfx
         --end if;
 
-        cpu_req_o <= ('1', t7_cmd, ZERO_TAG, ZERO_ID, t7_adr, t7_adr);
+        cpu_req_o <= ('1', t7_cmd, tag, ZERO_ID, t7_adr, t7_adr);
         dbg(t7_cmd & t7_adr & t7_adr);
-        prev_req := ('1', t7_cmd, ZERO_TAG, ZERO_ID, t7_adr, t7_adr);
+        prev_req := ('1', t7_cmd, tag, ZERO_ID, t7_adr, t7_adr);
         st := 4;
       elsif st = 4 then
         if cpu_req_ack_i = '1' then
@@ -159,8 +170,19 @@ end architecture rwt;
 architecture pwrt of cpu_test is
   signal r : std_logic_vector(31 downto 0);
   signal sim_end : std_logic := '0';
+  signal tag: IPTAG_T:= ZERO_TAG;
 begin  -- architecture pwrtx
-
+	set_tag: process(rst)
+	begin
+		if rst='1' then
+			if id_i = CPU0 then
+      			tag <= CPU0_TAG;
+     		elsif id_i=CPU1 then
+     			tag <= CPU1_TAG;
+     		end if;
+		end if;
+	end process;
+	
   -- rndgen_ent : entity work.rndgen(rtl) port map (
   --   clk    => clk,
   --   rst    => rst,
@@ -227,7 +249,7 @@ begin  -- architecture pwrtx
           st := 2;
         end if;
       elsif st = 2 then
-        sim_end <= '1';
+        --sim_end <= '1';
       elsif st = 3 then -- SND pwr req
 
         -- set cpu id vect
@@ -251,7 +273,8 @@ begin  -- architecture pwrtx
         --  (t6_r % 4) + 1 since there are 4 peripherals and their ids start at 1
         t6_devid := std_logic_vector(to_unsigned((t6_r mod 4) + 1, t6_devid'length));
         
-        cpu_req_o <= ('1', t6_cmd, ZERO_TAG, ZERO_ID, pad32(t6_cpuid), pad32(t6_devid));
+        cpu_req_o <= ('1', t6_cmd, tag, ZERO_ID, pad32(t6_cpuid), pad32(t6_devid));
+        report "cpu is power requesint data: "& integer'image(to_integer(unsigned(pad32(t6_devid))));
         st := 4;
       elsif st = 4 then -- WAIT RES
         cpu_req_o <= ZERO_MSG;

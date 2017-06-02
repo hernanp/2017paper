@@ -27,7 +27,7 @@ end pwr;
 
 architecture rtl of pwr is
   signal in1,out1 : MSG_T;
-  signal in2,out2 : MSG_T;
+  signal in2,out2 : MSG_T := ZERO_MSG;
   signal we1,re1,emp1,we2,re2,emp2 : std_logic:='0';
   signal test: MSG_T;
 begin
