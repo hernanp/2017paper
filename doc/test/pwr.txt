@@ -1,2 +1,0 @@
-[wait] {label: wait\n delay(rnd)} --> [send] {label: send\n!pwr_req;}
-[send] --> [done]

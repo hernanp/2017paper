@@ -38,6 +38,8 @@ all:
 	ghdl -a --ieee=synopsys cache_req_m.vhd
 	ghdl -a --ieee=synopsys per_upreq_m.vhd
 	ghdl -a --ieee=synopsys per_write_m.vhd
+	ghdl -a msg_fifo_m.vhd
+	ghdl -a bmsg_fifo_m.vhd
 #
 	ghdl -a --ieee=synopsys ic.vhd # uses fifo, arbiter2,6,61,7
 	ghdl -a --ieee=synopsys peripheral.vhd # generic peripheral

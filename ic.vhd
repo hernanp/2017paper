@@ -468,19 +468,15 @@ begin
 			req_o        => snp1_2,
 			req_ack_i    => snp1_ack2
 		);
-	gfx_fifo_p : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we9 <= '0';
-		elsif rising_edge(Clock) then
-			if gfx_upreq_i.val = '1' then
-				gfx_fifo_din <= gfx_upreq_i;
-				we9          <= '1';
-			else
-				we9 <= '0';
-			end if;
-		end if;
-	end process;
+
+  gfx_fifo_p : entity work.msg_fifo_m(rtl)
+    port map (
+      clock => clock,
+      reset => reset,
+      data_i => gfx_upreq_i,
+      tofifo_o => gfx_fifo_din,
+      we_o => we9
+      );
 
 	usb_fifo : entity work.fifo(rtl)
 		port map(
@@ -526,48 +522,34 @@ begin
 			req_o        => snp1_4,
 			req_ack_i    => snp1_ack4
 		);
-	
-	usb_fifo_p : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we14 <= '0';
-		elsif rising_edge(Clock) then
-			if (usb_upreq_i.val = '1') then
-				in14 <= usb_upreq_i;
-				we14 <= '1';
-			else
-				we14 <= '0';
-			end if;
-		end if;
-	end process;
-	creq0_p : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we16 <= '0';
-		elsif rising_edge(Clock) then
-			if (cache1_req_i.val = '1') then
-				in16 <= cache1_req_i;
-				we16 <= '1';
-			else
-				we16 <= '0';
-			end if;
-		end if;
-	end process;
 
-	creq1_p : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we17 <= '0';
-		elsif rising_edge(Clock) then
-			if (cache2_req_i.val = '1') then
-				in17 <= cache2_req_i;
-				we17 <= '1';
-			else
-				we17 <= '0';
-			end if;
-		end if;
-	end process;
-	
+  usb_fifo_p : entity work.msg_fifo_m(rtl)
+    port map (
+      clock => clock,
+      reset => reset,
+      data_i => usb_upreq_i,
+      tofifo_o => in14,
+      we_o => we14
+      );
+
+  c0_req_fifo_p : entity work.msg_fifo_m(rtl)
+    port map (
+      clock => clock,
+      reset => reset,
+      data_i => cache1_req_i,
+      tofifo_o => in16,
+      we_o => we16
+      );
+
+  c1_req_fifo_p : entity work.msg_fifo_m(rtl)
+    port map (
+      clock => clock,
+      reset => reset,
+      data_i => cache2_req_i,
+      tofifo_o => in17,
+      we_o => we17
+      );
+  
 	snp_res_fifo : entity work.fifo_snp(rtl)
 		port map(
 			CLK     => Clock,
@@ -592,19 +574,14 @@ begin
 			Empty   => emp13
 		);
 
-	audio_fifo_p : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we13 <= '0';
-		elsif rising_edge(Clock) then
-			if (audio_upreq_i.val = '1') then
-				in13 <= audio_upreq_i;
-				we13 <= '1';
-			else
-				we13 <= '0';
-			end if;
-		end if;
-	end process;
+  audio_fifo_p : entity work.msg_fifo_m(rtl)
+    port map (
+      clock => clock,
+      reset => reset,
+      data_i => audio_upreq_i,
+      tofifo_o => in13,
+      we_o => we13
+      );
 
 	uart_fifo : entity work.fifo(rtl)
 		port map(
@@ -618,20 +595,15 @@ begin
 			Empty   => emp15
 		);
 
-	uart_fifo_p : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we15 <= '0';
-		elsif rising_edge(Clock) then
-			if (uart_upreq_i.val = '1') then
-				in15 <= uart_upreq_i;
-				we15 <= '1';
-			else
-				we15 <= '0';
-			end if;
-		end if;
-	end process;
-
+  uart_fifo_p : entity work.msg_fifo_m(rtl)
+    port map (
+      clock => clock,
+      reset => reset,
+      data_i => uart_upreq_i,
+      tofifo_o => in15,
+      we_o => we15
+      );
+  
 	audio_upreq_m : entity work.per_upreq_m(rtl)
 		port map(
 			clock        => clock,
@@ -657,7 +629,7 @@ begin
 			req_ack_i    => snp1_ack5
 		);
 
-	tomem_arbitor : entity work.arbiter6_ack(rtl)
+	tomem_arbiter : entity work.arbiter6_ack(rtl)
 		port map(
 			clock  => Clock,
 			reset  => reset,
@@ -1021,29 +993,29 @@ begin
 			clock  => Clock,
 			reset  => reset,
 
-      write_ack1_o => gfx_write_ack1, --o
+      write_ack1_o => gfx_write_ack1,
       write_ack2_o => gfx_write_ack2,
       write_ack3_o => gfx_write_ack3,
       
-      write1_i => gfx_write1,           --i
+      write1_i => gfx_write1,
       write2_i => gfx_write2,
       write3_i => gfx_write3,
 
-      wready_i => wready_gfx, --i
+      wready_i => wready_gfx,
 
-      wvalid_o =>  wvalid_gfx, --o
+      wvalid_o =>  wvalid_gfx,
       waddr_o =>  waddr_gfx,
       wlen_o => wlen_gfx,
       wsize_o => wsize_gfx,
 
-      wdataready_i => wdataready_gfx, --i
-      wdvalid_o => wdvalid_gfx, --o
+      wdataready_i => wdataready_gfx,
+      wdvalid_o => wdvalid_gfx,
       wtrb_o => wtrb_gfx,
       wdata_o => wdata_gfx,
       wlast_o => wlast_gfx,
 
-      wrready_o => wrready_gfx, --o
-      wrvalid_i => wrvalid_gfx, --i
+      wrready_o => wrready_gfx,
+      wrvalid_i => wrvalid_gfx,
       wrsp_i => wrsp_gfx,
 
       mem_wb_i => mem_wb
@@ -1055,23 +1027,23 @@ begin
 			clock  => Clock,
 			reset  => reset,
 
-      write_ack1_o => uart_write_ack1, --o
+      write_ack1_o => uart_write_ack1,
       write_ack2_o => uart_write_ack2,
       write_ack3_o => uart_write_ack3,
       
-      write1_i => uart_write1,           --i
+      write1_i => uart_write1,
       write2_i => uart_write2,
       write3_i => uart_write3,
 
-      wready_i => wready_uart, --i
+      wready_i => wready_uart,
 
-      wvalid_o =>  wvalid_uart, --o
+      wvalid_o =>  wvalid_uart,
       waddr_o =>  waddr_uart,
       wlen_o => wlen_uart,
       wsize_o => wsize_uart,
 
-      wdataready_i => wdataready_uart, --i
-      wdvalid_o => wdvalid_uart, --o
+      wdataready_i => wdataready_uart,
+      wdvalid_o => wdvalid_uart,
       wtrb_o => wtrb_uart,
       wdata_o => wdata_uart,
       wlast_o => wlast_uart,
@@ -1084,7 +1056,7 @@ begin
 
       );  
 
-	toaudio_arbitor : entity work.arbiter2_ack(rtl)
+	toaudio_arbiter : entity work.arbiter2_ack(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1096,7 +1068,7 @@ begin
 			ack   => audio_ack
 		);
 
-	tousb_arbitor : entity work.arbiter2_ack(rtl)
+	tousb_arbiter : entity work.arbiter2_ack(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1176,7 +1148,7 @@ begin
 
       );  
 
-	touart_arbitor : entity work.arbiter2_ack(rtl)
+	touart_arbiter : entity work.arbiter2_ack(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1188,7 +1160,7 @@ begin
 			ack   => uart_ack
 		);
 
-	bus_res2_arbitor : entity work.b_arbiter6(rtl)
+	toproc1_res_arbiter : entity work.b_arbiter6(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1207,7 +1179,7 @@ begin
 			dout  => bus_res2_o
 		);
 
-	snp1_arbitor : entity work.arbiter6(rtl)
+	per_upreq_arbiter : entity work.arbiter6(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1226,7 +1198,7 @@ begin
 			dout  => up_snp_req_o
 		);
 
-	bus_res1_arbitor : entity work.arbiter7(rtl)
+	toproc1_res_arbiter : entity work.arbiter7(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1247,7 +1219,7 @@ begin
 			dout  => bus_res1_o
 		);
 
-	gfx_upres_arbitor : entity work.arbiter6(rtl)
+	gfx_upres_arbiter : entity work.arbiter6(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1266,7 +1238,7 @@ begin
 			dout  => gfx_upres_o
 		);
 
-	audio_upres_arbitor : entity work.arbiter6(rtl)
+	audio_upres_arbiter : entity work.arbiter6(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1285,7 +1257,7 @@ begin
 			dout  => audio_upres_o
 		);
 
-	usb_upres_arbitor : entity work.arbiter6(rtl)
+	usb_upres_arbiter : entity work.arbiter6(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1304,7 +1276,7 @@ begin
 			dout  => usb_upres_o
 		);
 
-	uart_upres_arbitor : entity work.arbiter6(rtl)
+	uart_upres_arbiter : entity work.arbiter6(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1323,7 +1295,7 @@ begin
 			dout  => uart_upres_o
 		);
 
-	wb_arbitor : entity work.b_arbiter2(rtl)
+	mem_wb_arbiter : entity work.b_arbiter2(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1334,7 +1306,7 @@ begin
 			dout  => mem_wb
 		);
 
-	gfx_wb_arbitor : entity work.b_arbiter2(rtl)
+	gfx_wb_arbiter : entity work.b_arbiter2(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1345,7 +1317,7 @@ begin
 			dout  => gfx_wb
 		);
 
-	audio_wb_arbitor : entity work.b_arbiter2(rtl)
+	audio_wb_arbiter : entity work.b_arbiter2(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1356,7 +1328,7 @@ begin
 			dout  => audio_wb
 		);
 
-	usb_wb_arbitor : entity work.b_arbiter2(rtl)
+	usb_wb_arbiter : entity work.b_arbiter2(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1367,7 +1339,7 @@ begin
 			dout  => usb_wb
 		);
 
-	uart_wb_arbitor : entity work.b_arbiter2(rtl)
+	uart_wb_arbiter : entity work.b_arbiter2(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
@@ -1384,8 +1356,7 @@ begin
 			we2 <= '0';
 		elsif rising_edge(Clock) then
 			if up_snp_res_i.val = '1' then
-				----report "<<<<<<<<<<<<<<<<<<<<<<<up response tag is " & integer'image(to_integer(unsigned(up_snp_res_i.tag)));
-				report "2 ic received";
+				--report "2 ic received";
 				if up_snp_hit_i = '0' then
 					in2 <= ('0', up_snp_res_i);
 				else
@@ -1507,35 +1478,25 @@ begin
 		end if;
 	end process;
 
-	wb_req1_fifo : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we6 <= '0';
-		elsif rising_edge(Clock) then
-			if (wb_req1_i.val = '1') then
-				in6 <= wb_req1_i;
-				we6 <= '1';
-			else
-				we6 <= '0';
-			end if;
-		end if;
-	end process;
+  c0_wbreq_fifo_p : entity work.bmsg_fifo_m(rtl)
+    port map (
+      clock => clock,
+      reset => reset,
+      data_i => wb_req1_i,
+      tofifo_o => in6,
+      we_o => we6
+      );
+  
+  c1_wbreq_fifo_p : entity work.bmsg_fifo_m(rtl)
+    port map (
+      clock => clock,
+      reset => reset,
+      data_i => wb_req2_i,
+      tofifo_o => in7,
+      we_o => we7
+      );
 
-	wb_req2_fifo : process(reset, Clock)
-	begin
-		if reset = '1' then
-			we7 <= '0';
-		elsif rising_edge(Clock) then
-			if (wb_req2_i.val = '1') then
-				in7 <= wb_req2_i;
-				we7 <= '1';
-			else
-				we7 <= '0';
-			end if;
-		end if;
-	end process;
-
-	pwr_req_arbitor : entity work.arbiter6(rtl)
+	pwr_req_arbiter : entity work.arbiter6(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
