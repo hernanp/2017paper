@@ -234,7 +234,7 @@ architecture tb of top is
   signal cpu1_pwr_req, cpu1_pwr_res, cpu2_pwr_req, cpu2_pwr_res : MSG_T;
 
   signal proc0_done, proc1_done, usb_done, uart_done, gfx_done, audio_done : std_logic;
-  
+  signal full_snpres:std_logic;
 begin
    proc0_e : entity work.proc(rtl) port map(
      reset     => reset,
@@ -249,6 +249,7 @@ begin
      up_snp_req_i  => up_snp_req, -- upstream snoop req 
      up_snp_hit_o => up_snp_hit,
      up_snp_res_o => up_snp_res,
+     full_snpres_i=> full_snpres,
 
      snp_req_o => snp_req2, -- fwd snp req to other cache
      snp_hit_i => snp_hit2,
@@ -280,7 +281,7 @@ begin
      up_snp_req_i  => ZERO_MSG, -- upstream snoop req 
      --up_snp_hit_o => ,
      --up_snp_res_o => ,
-
+	 full_snpres_i=>'0',
      snp_req_o => snp_req1, -- fwd snp req to other cache
      snp_hit_i => snp_hit1,
      snp_res_i => snp_res1,
@@ -337,7 +338,7 @@ begin
      uart_upreq_i       => uart_upreq,
      uart_upres_o       => uart_upres,
      uart_upreq_full_o  => uart_upreq_full,
-
+     full_snpres_o      => full_snpres,  -- enabled if snp res fifo is full
      -- write
      waddr            => waddr,
      wlen             => wlen,
@@ -732,96 +733,96 @@ begin
     if GEN_TRACE1 then
       if rising_edge(tb_clk) then
         ---- cpu
-        write(l, slv(cpu_req1));
+        write(l, slv(cpu_req1));--0
         write(l, SEP);
-        write(l, slv(cpu_res1));
+        write(l, slv(cpu_res1));--1
         write(l, SEP);
-        write(l, slv(cpu_req2));
+        write(l, slv(cpu_req2));--02
         write(l, SEP);
-        write(l, slv(cpu_res2));
+        write(l, slv(cpu_res2));--03
         write(l, SEP);
 
         ---- snp
-        write(l, slv(snp_req1));
+        write(l, slv(snp_req1));--04
         write(l, SEP);
-        write(l, slv(snp_res1));
+        write(l, slv(snp_res1));--05
         write(l, SEP);
-        write(l, snp_hit1);
+        write(l, snp_hit1);--06
         write(l, SEP);
 
-        write(l, slv(snp_req2));
+        write(l, slv(snp_req2));--07
         write(l, SEP);
-        write(l, slv(snp_res2));
+        write(l, slv(snp_res2));--08
         write(l, SEP);
-        write(l, snp_hit2);
+        write(l, snp_hit2);--09
         write(l, SEP);
 
         ---- up_snp
-        write(l, slv(up_snp_req));
+        write(l, slv(up_snp_req));--010
         write(l, SEP);
-        write(l, slv(up_snp_res));
+        write(l, slv(up_snp_res));--011
         write(l, SEP);
-        write(l, up_snp_hit);
+        write(l, up_snp_hit);--012
         write(l, SEP);
 
         ---- cache_req
-        write(l, slv(bus_req1));
+        write(l, slv(bus_req1));--013
         write(l, SEP);
-        write(l, slv(bus_res1));
+        write(l, slv(bus_res1));--014
         write(l, SEP);
 
-        write(l, slv(bus_req2));
+        write(l, slv(bus_req2));--015
         write(l, SEP);
-        write(l, slv(bus_res2));
+        write(l, slv(bus_res2));--016
         write(l, SEP);
         
         ---- ic
         ---- read
-        write(l, rvalid);
+        write(l, rvalid);--017
         write(l, SEP);
-        write(l, raddr);
+        write(l, raddr);--018
         write(l, SEP);
-        write(l, rdvalid);
+        write(l, rdvalid);--019
         write(l, SEP);
-        write(l, rlast);
+        write(l, rlast);--020
         write(l, SEP);
         ---- write
-        write(l, wvalid);
+        write(l, wvalid);--021
         write(l, SEP);
-        write(l, waddr);
+        write(l, waddr);--022
         write(l, SEP);
-        write(l, wrvalid);
+        write(l, wdvalid);--023
         write(l, SEP);
-        write(l, rlast);
+        write(l, wlast);--024
         write(l, SEP);
         
         ---- gfx
         ---- read
-        write(l, rvalid_gfx);
+        write(l, rvalid_gfx);--025
         write(l, SEP);
-        write(l, raddr_gfx);
+        write(l, raddr_gfx);--026
         write(l, SEP);
-        write(l, rdvalid_gfx);
+        write(l, rdvalid_gfx);--027
         write(l, SEP);
-        write(l, rlast_gfx);
+        write(l, rlast_gfx);--028
         write(l, SEP);
         ---- write
-        write(l, wvalid_gfx);
+        write(l, wvalid_gfx);--029
         write(l, SEP);
-        write(l, waddr_gfx);
+        write(l, waddr_gfx);--030
         write(l, SEP);
-        write(l, wrvalid_gfx);
+        write(l, wdvalid_gfx);--031
         write(l, SEP);
-        write(l, wlast_gfx);
+        write(l, wlast_gfx);--032
         write(l, SEP);
 
         ---- uart
         ---- read
-        write(l, rvalid_uart);
+        write(l, rvalid_uart);--33
         write(l, SEP);
-        write(l, raddr_uart);
+        write(l, raddr_uart);--34
         write(l, SEP);
-        write(l, rdvalid_uart);
+        write(l, rdvalid_uart);--35
         write(l, SEP);
         write(l, rlast_uart);
         write(l, SEP);
@@ -830,7 +831,7 @@ begin
         write(l, SEP);
         write(l, waddr_uart);
         write(l, SEP);
-        write(l, wrvalid_uart);
+        write(l, wdvalid_uart);
         write(l, SEP);
         write(l, wlast_uart);
         write(l, SEP);
@@ -850,7 +851,7 @@ begin
         write(l, SEP);
         write(l, waddr_usb);
         write(l, SEP);
-        write(l, wrvalid_usb);
+        write(l, wdvalid_usb);
         write(l, SEP);
         write(l, wlast_usb);
         write(l, SEP);
@@ -870,7 +871,7 @@ begin
         write(l, SEP);
         write(l, waddr_audio);
         write(l, SEP);
-        write(l, wrvalid_audio);
+        write(l, wdvalid_audio);
         write(l, SEP);
         write(l, wlast_audio);
         write(l, SEP);

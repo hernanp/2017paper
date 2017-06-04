@@ -1016,205 +1016,73 @@ begin
 		end if;
 	end process;
 
-	gfx_write_p : process(reset, Clock)
-		variable state     : integer := 0;
-		variable tep_gfx   : MSG_T;
-		variable tep_gfx_l : BMSG_T;
-		variable flag      : std_logic;
-		variable tdata     : std_logic_vector(511 downto 0);
-		variable lp        : integer := 0;
-		variable prev_st   : integer := -1;
-	-- --if flag is 1, then return gfx write 2
-	begin
-		if reset = '1' then
-			flag := '0';
-		elsif rising_edge(Clock) then
-			-- dbg_chg("gfx_write_p", state, prev_st);
-			if state = 0 then
-				lp             := 0;
-				gfx_write_ack1 <= '0';
-				gfx_write_ack2 <= '0';
-				gfx_write_ack3 <= '0';
-				if gfx_write1.val = '1' then
-					state          := 1;
-					tep_gfx        := gfx_write1;
-					gfx_write_ack1 <= '1';
-				elsif gfx_write2.val = '1' then
-					state          := 4;
-					tep_gfx_l      := gfx_write2;
-					gfx_write_ack2 <= '1';
-				elsif gfx_write3.val = '1' then
-					state          := 4;
-					tep_gfx_l      := gfx_write3;
-					gfx_write_ack3 <= '1';
-				end if;
-			elsif state = 1 then
-				gfx_write_ack1 <= '0';
-				if wready_gfx = '1' then
-					wvalid_gfx <= '1';
-					waddr_gfx  <= tep_gfx.adr;
-					wlen_gfx   <= "00000" & "00001"; -- MERGE durw: [10000/00001]
-					wsize_gfx  <= "00001" & "00000";
-					-- wdata_audio := tep_gfx.dat;
-					state := 2;
-				end if;
-			elsif state = 2 then
-				wvalid_gfx <= '0';
-				if wdataready_gfx = '1' then
-					wdvalid_gfx <= '1';
-					wtrb_gfx    <= "1111";
-					wdata_gfx   <= tep_gfx.dat;
-					wlast_gfx   <= '1';
-					state       := 3;
-				end if;
+	gfx_write_p : entity work.per_write_m(rtl)
+		port map(
+			clock  => Clock,
+			reset  => reset,
 
-			elsif state = 3 then
-				wdvalid_gfx <= '0';
-				wrready_gfx <= '1';
-				if wrvalid_gfx = '1' then
-					if wrsp_gfx = "00" then
+      write_ack1_o => gfx_write_ack1, --o
+      write_ack2_o => gfx_write_ack2,
+      write_ack3_o => gfx_write_ack3,
+      
+      write1_i => gfx_write1,           --i
+      write2_i => gfx_write2,
+      write3_i => gfx_write3,
 
-					-- -this is a successful write back, yayyy
-					end if;
-					wrready_gfx <= '0';
-					state       := 0;
+      wready_i => wready_gfx, --i
 
-				end if;
-			elsif state = 4 then
-				gfx_write_ack2 <= '0';
-				gfx_write_ack3 <= '0';
-				if wready_gfx = '1' then
-					wvalid_gfx <= '1';
-					waddr_gfx  <= mem_wb.adr;
-					wlen_gfx   <= "00000" & "10000";
-					wsize_gfx  <= "00001" & "00000";
-					tdata      := tep_gfx_l.dat;
-					state      := 5;
-				end if;
-			elsif state = 5 then
-				if wdataready_gfx = '1' then
-					wdvalid_gfx <= '1';
-					wtrb_gfx    <= "1111";
-					wdata_gfx   <= tdata(lp + 31 downto lp);
-					lp          := lp + 32;
-					if lp = 512 then
-						wlast_gfx <= '1';
-						state     := 6;
-						lp        := 0;
-					end if;
-				end if;
-			elsif state = 6 then
-				wdvalid_gfx <= '0';
-				wrready_gfx <= '1';
-				if wrvalid_gfx = '1' then
-					state       := 0;
-					if wrsp_gfx = "00" then
-					-- -this is a successful write back, yayyy
+      wvalid_o =>  wvalid_gfx, --o
+      waddr_o =>  waddr_gfx,
+      wlen_o => wlen_gfx,
+      wsize_o => wsize_gfx,
 
-					end if;
-					wrready_gfx <= '0';
-				end if;
-			end if;
-		end if;
-	end process;
+      wdataready_i => wdataready_gfx, --i
+      wdvalid_o => wdvalid_gfx, --o
+      wtrb_o => wtrb_gfx,
+      wdata_o => wdata_gfx,
+      wlast_o => wlast_gfx,
 
-	uart_write_p : process(reset, Clock)
-		variable state      : integer := 0;
-		variable tep_uart   : MSG_T;
-		variable tep_uart_l : BMSG_T;
-		variable flag       : std_logic;
-		variable tdata      : std_logic_vector(511 downto 0);
-		variable lp         : integer := 0;
-	-- --if flag is 1, then return uart write 2
-	begin
-		if reset = '1' then
-			flag := '0';
-		elsif rising_edge(Clock) then
-			if state = 0 then
-				lp              := 0;
-				uart_write_ack1 <= '0';
-				uart_write_ack2 <= '0';
-				uart_write_ack3 <= '0';
-				if uart_write1.val = '1' then
-					state           := 1;
-					tep_uart        := uart_write1;
-					uart_write_ack1 <= '1';
-				elsif uart_write2.val = '1' then
-					state           := 4;
-					tep_uart_l      := uart_write2;
-					uart_write_ack2 <= '1';
-				elsif uart_write3.val = '1' then
-					state           := 4;
-					tep_uart_l      := uart_write3;
-					uart_write_ack3 <= '1';
-				end if;
-			elsif state = 1 then
-				uart_write_ack1 <= '1';
-				if wready_uart = '1' then -- MERGE durw: [1/0]
-					wvalid_uart <= '1';
-					waddr_uart  <= tep_uart.adr;
-					wlen_uart   <= "00000" & "00001"; -- MERGE durw: [00001/10000]
-					wsize_uart  <= "00001" & "00000";
-					-- wdata_audio := tep_uart.dat;
-					state := 2;
-				end if;
-			elsif state = 2 then
-				if wdataready_uart = '1' then
-					wdvalid_uart <= '1';
-					wtrb_uart    <= "1111";
-					wdata_uart   <= tep_uart.dat;
-					wlast_uart   <= '1';
-					state        := 3;
-				end if;
+      wrready_o => wrready_gfx, --o
+      wrvalid_i => wrvalid_gfx, --i
+      wrsp_i => wrsp_gfx,
 
-			elsif state = 3 then
-				wdvalid_uart <= '0';
-				wrready_uart <= '1';
-				if wrvalid_uart = '1' then
-					state        := 0;
-					if wrsp_uart = "00" then
+      mem_wb_i => mem_wb
 
-					-- -this is a successful write back, yayyy
-					end if;
-					wrready_uart <= '0';
-				end if;
-			elsif state = 4 then
-				uart_write_ack2 <= '0';
-				uart_write_ack3 <= '0';
-				if wready_uart = '1' then -- MERGE durw: [1/0]
-					wvalid_uart <= '1';
-					waddr_uart  <= mem_wb.adr;
-					wlen_uart   <= "00000" & "10000";
-					wsize_uart  <= "00001" & "00000";
-					tdata       := tep_uart_l.dat;
-					state       := 5;
-				end if;
-			elsif state = 5 then
-				if wdataready_uart = '1' then
-					wdvalid_uart <= '1';
-					wtrb_uart    <= "1111";
-					wdata_uart   <= tdata(lp + 31 downto lp);
-					lp           := lp + 32;
-					if lp = 512 then
-						wlast_uart <= '1';
-						state      := 6;
-						lp         := 0;
-					end if;
-				end if;
-			elsif state = 6 then
-				wdvalid_uart <= '0';
-				wrready_uart <= '1';
-				if wrvalid_uart = '1' then
-					state        := 0;
-					if wrsp_uart = "00" then
-					-- -this is a successful write back, yayyy
+      );
 
-					end if;
-					wrready_uart <= '0';
-				end if;
-			end if;
-		end if;
-	end process;
+	uart_write_p : entity work.per_write_m(rtl)
+		port map(
+			clock  => Clock,
+			reset  => reset,
+
+      write_ack1_o => uart_write_ack1, --o
+      write_ack2_o => uart_write_ack2,
+      write_ack3_o => uart_write_ack3,
+      
+      write1_i => uart_write1,           --i
+      write2_i => uart_write2,
+      write3_i => uart_write3,
+
+      wready_i => wready_uart, --i
+
+      wvalid_o =>  wvalid_uart, --o
+      waddr_o =>  waddr_uart,
+      wlen_o => wlen_uart,
+      wsize_o => wsize_uart,
+
+      wdataready_i => wdataready_uart, --i
+      wdvalid_o => wdvalid_uart, --o
+      wtrb_o => wtrb_uart,
+      wdata_o => wdata_uart,
+      wlast_o => wlast_uart,
+
+      wrready_o => wrready_uart, --o
+      wrvalid_i => wrvalid_uart, --i
+      wrsp_i => wrsp_uart,
+
+      mem_wb_i => mem_wb
+
+      );  
 
 	toaudio_arbitor : entity work.arbiter2_ack(rtl)
 		port map(
@@ -1240,200 +1108,73 @@ begin
 			ack   => usb_ack
 		);
 
-	audio_write_p : process(reset, Clock)
-		variable state       : integer := 0;
-		variable tep_audio   : MSG_T;
-		variable tep_audio_l : BMSG_T;
-		variable flag        : std_logic;
-		variable tdata       : std_logic_vector(511 downto 0);
-		variable lp          : integer := 0;
-	-- --if flag is 1, then return audio write 2
-	begin
-		if reset = '1' then
-			flag := '0';
-		elsif rising_edge(Clock) then
-			if state = 0 then
-				lp               := 0;
-				audio_write_ack1 <= '0';
-				audio_write_ack2 <= '0';
-				audio_write_ack3 <= '0';
-				if audio_write1.val = '1' then
-					state            := 1;
-					tep_audio        := audio_write1;
-					audio_write_ack1 <= '1';
-				elsif audio_write2.val = '1' then
-					state            := 4;
-					tep_audio_l      := audio_write2;
-					audio_write_ack2 <= '1';
-				elsif audio_write3.val = '1' then
-					state            := 4;
-					tep_audio_l      := audio_write3;
-					audio_write_ack3 <= '1';
-				end if;
-			elsif state = 1 then
-				audio_write_ack1 <= '0';
-				if wready_audio = '1' then -- MERGE durw: [1/0]
-					wvalid_audio <= '1';
-					waddr_audio  <= tep_audio.adr;
-					wlen_audio   <= "00000" & "00001"; -- MERGE durw: [00001/10000]
-					wsize_audio  <= "00001" & "00000";
-					-- wdata_audio := tep_audio.dat;
-					state := 2;
-				end if;
-			elsif state = 2 then
-				if wdataready_audio = '1' then
-					wdvalid_audio <= '1';
-					wtrb_audio    <= "1111";
-					wdata_audio   <= tep_audio.dat;
-					wlast_audio   <= '1';
-					state         := 3;
-				end if;
+	audio_write_p : entity work.per_write_m(rtl)
+		port map(
+			clock  => Clock,
+			reset  => reset,
 
-			elsif state = 3 then
-				wdvalid_audio <= '0';
-				wrready_audio <= '1';
-				if wrvalid_audio = '1' then
-					if wrsp_audio = "00" then
+      write_ack1_o => audio_write_ack1,
+      write_ack2_o => audio_write_ack2,
+      write_ack3_o => audio_write_ack3,
+      
+      write1_i => audio_write1,
+      write2_i => audio_write2,
+      write3_i => audio_write3,
 
-					-- -this is a successful write back, yayyy
-					end if;
-					wrready_audio <= '0';
-					state         := 0;
-				end if;
-			elsif state = 4 then
-				audio_write_ack2 <= '0';
-				audio_write_ack3 <= '0';
-				if wready_audio = '1' then -- MERGE durw: [1/0]
-					wvalid_audio <= '1';
-					waddr_audio  <= mem_wb.adr;
-					wlen_audio   <= "00000" & "10000";
-					wsize_audio  <= "00001" & "00000";
-					tdata        := tep_audio_l.dat;
-					state        := 5;
-				end if;
-			elsif state = 5 then
-				if wdataready_audio = '1' then
-					wdvalid_audio <= '1';
-					wtrb_audio    <= "1111";
-					wdata_audio   <= tdata(lp + 31 downto lp);
-					lp            := lp + 32;
-					if lp = 512 then
-						wlast_audio <= '1';
-						state       := 6;
-						lp          := 0;
-					end if;
-				end if;
-			elsif state = 6 then
-				wdvalid_audio <= '0';
-				wrready_audio <= '1';
-				if wrvalid_audio = '1' then
-					state         := 0;
-					if wrsp_audio = "00" then
-					-- -this is a successful write back, yayyy
+      wready_i => wready_audio,
 
-					end if;
-					wrready_audio <= '0';
-				end if;
-			end if;
-		end if;
-	end process;
+      wvalid_o =>  wvalid_audio,
+      waddr_o =>  waddr_audio,
+      wlen_o => wlen_audio,
+      wsize_o => wsize_audio,
 
-	usb_write_p : process(reset, Clock)
-		variable state     : integer := 0;
-		variable tep_usb   : MSG_T;
-		variable tep_usb_l : BMSG_T;
-		variable flag      : std_logic;
-		variable tdata     : std_logic_vector(511 downto 0);
-		variable lp        : integer := 0;
-	-- --if flag is 1, then return usb write 2
-	begin
-		if reset = '1' then
-			flag := '0';
-		elsif rising_edge(Clock) then
-			if state = 0 then
-				lp             := 0;
-				usb_write_ack1 <= '0';
-				usb_write_ack2 <= '0';
-				usb_write_ack3 <= '0';
-				if usb_write1.val = '1' then
-					state          := 1;
-					tep_usb        := usb_write1;
-					usb_write_ack1 <= '1';
-				elsif usb_write2.val = '1' then
-					state          := 4;
-					tep_usb_l      := usb_write2;
-					usb_write_ack2 <= '1';
-				elsif usb_write3.val = '1' then
-					state          := 4;
-					tep_usb_l      := usb_write3;
-					usb_write_ack2 <= '1';
-				end if;
-			elsif state = 1 then
-				usb_write_ack1 <= '0';
-				if wready_usb = '1' then -- MERGE durw: [1/0]
-					wvalid_usb <= '1';
-					waddr_usb  <= tep_usb.adr;
-					wlen_usb   <= "00000" & "00001"; -- MERGE durw: [1/0]
-					wsize_usb  <= "00001" & "00000";
-					-- wdata_audio := tep_usb.dat;
-					state := 2;
-				end if;
-			elsif state = 2 then
-				if wdataready_usb = '1' then
-					wdvalid_usb <= '1';
-					wtrb_usb    <= "1111";
-					wdata_usb   <= tep_usb.dat;
-					wlast_usb   <= '1';
-					state       := 3;
-				end if;
+      wdataready_i => wdataready_audio,
+      wdvalid_o => wdvalid_audio,
+      wtrb_o => wtrb_audio,
+      wdata_o => wdata_audio,
+      wlast_o => wlast_audio,
 
-			elsif state = 3 then
-				wdvalid_usb <= '0';
-				wrready_usb <= '1';
-				if wrvalid_usb = '1' then
-					if wrsp_usb = "00" then
+      wrready_o => wrready_audio,
+      wrvalid_i => wrvalid_audio,
+      wrsp_i => wrsp_audio,
 
-					-- -this is a successful write back, yayyy
-					end if;
-					state       := 0;
-					wrready_usb <= '0';
-				end if;
-			elsif state = 4 then
-				usb_write_ack2 <= '0';
-				usb_write_ack3 <= '0';
-				if wready_usb = '1' then -- MERGE durw: [1/0]
-					wvalid_usb <= '1';
-					waddr_usb  <= mem_wb.adr;
-					wlen_usb   <= "00000" & "10000";
-					wsize_usb  <= "00001" & "00000";
-					tdata      := tep_usb_l.dat;
-					state      := 5;
-				end if;
-			elsif state = 5 then
-				if wdataready_usb = '1' then
-					wdvalid_usb <= '1';
-					wtrb_usb    <= "1111";
-					wdata_usb   <= tdata(lp + 31 downto lp);
-					lp          := lp + 32;
-					if lp = 512 then
-						wlast_usb <= '1';
-						state     := 6;
-						lp        := 0;
-					end if;
-				end if;
-			elsif state = 6 then
-				wdvalid_usb <= '0';
-				wrready_usb <= '1';
-				if wrvalid_usb = '1' then
-					state       := 0;
-					if wrsp_usb = "00" then
-					-- -this is a successful write back, yayyy
-					end if;
-					wrready_usb <= '0';
-				end if;
-			end if;
-		end if;
-	end process;
+      mem_wb_i => mem_wb
+
+      );
+
+	usb_write_p : entity work.per_write_m(rtl)
+		port map(
+			clock  => Clock,
+			reset  => reset,
+
+      write_ack1_o => usb_write_ack1,
+      write_ack2_o => usb_write_ack2,
+      write_ack3_o => usb_write_ack3,
+      
+      write1_i => usb_write1,
+      write2_i => usb_write2,
+      write3_i => usb_write3,
+
+      wready_i => wready_usb,
+
+      wvalid_o =>  wvalid_usb,
+      waddr_o =>  waddr_usb,
+      wlen_o => wlen_usb,
+      wsize_o => wsize_usb,
+
+      wdataready_i => wdataready_usb,
+      wdvalid_o => wdvalid_usb,
+      wtrb_o => wtrb_usb,
+      wdata_o => wdata_usb,
+      wlast_o => wlast_usb,
+
+      wrready_o => wrready_usb,
+      wrvalid_i => wrvalid_usb,
+      wrsp_i => wrsp_usb,
+
+      mem_wb_i => mem_wb
+
+      );  
 
 	touart_arbitor : entity work.arbiter2_ack(rtl)
 		port map(

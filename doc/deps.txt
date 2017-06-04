@@ -7,3 +7,10 @@
 [arb6] --> [ic]
 [arb61] --> [ic]
 [arb7] --> [ic]
+
+[cache_req_m] -> [ic]
+[fifo_snp] -> [ic]
+[per_upreq_m] -> [ic]
+[toper_chan_m] -> [ic]
+[per_write_p] -> [ic]
+
