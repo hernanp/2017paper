@@ -1198,7 +1198,7 @@ begin
 			dout  => up_snp_req_o
 		);
 
-	toproc1_res_arbiter : entity work.arbiter7(rtl)
+	toproc0_res_arbiter : entity work.arbiter7(rtl)
 		port map(
 			clock => Clock,
 			reset => reset,
