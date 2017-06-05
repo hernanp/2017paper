@@ -81,6 +81,8 @@ begin
     -- HACKS
     variable c1: integer := 0;
     variable c2: integer := 200; -- offset so that cpus do not req same adr
+
+    variable seqid: integer := -1;
     
   begin
     if en = '1' and rst = '1' then
@@ -144,9 +146,12 @@ begin
         --  t7_adr := t7_adr and X"1FFFFFFF"; -- gfx --TODO need to change gfx
         --end if;
 
-        cpu_req_o <= ('1', t7_cmd, tag, ZERO_ID, t7_adr, t7_adr);
+        -- set sequence id
+        seqid := seqid + 1;
+        
+        cpu_req_o <= ('1', t7_cmd, tag, std_logic_vector(to_unsigned(seqid, 8)), t7_adr, t7_adr);
         dbg(t7_cmd & t7_adr & t7_adr);
-        prev_req := ('1', t7_cmd, tag, ZERO_ID, t7_adr, t7_adr);
+        prev_req := ('1', t7_cmd, tag, std_logic_vector(to_unsigned(seqid, 8)), t7_adr, t7_adr);
         st := 4;
       elsif st = 4 then
         if cpu_req_ack_i = '1' then

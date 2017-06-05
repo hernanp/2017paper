@@ -235,7 +235,8 @@ set_tag: process(reset)
     variable t_adr : ADR_T;
     variable tcmd : CMD_T;
     variable offset : ADR_T;
-
+    variable seqid : integer := -1;
+    
     --HACKS
     variable c1 : integer := 900;
     variable c2 : integer := 400;
@@ -302,8 +303,12 @@ set_tag: process(reset)
           else
             tcmd := WRITE_CMD;
           end if;
+
+          -- set sequence id
+          seqid := seqid + 1;
           
-          upreq_o <= ('1', tcmd, tag, ZERO_ID, t_adr, ZERO_DAT);
+          upreq_o <= ('1', tcmd, tag, std_logic_vector(to_unsigned(seqid, 8)),
+                      t_adr, ZERO_DAT);
           --report "<<<<<<<up request tag is "& integer'image(to_integer(unsigned(tag)));
           st := 4;
         elsif st = 4 then
