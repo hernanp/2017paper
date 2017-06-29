@@ -28,7 +28,7 @@ architecture rtl of arbiter2 is
   signal wb_flag : std_logic;
   
 begin
-  process (reset, clock)
+  process (reset, clock, s_ack1, s_ack2)
     variable cmd: std_logic_vector( 1 downto 0);
   begin
     if reset = '1' then

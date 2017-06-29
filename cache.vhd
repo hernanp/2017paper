@@ -144,7 +144,7 @@ begin
 
 	-- * Stores up snoop requests into fifo
 	-- * up_snp_req_i;; -> ;brf_in, brf_we;
-	ureq_fifo_p : process(Clock)
+	ureq_fifo_p : process(clock, reset)
 	begin
 		if reset = '1' then
 			brf_we <= '0';
@@ -234,11 +234,11 @@ begin
 
 	-- * Stores cpu requests into fifo
 	-- * cpu_req_i;; -> ;crf_in, crf_we;
-	cpu_req_fifo_p : process(Clock)
+	cpu_req_fifo_p : process(clock, reset)
 	begin
 		if reset = '1' then
 			crf_we <= '0';
-		elsif rising_edge(Clock) then
+		elsif rising_edge(clock) then
 			if cpu_req_i.val = '1' then -- if req is valid
 				crf_in <= cpu_req_i;
 				----report "cpu 's input data " & std_logic_vector'image(cpu_req_i.dat);
@@ -251,7 +251,7 @@ begin
 
 	-- * Stores snoop requests into fifo
 	-- * snp_req_i;; -> ;srf_in, srf_we;
-	snp_req_fifo_p : process(Clock)
+	snp_req_fifo_p : process(clock, reset)
 	begin
 		if reset = '1' then
 			srf_we <= '0';
@@ -268,7 +268,7 @@ begin
 
 	-- * Stores bus response into fifo
 	-- * bus_res_i;; -> ;bsf_in, bsf_we;
-	bus_res_fifo_p : process(Clock)
+	bus_res_fifo_p : process(clock, reset)
 	begin
 		if reset = '1' then
 			bsf_we <= '0';
@@ -289,7 +289,7 @@ begin
 	-- *  -> ;cpu_res1, mcu_write_req, crf_re, snp_c_req1, cpu_mem_ack, cpu_mem_hit,
 	-- *      tmp_cpu_res1, cpu_res1, snp_req, snp_c_ack1;
 	-- *     bus_req_o
-	cpu_req_p : process(reset, Clock)
+	cpu_req_p : process(reset, clock)
 		-- TODO should they be signals instead of variables?
 		variable st      : integer := 0;
 		variable prev_st : integer := -1;
@@ -384,7 +384,7 @@ begin
 	end process;
 
 	-- * Process snoop requests (from another cache)
-	snp_req_p : process(reset, Clock)
+	snp_req_p : process(reset, clock)
 		variable addr  : ADR_T;
 		variable state : integer := 0;
 	begin
@@ -429,7 +429,7 @@ begin
 	-- also when found, the write will be operated here directly, and return
 	-- nothing
 	-- if it's read, then the data will be returned to request source
-	ureq_req_p : process(reset, Clock)
+	ureq_req_p : process(reset, clock)
 		variable state : integer := 0;
 		variable tmp_h:std_logic;
 		variable tmp_res:MSG_T;
@@ -508,7 +508,7 @@ begin
 	-- end process;
 
 	-- * Process snoop response (to snoop request issued by this cache)
-	bus_res_p : process(reset, Clock)
+	bus_res_p : process(reset, clock)
 		variable state : integer := 0;
 	begin
 		if reset = '1' then
@@ -548,7 +548,7 @@ begin
 	-- *        snp_mem_ack, snp_mem_hit, snp_mem_res,
 	-- *        usnp_mem_ack, usnp_mem_hit, usnp_mem_res;
 	-- *      wb_req_o
-	mem_control_unit : process(reset, Clock)
+	mem_control_unit : process(reset, clock)
 		variable idx     : integer;
 		variable memcont : std_logic_vector(52 downto 0);
 		variable shifter : boolean := false;

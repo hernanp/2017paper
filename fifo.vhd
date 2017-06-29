@@ -20,8 +20,8 @@ entity fifo is
 end fifo;
 
 architecture rtl of fifo is
- signal td1: std_logic_vector(31 downto 0);
- signal td2: std_logic_vector(31 downto 0);
+ --signal td1: std_logic_vector(31 downto 0);
+ --signal td2: std_logic_vector(31 downto 0);
 begin
 	
   -- Memory Pointer Process
@@ -36,8 +36,8 @@ begin
     variable Looped : boolean;
   begin
   	if rising_edge(CLK) then
-  		td2<=Memory(Tail).dat;
-  		td1<=DataIn.dat;
+  		--td2<=Memory(Tail).dat;
+  		--td1<=DataIn.dat;
       if RST = '1' then
         Head := 0;
         Tail := 0;
